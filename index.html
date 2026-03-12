@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Finanzalive — Dashboard</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+:root {
+  --bg:#0f1117; --bg2:#1a1d27; --bg3:#22263a;
+  --border:rgba(255,255,255,0.08);
+  --text:#e8eaf0; --muted:#8b90a0;
+  --accent:#4f8ef7; --green:#1db97a; --red:#e84b4a; --amber:#f0a030;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:14px;min-height:100vh;}
+
+/* AUTH */
+#auth-screen{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:1rem;}
+.auth-box{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:2.5rem 2rem;width:100%;max-width:380px;}
+.auth-logo{font-size:28px;font-weight:800;color:var(--accent);margin-bottom:6px;letter-spacing:-1px;}
+.auth-sub{color:var(--muted);font-size:13px;margin-bottom:2rem;}
+.field{margin-bottom:1rem;}
+.field label{display:block;font-size:12px;color:var(--muted);margin-bottom:5px;}
+.field input{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px 12px;color:var(--text);font-size:14px;outline:none;transition:border .2s;}
+.field input:focus{border-color:var(--accent);}
+.btn-primary{width:100%;background:var(--accent);color:#fff;border:none;border-radius:8px;padding:11px;font-size:14px;font-weight:500;cursor:pointer;transition:opacity .2s;}
+.btn-primary:hover{opacity:.88;}
+#auth-error{color:var(--red);font-size:12px;margin-top:10px;text-align:center;min-height:18px;}
+
+/* APP */
+#app-screen{display:none;}
+.topbar{background:var(--bg2);border-bottom:1px solid var(--border);padding:0 1.5rem;height:56px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
+.topbar-logo{font-size:16px;font-weight:800;color:var(--accent);letter-spacing:-.5px;}
+.topbar-right{display:flex;align-items:center;gap:12px;}
+.avatar{width:32px;height:32px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;}
+.logout-btn{background:none;border:1px solid var(--border);color:var(--muted);border-radius:6px;padding:5px 10px;cursor:pointer;font-size:12px;}
+.logout-btn:hover{color:var(--text);}
+
+.layout{display:flex;min-height:calc(100vh - 56px);}
+.sidebar{width:220px;background:var(--bg2);border-right:1px solid var(--border);padding:1rem 0;flex-shrink:0;}
+.nav-sec{font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;padding:0 1.2rem;margin:1.2rem 0 5px;}
+.nav-item{display:flex;align-items:center;gap:9px;padding:8px 1.2rem;cursor:pointer;color:var(--muted);font-size:13px;border-left:2px solid transparent;transition:all .15s;}
+.nav-item:hover{color:var(--text);background:rgba(255,255,255,0.03);}
+.nav-item.active{color:var(--accent);background:rgba(79,142,247,0.08);border-left-color:var(--accent);}
+.nav-badge{font-size:10px;margin-left:auto;padding:2px 6px;border-radius:4px;}
+.nb-on{background:rgba(29,185,122,0.15);color:var(--green);}
+.nb-off{background:var(--bg3);color:var(--muted);}
+
+.main{flex:1;padding:1.8rem;overflow-x:hidden;}
+.page{display:none;}
+.page.active{display:block;}
+.pg-title{font-size:20px;font-weight:700;margin-bottom:3px;}
+.pg-sub{font-size:13px;color:var(--muted);margin-bottom:1.5rem;}
+
+/* KPI */
+.kpi-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:1.5rem;}
+.kpi{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:1rem 1.1rem;}
+.kl{font-size:11px;color:var(--muted);margin-bottom:4px;}
+.kv{font-size:22px;font-weight:700;}
+.kv.g{color:var(--green);} .kv.a{color:var(--amber);} .kv.r{color:var(--red);}
+.ks{font-size:11px;color:var(--muted);margin-top:2px;}
+
+/* CARD */
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:1.2rem;margin-bottom:1rem;}
+.card-title{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:1rem;}
+
+/* TABLE */
+.tbl-wrap{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;font-size:13px;}
+th{font-size:11px;color:var(--muted);text-align:left;padding:7px 10px;border-bottom:1px solid var(--border);font-weight:500;}
+td{padding:8px 10px;border-bottom:1px solid rgba(255,255,255,0.04);}
+tr:hover td{background:rgba(255,255,255,0.02);}
+.tag{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:500;}
+.tg{background:rgba(29,185,122,.15);color:var(--green);}
+.ta{background:rgba(240,160,48,.15);color:var(--amber);}
+.tb{background:rgba(79,142,247,.15);color:var(--accent);}
+.tm{background:rgba(139,144,160,.15);color:var(--muted);}
+
+/* SIGNAL FEED */
+.sig{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:1rem;margin-bottom:10px;}
+.sig-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
+.sig-svc{font-size:11px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.05em;}
+.sig-time{font-size:11px;color:var(--muted);}
+.sig-text{font-size:13px;line-height:1.6;white-space:pre-wrap;}
+.sig-tags{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;}
+
+/* SERVICES GRID */
+.svc-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;}
+.svc-card{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:1.3rem;transition:border .2s;cursor:pointer;}
+.svc-card.on{border-color:rgba(79,142,247,.4);}
+.svc-card.off{opacity:.5;cursor:default;}
+.svc-icon{font-size:26px;margin-bottom:10px;}
+.svc-name{font-size:14px;font-weight:600;margin-bottom:4px;}
+.svc-desc{font-size:12px;color:var(--muted);line-height:1.5;}
+.svc-foot{margin-top:12px;}
+
+/* LOCKED */
+.locked{text-align:center;padding:3rem 1rem;color:var(--muted);}
+.locked .lock{font-size:36px;margin-bottom:12px;}
+
+.chart-wrap{position:relative;width:100%;}
+.spinner{text-align:center;padding:2rem;color:var(--muted);font-size:13px;}
+
+@media(max-width:768px){.sidebar{display:none;}.main{padding:1rem;}}
+</style>
+</head>
+<body>
+
+<!-- AUTH -->
+<div id="auth-screen">
+  <div class="auth-box">
+    <div class="auth-logo">📈 Finanzalive</div>
+    <div class="auth-sub">Accedi alla tua area riservata</div>
+    <div class="field"><label>Email</label><input type="email" id="login-email" placeholder="tua@email.com" onkeydown="if(event.key==='Enter')doLogin()"></div>
+    <div class="field"><label>Password</label><input type="password" id="login-pass" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()"></div>
+    <button class="btn-primary" onclick="doLogin()">Accedi</button>
+    <div id="auth-error"></div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app-screen">
+  <div class="topbar">
+    <div class="topbar-logo">📈 Finanzalive</div>
+    <div class="topbar-right">
+      <span style="font-size:13px;color:var(--muted)" id="user-label"></span>
+      <div class="avatar" id="user-av">?</div>
+      <button class="logout-btn" onclick="doLogout()">Esci</button>
+    </div>
+  </div>
+  <div class="layout">
+    <div class="sidebar">
+      <div class="nav-sec">Generale</div>
+      <div class="nav-item active" onclick="showPage('dashboard')"><span>▦</span> Dashboard</div>
+      <div class="nav-item" onclick="showPage('signals')"><span>📡</span> Segnali Live</div>
+      <div class="nav-sec">I tuoi servizi</div>
+      <div class="nav-item" id="nav-indices"        onclick="showService('indices')">        <span>🌐</span> Indici World</div>
+      <div class="nav-item" id="nav-vanilla_monthly" onclick="showService('vanilla_monthly')"><span>📅</span> Vanilla Mensile</div>
+      <div class="nav-item" id="nav-vanilla_weekly"  onclick="showService('vanilla_weekly')"> <span>📆</span> Vanilla Weekly</div>
+      <div class="nav-item" id="nav-forex"           onclick="showService('forex')">          <span>💱</span> Sala Forex</div>
+      <div class="nav-item" id="nav-fund_paam"       onclick="showService('fund_paam')">      <span>💼</span> Fondo PAAM</div>
+      <div class="nav-sec">Account</div>
+      <div class="nav-item" onclick="showPage('profile')"><span>👤</span> Profilo</div>
+    </div>
+    <div class="main">
+      <div class="page active" id="page-dashboard">
+        <div class="pg-title">Dashboard</div>
+        <div class="pg-sub" id="dash-sub">Caricamento...</div>
+        <div class="kpi-row" id="dash-kpi"></div>
+        <div class="card"><div class="card-title">I tuoi servizi</div><div class="svc-grid" id="dash-svcs"></div></div>
+        <div class="card"><div class="card-title">Ultimi segnali</div><div id="dash-feed"><div class="spinner">Caricamento segnali...</div></div></div>
+      </div>
+
+      <div class="page" id="page-signals">
+        <div class="pg-title">Segnali Live</div>
+        <div class="pg-sub">Tutti i segnali dai tuoi servizi attivi</div>
+        <div id="signals-feed"><div class="spinner">Caricamento...</div></div>
+      </div>
+
+      <div class="page" id="page-service">
+        <div class="pg-title" id="svc-pg-title"></div>
+        <div class="pg-sub"   id="svc-pg-sub"></div>
+        <div id="svc-pg-content"></div>
+      </div>
+
+      <div class="page" id="page-profile">
+        <div class="pg-title">Profilo</div>
+        <div class="pg-sub">Le tue informazioni e abbonamenti</div>
+        <div class="card"><div class="card-title">Dati account</div><div id="profile-info"></div></div>
+        <div class="card" style="margin-top:1rem;"><div class="card-title">Abbonamenti</div><div id="profile-subs"></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── CONFIG ── (già compilato con i tuoi dati)
+const SUPABASE_URL  = 'https://sjtadkvbcsetwosvriid.supabase.co';
+const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNqdGFka3ZiY3NldHdvc3ZyaWlkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMzNTExMzAsImV4cCI6MjA4ODkyNzEzMH0.BNzUbzi_8JEOunyuwyiVZPWsJDXlH4U7mOmtDEPR2BA';
+// Aggiorna questo con il tuo URL Render dopo il deploy:
+const API_BASE      = 'https://finanzalive-backend.onrender.com';
+
+const SVC = {
+  indices:         { name:'Sala Indici World',        icon:'🌐', desc:'Segnali su indici mondiali in tempo reale' },
+  vanilla_monthly: { name:'Opzioni Vanilla Mensile',  icon:'📅', desc:'Put Sell US500 scadenza 30gg, filtro Bayesiano/Markov' },
+  vanilla_weekly:  { name:'Opzioni Vanilla Weekly',   icon:'📆', desc:'Segnali opzioni vanilla scadenza settimanale' },
+  forex:           { name:'Sala Forex',               icon:'💱', desc:'Segnali Forex in tempo reale' },
+  fund_paam:       { name:'Fondo PAAM',               icon:'💼', desc:'Andamento e aggiornamenti fondo PAAM' },
+};
+
+let token = localStorage.getItem('fl_tok');
+let myServices = [];
+
+// ── AUTH ──
+async function doLogin() {
+  const email = document.getElementById('login-email').value.trim();
+  const pass  = document.getElementById('login-pass').value;
+  document.getElementById('auth-error').textContent = '';
+  if (!email || !pass) { document.getElementById('auth-error').textContent = 'Inserisci email e password'; return; }
+  try {
+    const r = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`, {
+      method:'POST',
+      headers:{'Content-Type':'application/json','apikey':SUPABASE_ANON},
+      body: JSON.stringify({email, password:pass})
+    });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.error_description || d.msg || 'Credenziali non valide');
+    token = d.access_token;
+    localStorage.setItem('fl_tok', token);
+    initApp(d.user);
+  } catch(e) {
+    document.getElementById('auth-error').textContent = e.message;
+  }
+}
+
+function doLogout() {
+  localStorage.removeItem('fl_tok');
+  token = null; myServices = [];
+  document.getElementById('app-screen').style.display = 'none';
+  document.getElementById('auth-screen').style.display = 'flex';
+}
+
+async function api(path) {
+  try {
+    const r = await fetch(API_BASE + path, { headers:{ Authorization:'Bearer '+token } });
+    if (r.status === 401) { doLogout(); return null; }
+    return await r.json();
+  } catch { return null; }
+}
+
+// ── INIT ──
+async function initApp(user) {
+  document.getElementById('auth-screen').style.display = 'none';
+  document.getElementById('app-screen').style.display  = 'block';
+
+  const profile = await api('/api/profile');
+  const name = profile?.full_name || user?.email || 'Cliente';
+  document.getElementById('user-label').textContent = name;
+  document.getElementById('user-av').textContent    = name[0].toUpperCase();
+
+  myServices = await api('/api/services') || [];
+  const activeCodes = myServices.filter(s=>s.active).map(s=>s.services.code);
+
+  // Aggiorna badge sidebar
+  Object.keys(SVC).forEach(code => {
+    const nav = document.getElementById('nav-'+code);
+    if (!nav) return;
+    nav.querySelectorAll('.nav-badge').forEach(b=>b.remove());
+    const b = document.createElement('span');
+    b.className = 'nav-badge ' + (activeCodes.includes(code) ? 'nb-on' : 'nb-off');
+    b.textContent = activeCodes.includes(code) ? '●' : '🔒';
+    nav.appendChild(b);
+  });
+
+  loadDashboard(profile, activeCodes);
+}
+
+// ── DASHBOARD ──
+async function loadDashboard(profile, activeCodes) {
+  document.getElementById('dash-sub').textContent =
+    `Benvenuto ${profile?.full_name || ''} · ${activeCodes.length} servizi attivi · ${new Date().toLocaleDateString('it-IT')}`;
+
+  // KPI da trades vanilla
+  const trades = await api('/api/trades?service_code=vanilla_monthly') || [];
+  const closed  = trades.filter(t=>t.status==='CLOSED');
+  const totPrem = closed.reduce((s,t)=>s+(t.premium_collected||0),0);
+  const maxDD   = closed.length ? Math.max(...closed.map(t=>t.drawdown_max||0)) : 0;
+
+  document.getElementById('dash-kpi').innerHTML = `
+    <div class="kpi"><div class="kl">Win rate</div><div class="kv g">${closed.length?'100%':'—'}</div><div class="ks">Put Sell storiche</div></div>
+    <div class="kpi"><div class="kl">Operazioni chiuse</div><div class="kv g">${closed.length}</div><div class="ks">Vanilla mensile</div></div>
+    <div class="kpi"><div class="kl">Premi lordi totali</div><div class="kv g">€ ${totPrem.toLocaleString('it-IT')}</div><div class="ks">Cumulativo</div></div>
+    <div class="kpi"><div class="kl">Max drawdown</div><div class="kv a">${maxDD.toFixed(2)}%</div><div class="ks">Storico</div></div>
+    <div class="kpi"><div class="kl">Servizi attivi</div><div class="kv">${activeCodes.length}/5</div><div class="ks">Abbonamenti</div></div>`;
+
+  // Servizi grid
+  document.getElementById('dash-svcs').innerHTML = Object.entries(SVC).map(([code,info])=>{
+    const on = activeCodes.includes(code);
+    return `<div class="svc-card ${on?'on':'off'}" onclick="${on?`showService('${code}')`:''}">
+      <div class="svc-icon">${info.icon}</div>
+      <div class="svc-name">${info.name}</div>
+      <div class="svc-desc">${info.desc}</div>
+      <div class="svc-foot"><span class="tag ${on?'tg':'tm'}">${on?'Attivo':'Non abbonato'}</span></div>
+    </div>`;
+  }).join('');
+
+  // Feed ultimi segnali
+  const sigs = await api('/api/signals?limit=5') || [];
+  document.getElementById('dash-feed').innerHTML = sigs.length
+    ? sigs.map(renderSig).join('')
+    : '<p style="color:var(--muted);font-size:13px">Nessun segnale ancora ricevuto</p>';
+}
+
+// ── PAGINE ──
+function showPage(name) {
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('page-'+name)?.classList.add('active');
+  if (name==='signals') loadSignals();
+  if (name==='profile') loadProfile();
+}
+
+async function showService(code) {
+  const activeCodes = myServices.filter(s=>s.active).map(s=>s.services.code);
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('nav-'+code)?.classList.add('active');
+  document.getElementById('page-service').classList.add('active');
+
+  const info = SVC[code];
+  document.getElementById('svc-pg-title').textContent = info.icon + ' ' + info.name;
+  document.getElementById('svc-pg-sub').textContent   = info.desc;
+
+  if (!activeCodes.includes(code)) {
+    document.getElementById('svc-pg-content').innerHTML =
+      `<div class="locked"><div class="lock">🔒</div><p>Non sei abbonato a questo servizio.<br>Contatta l'amministratore per attivarlo.</p></div>`;
+    return;
+  }
+
+  document.getElementById('svc-pg-content').innerHTML = '<div class="spinner">Caricamento...</div>';
+  const [sigs, trades] = await Promise.all([
+    api(`/api/signals?service_code=${code}&limit=50`),
+    api(`/api/trades?service_code=${code}`)
+  ]);
+
+  let html = '';
+
+  // Equity curve solo per vanilla mensile
+  if (code === 'vanilla_monthly') {
+    const closed = (trades||[]).filter(t=>t.status==='CLOSED');
+    const totP   = closed.reduce((s,t)=>s+(t.premium_collected||0),0);
+    const avgDD  = closed.length ? (closed.reduce((s,t)=>s+(t.drawdown_max||0),0)/closed.length).toFixed(2) : '—';
+    html += `<div class="kpi-row">
+      <div class="kpi"><div class="kl">Operazioni chiuse</div><div class="kv g">${closed.length}</div></div>
+      <div class="kpi"><div class="kl">Premi totali</div><div class="kv g">€ ${totP.toLocaleString('it-IT')}</div></div>
+      <div class="kpi"><div class="kl">DD medio</div><div class="kv a">${avgDD}%</div></div>
+      <div class="kpi"><div class="kl">Win rate</div><div class="kv g">${closed.length?'100%':'—'}</div></div>
+    </div>`;
+    if (closed.length) {
+      html += `<div class="card"><div class="card-title">Equity curve</div>
+        <div class="chart-wrap" style="height:220px;"><canvas id="eq-chart"></canvas></div></div>`;
+    }
+  }
+
+  // Storico trades
+  if (trades?.length) {
+    html += `<div class="card"><div class="card-title">Storico operazioni</div>
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>#</th><th>Data apertura</th><th>Strike</th><th>OTM%</th><th>Premio €</th><th>DD max%</th><th>Stato</th></tr></thead>
+        <tbody>${(trades||[]).map((t,i)=>{
+          const ddColor = t.drawdown_max>=5?'var(--red)':t.drawdown_max>=3?'var(--amber)':'var(--green)';
+          return `<tr>
+            <td style="color:var(--muted)">${i+1}</td>
+            <td>${t.opened_at?new Date(t.opened_at).toLocaleDateString('it-IT'):'—'}</td>
+            <td>${t.strike?t.strike.toLocaleString('it-IT'):'—'}</td>
+            <td>${t.strike_pct?t.strike_pct.toFixed(2)+'%':'—'}</td>
+            <td style="color:var(--green);font-weight:600">${t.premium_collected?'€ '+t.premium_collected:'—'}</td>
+            <td style="color:${ddColor}">${t.drawdown_max?t.drawdown_max.toFixed(2)+'%':'—'}</td>
+            <td><span class="tag ${t.status==='CLOSED'?'tg':t.status==='OPEN'?'tb':'tm'}">${t.status||'—'}</span></td>
+          </tr>`;
+        }).join('')}</tbody>
+      </table></div></div>`;
+  }
+
+  // Feed segnali
+  html += `<div class="card"><div class="card-title">Segnali recenti</div>
+    ${(sigs||[]).length ? (sigs||[]).map(renderSig).join('') : '<p style="color:var(--muted);font-size:13px">Nessun segnale ricevuto</p>'}
+  </div>`;
+
+  document.getElementById('svc-pg-content').innerHTML = html;
+
+  // Disegna chart equity
+  if (code==='vanilla_monthly' && trades?.length) {
+    const closed = trades.filter(t=>t.status==='CLOSED');
+    if (closed.length && document.getElementById('eq-chart')) {
+      let cum=0;
+      const cumData = closed.map(t=>{cum+=(t.premium_collected||0);return cum;});
+      new Chart(document.getElementById('eq-chart'),{
+        type:'line',
+        data:{labels:closed.map((_,i)=>'#'+(i+1)),datasets:[{
+          data:cumData,borderColor:'#1db97a',backgroundColor:'rgba(29,185,122,0.07)',
+          fill:true,tension:0.3,pointRadius:3,pointBackgroundColor:'#1db97a'
+        }]},
+        options:{responsive:true,maintainAspectRatio:false,
+          plugins:{legend:{display:false}},
+          scales:{
+            x:{ticks:{color:'#8b90a0',font:{size:10}}},
+            y:{ticks:{color:'#8b90a0',font:{size:10},callback:v=>'€'+v.toLocaleString('it-IT')},
+               grid:{color:'rgba(255,255,255,0.05)'}}
+          }}
+      });
+    }
+  }
+}
+
+async function loadSignals() {
+  const sigs = await api('/api/signals?limit=50') || [];
+  document.getElementById('signals-feed').innerHTML = sigs.length
+    ? sigs.map(renderSig).join('')
+    : '<p style="color:var(--muted)">Nessun segnale disponibile</p>';
+}
+
+async function loadProfile() {
+  const profile = await api('/api/profile');
+  document.getElementById('profile-info').innerHTML = `
+    <table style="font-size:13px;width:100%">
+      <tr><td style="color:var(--muted);padding:7px 0;width:130px">Nome</td><td>${profile?.full_name||'—'}</td></tr>
+      <tr><td style="color:var(--muted);padding:7px 0">Email</td><td>${profile?.email||'—'}</td></tr>
+      <tr><td style="color:var(--muted);padding:7px 0">Telegram</td><td>${profile?.telegram_username?'@'+profile.telegram_username:'—'}</td></tr>
+      <tr><td style="color:var(--muted);padding:7px 0">Chat ID</td><td>${profile?.telegram_chat_id||'Non configurato'}</td></tr>
+      <tr><td style="color:var(--muted);padding:7px 0">Stato</td><td><span class="tag tg">Attivo</span></td></tr>
+    </table>`;
+
+  document.getElementById('profile-subs').innerHTML = myServices.map(s=>`
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border)">
+      <span>${SVC[s.services.code]?.icon} ${s.services.name}</span>
+      <div style="display:flex;align-items:center;gap:8px;">
+        ${s.expires_at?`<span style="font-size:11px;color:var(--muted)">Scade ${new Date(s.expires_at).toLocaleDateString('it-IT')}</span>`:''}
+        <span class="tag ${s.active?'tg':'tm'}">${s.active?'Attivo':'Scaduto'}</span>
+      </div>
+    </div>`).join('') || '<p style="color:var(--muted);font-size:13px">Nessun abbonamento attivo</p>';
+}
+
+function renderSig(s) {
+  const info = SVC[s.services?.code] || {};
+  const typeClass = s.signal_type==='OPEN'?'tb':s.signal_type==='CLOSE'?'tg':s.signal_type==='ALERT'?'ta':'tm';
+  const t = new Date(s.created_at);
+  const ts = t.toLocaleDateString('it-IT') + ' ' + t.toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'});
+  return `<div class="sig">
+    <div class="sig-head">
+      <span class="sig-svc">${info.icon||''} ${s.services?.name||''}</span>
+      <span class="sig-time">${ts}</span>
+    </div>
+    <div class="sig-text">${s.message_text}</div>
+    <div class="sig-tags">
+      <span class="tag ${typeClass}">${s.signal_type||'INFO'}</span>
+      ${s.strike?`<span class="tag tm">Strike ${parseFloat(s.strike).toLocaleString('it-IT')}</span>`:''}
+      ${s.strike_pct?`<span class="tag tm">${s.strike_pct}% OTM</span>`:''}
+      ${s.premium?`<span class="tag tg">€ ${s.premium}</span>`:''}
+      ${s.drawdown_max?`<span class="tag ta">DD ${s.drawdown_max}%</span>`:''}
+    </div>
+  </div>`;
+}
+
+// Avvio
+if (token) {
+  fetch(`${SUPABASE_URL}/auth/v1/user`, {headers:{'apikey':SUPABASE_ANON,'Authorization':'Bearer '+token}})
+    .then(r=>r.ok?r.json():null)
+    .then(u=>u?initApp(u):doLogout())
+    .catch(doLogout);
+} else {
+  document.getElementById('auth-screen').style.display='flex';
+}
+</script>
+</body>
+</html>
