@@ -257,7 +257,7 @@ function loadDashboard(profile,activeCodes){
       var on=activeCodes.indexOf(code)>=0;
       var soon=code==='fund_paam';
       var cls=soon?'soon':on?'on':'off';
-      var oc=(on&&!soon)?'onclick="showService(''+code+'')"':'';
+      var oc=(on&&!soon)?('onclick="showService(\'' + code + '\')"'):'';
       var badge=soon?'<span class="tag tb">Prossimamente</span>':'<span class="tag '+(on?'tg':'tm')+'">'+(on?'Attivo':'Non abbonato')+'</span>';
       return '<div class="svc-card '+cls+'" '+oc+'><div class="svc-icon">'+info.icon+'</div><div class="svc-name">'+info.name+'</div><div class="svc-desc">'+info.desc+'</div><div class="svc-foot">'+badge+'</div></div>';
     }).join('');
