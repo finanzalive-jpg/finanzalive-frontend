@@ -3,110 +3,109 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Finanzalive — Admin Panel</title>
+<title>Iuppiter — Admin Panel</title>
 <style>
 :root {
-  --bg:#0f1117; --bg2:#1a1d27; --bg3:#22263a;
-  --border:rgba(255,255,255,0.08);
-  --text:#e8eaf0; --muted:#8b90a0;
-  --accent:#4f8ef7; --green:#1db97a; --red:#e84b4a; --amber:#f0a030;
+  --bg:#0a0a0c; --bg2:#111318; --bg3:#1a1d27;
+  --border:rgba(255,255,255,0.07);
+  --text:#e8e6df; --muted:#7a7870;
+  --gold:#c9a84c; --gold2:#e8c96a;
+  --green:#1db97a; --red:#e84b4a; --amber:#f0a030;
 }
 *{box-sizing:border-box;margin:0;padding:0;}
 body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:14px;min-height:100vh;}
-
-/* AUTH */
 #auth-screen{display:flex;align-items:center;justify-content:center;min-height:100vh;}
-.auth-box{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:2.5rem 2rem;width:100%;max-width:360px;}
-.auth-logo{font-size:22px;font-weight:800;color:var(--red);margin-bottom:4px;}
+.auth-box{background:var(--bg2);border:1px solid rgba(201,168,76,0.2);border-radius:16px;padding:2.5rem 2rem;width:100%;max-width:360px;}
+.auth-logo{font-size:20px;font-weight:800;color:var(--red);margin-bottom:4px;}
 .auth-sub{color:var(--muted);font-size:13px;margin-bottom:2rem;}
 .field{margin-bottom:1rem;}
-.field label{display:block;font-size:12px;color:var(--muted);margin-bottom:5px;}
+.field label{display:block;font-size:11px;color:var(--muted);margin-bottom:5px;text-transform:uppercase;letter-spacing:.06em;}
 .field input{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px 12px;color:var(--text);font-size:14px;outline:none;transition:border .2s;}
-.field input:focus{border-color:var(--accent);}
-.btn{background:var(--accent);color:#fff;border:none;border-radius:8px;padding:10px 18px;font-size:13px;font-weight:500;cursor:pointer;transition:opacity .2s;}
+.field input:focus{border-color:var(--gold);}
+.btn{background:linear-gradient(135deg,var(--gold),var(--gold2));color:#0a0a0c;border:none;border-radius:8px;padding:10px 18px;font-size:13px;font-weight:700;cursor:pointer;transition:opacity .2s;}
 .btn:hover{opacity:.85;}
-.btn.red{background:var(--red);}
-.btn.green{background:var(--green);}
+.btn.red{background:var(--red);color:#fff;}
+.btn.green{background:var(--green);color:#fff;}
+.btn.gray{background:var(--bg3);color:var(--text);border:1px solid var(--border);}
 .btn.sm{padding:6px 12px;font-size:12px;}
 .btn-full{width:100%;}
 #auth-error{color:var(--red);font-size:12px;margin-top:10px;text-align:center;min-height:16px;}
-
-/* APP */
 #app{display:none;}
 .topbar{background:var(--bg2);border-bottom:1px solid var(--border);padding:0 1.5rem;height:52px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
-.topbar-logo{font-size:15px;font-weight:800;color:var(--red);}
+.topbar-logo{font-size:15px;font-weight:800;color:var(--gold);}
 .logout-btn{background:none;border:1px solid var(--border);color:var(--muted);border-radius:6px;padding:5px 10px;cursor:pointer;font-size:12px;}
-
 .layout{display:flex;min-height:calc(100vh - 52px);}
-.sidebar{width:200px;background:var(--bg2);border-right:1px solid var(--border);padding:1rem 0;flex-shrink:0;}
+.sidebar{width:210px;background:var(--bg2);border-right:1px solid var(--border);padding:1rem 0;flex-shrink:0;}
 .nav-item{display:flex;align-items:center;gap:9px;padding:9px 1.2rem;cursor:pointer;color:var(--muted);font-size:13px;border-left:2px solid transparent;transition:all .15s;}
 .nav-item:hover{color:var(--text);background:rgba(255,255,255,0.03);}
-.nav-item.active{color:var(--accent);background:rgba(79,142,247,0.08);border-left-color:var(--accent);}
-
+.nav-item.active{color:var(--gold);background:rgba(201,168,76,0.08);border-left-color:var(--gold);}
 .main{flex:1;padding:1.8rem;overflow-x:hidden;}
-.page{display:none;}
-.page.active{display:block;}
+.page{display:none;} .page.active{display:block;}
 .pg-title{font-size:19px;font-weight:700;margin-bottom:3px;}
 .pg-sub{font-size:13px;color:var(--muted);margin-bottom:1.5rem;}
-
 .card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:1.3rem;margin-bottom:1rem;}
 .card-title{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:1.2rem;}
-
-.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
-.form-group{margin-bottom:1rem;}
-.form-group label{display:block;font-size:12px;color:var(--muted);margin-bottom:5px;}
-.form-group input, .form-group select{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-size:13px;outline:none;transition:border .2s;}
-.form-group input:focus, .form-group select:focus{border-color:var(--accent);}
-.form-group select option{background:var(--bg3);}
-
-.svc-checks{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:4px;}
-.svc-check{display:flex;align-items:center;gap:8px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:8px 10px;cursor:pointer;transition:border .2s;}
-.svc-check:hover{border-color:var(--accent);}
-.svc-check input{width:16px;height:16px;cursor:pointer;accent-color:var(--accent);}
-.svc-check label{font-size:13px;cursor:pointer;}
-
 .kpi-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:1.5rem;}
 .kpi{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:1rem;}
 .kl{font-size:11px;color:var(--muted);margin-bottom:4px;}
-.kv{font-size:22px;font-weight:700;color:var(--green);}
-
+.kv{font-size:22px;font-weight:700;}
+.kv.g{color:var(--green);} .kv.r{color:var(--red);} .kv.a{color:var(--amber);} .kv.gold{color:var(--gold);}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.form-group{margin-bottom:1rem;}
+.form-group label{display:block;font-size:12px;color:var(--muted);margin-bottom:5px;}
+.form-group input,.form-group select{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-size:13px;outline:none;transition:border .2s;}
+.form-group input:focus,.form-group select:focus{border-color:var(--gold);}
+.form-group select option{background:var(--bg3);}
+.svc-checks{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:4px;}
+.svc-check{display:flex;align-items:center;gap:8px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:8px 10px;cursor:pointer;}
+.svc-check input{width:16px;height:16px;cursor:pointer;accent-color:var(--gold);}
+.svc-check label{font-size:13px;cursor:pointer;}
 table{width:100%;border-collapse:collapse;font-size:13px;}
 th{font-size:11px;color:var(--muted);text-align:left;padding:7px 10px;border-bottom:1px solid var(--border);font-weight:500;}
 td{padding:8px 10px;border-bottom:1px solid rgba(255,255,255,0.04);vertical-align:middle;}
 tr:hover td{background:rgba(255,255,255,0.02);}
 .tbl-wrap{overflow-x:auto;}
-
 .tag{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:500;}
 .tg{background:rgba(29,185,122,.15);color:var(--green);}
 .tr{background:rgba(232,75,74,.15);color:var(--red);}
-.tb{background:rgba(79,142,247,.15);color:var(--accent);}
+.ta{background:rgba(240,160,48,.15);color:var(--amber);}
+.tb{background:rgba(201,168,76,.12);color:var(--gold);}
 .tm{background:rgba(139,144,160,.15);color:var(--muted);}
-
+/* SEMAFORO */
+.semaph{width:10px;height:10px;border-radius:50%;display:inline-block;margin-right:6px;}
+.semaph.green{background:var(--green);}
+.semaph.amber{background:var(--amber);}
+.semaph.red{background:var(--red);animation:blink 1s infinite;}
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:.3;}}
+/* SCADENZE */
+.exp-row{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border);}
+.exp-info{flex:1;}
+.exp-name{font-size:14px;font-weight:500;margin-bottom:3px;}
+.exp-detail{font-size:12px;color:var(--muted);}
+.exp-actions{display:flex;gap:8px;align-items:center;}
 .toast{position:fixed;bottom:1.5rem;right:1.5rem;background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:12px 18px;font-size:13px;z-index:999;transform:translateY(80px);opacity:0;transition:all .3s;}
 .toast.show{transform:translateY(0);opacity:1;}
 .toast.ok{border-color:var(--green);color:var(--green);}
 .toast.err{border-color:var(--red);color:var(--red);}
-
-.sig-item{background:var(--bg3);border-radius:8px;padding:10px 12px;margin-bottom:8px;font-size:13px;line-height:1.5;}
-.sig-head{display:flex;justify-content:space-between;margin-bottom:4px;}
-.sig-svc{font-size:11px;font-weight:700;color:var(--accent);}
-.sig-time{font-size:11px;color:var(--muted);}
-.spinner{text-align:center;padding:2rem;color:var(--muted);font-size:13px;}
-
 .modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:200;align-items:center;justify-content:center;}
 .modal-bg.open{display:flex;}
-.modal{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:1.5rem;width:100%;max-width:440px;}
+.modal{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:1.5rem;width:100%;max-width:480px;max-height:90vh;overflow-y:auto;}
 .modal-title{font-size:16px;font-weight:700;margin-bottom:1rem;}
 .modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:1.2rem;}
+.sig-item{background:var(--bg3);border-radius:8px;padding:10px 12px;margin-bottom:8px;font-size:13px;line-height:1.5;}
+.sig-head{display:flex;justify-content:space-between;margin-bottom:4px;}
+.sig-svc{font-size:11px;font-weight:700;color:var(--gold);}
+.sig-time{font-size:11px;color:var(--muted);}
+.spinner{text-align:center;padding:2rem;color:var(--muted);font-size:13px;}
 </style>
 </head>
 <body>
 
 <div id="auth-screen">
   <div class="auth-box">
-    <div class="auth-logo">⚙️ Finanzalive Admin</div>
+    <div class="auth-logo">&#x2699;&#xFE0F; Iuppiter Admin</div>
     <div class="auth-sub">Accesso riservato agli amministratori</div>
-    <div class="field"><label>Password Admin</label><input type="password" id="admin-pass" placeholder="••••••••" onkeydown="if(event.key==='Enter')doAdminLogin()"></div>
+    <div class="field"><label>Password Admin</label><input type="password" id="admin-pass" placeholder="&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;" onkeydown="if(event.key==='Enter')doAdminLogin()"></div>
     <button class="btn btn-full" onclick="doAdminLogin()">Accedi</button>
     <div id="auth-error"></div>
   </div>
@@ -114,15 +113,16 @@ tr:hover td{background:rgba(255,255,255,0.02);}
 
 <div id="app">
   <div class="topbar">
-    <div class="topbar-logo">⚙️ Finanzalive Admin</div>
+    <div class="topbar-logo">&#x2699;&#xFE0F; Iuppiter Admin</div>
     <button class="logout-btn" onclick="doLogout()">Esci</button>
   </div>
   <div class="layout">
     <div class="sidebar">
-      <div class="nav-item active" onclick="showPage('overview')"><span>▦</span> Panoramica</div>
-      <div class="nav-item" onclick="showPage('clients')"><span>👥</span> Clienti</div>
-      <div class="nav-item" onclick="showPage('add-client')"><span>➕</span> Nuovo cliente</div>
-      <div class="nav-item" onclick="showPage('signals')"><span>📡</span> Segnali</div>
+      <div class="nav-item active" onclick="showPage('overview')"><span>&#x25A6;</span> Panoramica</div>
+      <div class="nav-item" onclick="showPage('clients')"><span>&#x1F465;</span> Clienti</div>
+      <div class="nav-item" onclick="showPage('add-client')"><span>&#x2795;</span> Nuovo cliente</div>
+      <div class="nav-item" onclick="showPage('expiry')"><span>&#x23F0;</span> Scadenze</div>
+      <div class="nav-item" onclick="showPage('signals')"><span>&#x1F4E1;</span> Segnali</div>
     </div>
     <div class="main">
 
@@ -131,6 +131,10 @@ tr:hover td{background:rgba(255,255,255,0.02);}
         <div class="pg-title">Panoramica</div>
         <div class="pg-sub" id="ov-date"></div>
         <div class="kpi-row" id="ov-kpi"><div class="spinner">Caricamento...</div></div>
+        <div class="card">
+          <div class="card-title">&#x26A0;&#xFE0F; Scadenze imminenti (entro 30 giorni)</div>
+          <div id="ov-expiry"><div class="spinner">Caricamento...</div></div>
+        </div>
         <div class="card">
           <div class="card-title">Ultimi segnali ricevuti</div>
           <div id="ov-signals"><div class="spinner">Caricamento...</div></div>
@@ -156,23 +160,42 @@ tr:hover td{background:rgba(255,255,255,0.02);}
             <div class="form-group"><label>Nome completo</label><input type="text" id="nc-name" placeholder="Mario Rossi"></div>
             <div class="form-group"><label>Email</label><input type="email" id="nc-email" placeholder="mario@email.com"></div>
             <div class="form-group"><label>Password iniziale</label><input type="password" id="nc-pass" placeholder="min 6 caratteri"></div>
-            <div class="form-group"><label>Telegram Chat ID</label><input type="number" id="nc-tgid" placeholder="123456789"></div>
-            <div class="form-group"><label>Username Telegram</label><input type="text" id="nc-tguser" placeholder="username (senza @)"></div>
             <div class="form-group"><label>Scadenza abbonamento</label><input type="date" id="nc-exp"></div>
+            <div class="form-group"><label>Importo pagato (&#x20AC;)</label><input type="number" id="nc-amount" placeholder="es. 500"></div>
+            <div class="form-group"><label>Note</label><input type="text" id="nc-notes" placeholder="es. Pagamento Marzo 2026"></div>
           </div>
         </div>
         <div class="card">
           <div class="card-title">Servizi da attivare</div>
           <div class="svc-checks">
-            <div class="svc-check"><input type="checkbox" id="svc-indices" value="indices"><label for="svc-indices">🌐 Sala Indici World</label></div>
-            <div class="svc-check"><input type="checkbox" id="svc-vanilla_monthly" value="vanilla_monthly"><label for="svc-vanilla_monthly">📅 Vanilla Mensile</label></div>
-            <div class="svc-check"><input type="checkbox" id="svc-vanilla_weekly" value="vanilla_weekly"><label for="svc-vanilla_weekly">📆 Vanilla Weekly</label></div>
-            <div class="svc-check"><input type="checkbox" id="svc-forex" value="forex"><label for="svc-forex">💱 Sala Forex</label></div>
-            <div class="svc-check"><input type="checkbox" id="svc-fund_paam" value="fund_paam"><label for="svc-fund_paam">💼 Fondo PAAM</label></div>
+            <div class="svc-check"><input type="checkbox" id="svc-indices" value="indices"><label for="svc-indices">&#x1F310; Sala Indici World</label></div>
+            <div class="svc-check"><input type="checkbox" id="svc-vanilla_monthly" value="vanilla_monthly"><label for="svc-vanilla_monthly">&#x1F4C5; Vanilla Mensile</label></div>
+            <div class="svc-check"><input type="checkbox" id="svc-vanilla_weekly" value="vanilla_weekly"><label for="svc-vanilla_weekly">&#x1F4C6; Vanilla Weekly</label></div>
+            <div class="svc-check"><input type="checkbox" id="svc-forex" value="forex"><label for="svc-forex">&#x1F4B1; Sala Forex</label></div>
+            <div class="svc-check"><input type="checkbox" id="svc-fund_paam" value="fund_paam"><label for="svc-fund_paam">&#x1F4BC; Fondo PAAM</label></div>
           </div>
         </div>
-        <button class="btn green" onclick="createClient()" style="margin-top:.5rem;">✓ Crea cliente</button>
+        <button class="btn green" onclick="createClient()">&#x2713; Crea cliente</button>
         <div id="nc-result" style="margin-top:1rem;font-size:13px;"></div>
+      </div>
+
+      <!-- SCADENZE -->
+      <div class="page" id="page-expiry">
+        <div class="pg-title">Gestione Scadenze</div>
+        <div class="pg-sub">Monitora e rinnova gli abbonamenti dei clienti</div>
+        <div class="kpi-row" id="exp-kpi"></div>
+        <div class="card">
+          <div class="card-title">&#x1F534; Scaduti</div>
+          <div id="exp-expired"><div class="spinner">Caricamento...</div></div>
+        </div>
+        <div class="card">
+          <div class="card-title">&#x1F7E1; In scadenza (entro 30 giorni)</div>
+          <div id="exp-soon"><div class="spinner">Caricamento...</div></div>
+        </div>
+        <div class="card">
+          <div class="card-title">&#x1F7E2; Attivi</div>
+          <div id="exp-active"><div class="spinner">Caricamento...</div></div>
+        </div>
       </div>
 
       <!-- SEGNALI -->
@@ -188,13 +211,13 @@ tr:hover td{background:rgba(255,255,255,0.02);}
   </div>
 </div>
 
-<!-- MODAL ABBONAMENTI -->
-<div class="modal-bg" id="sub-modal">
+<!-- MODAL GESTIONE CLIENTE -->
+<div class="modal-bg" id="client-modal">
   <div class="modal">
-    <div class="modal-title" id="modal-title">Gestione abbonamenti</div>
+    <div class="modal-title" id="modal-title">Gestione cliente</div>
     <div id="modal-body"></div>
     <div class="modal-actions">
-      <button class="btn sm" onclick="closeModal()">Chiudi</button>
+      <button class="btn sm gray" onclick="closeModal()">Chiudi</button>
     </div>
   </div>
 </div>
@@ -202,247 +225,329 @@ tr:hover td{background:rgba(255,255,255,0.02);}
 <div class="toast" id="toast"></div>
 
 <script>
-const API   = 'https://finanzalive-backend.onrender.com';
-const SECRET = 'finanzalive_admin_2026_secret';
-
-const SVC = {
-  indices:         '🌐 Indici World',
-  vanilla_monthly: '📅 Vanilla Mensile',
-  vanilla_weekly:  '📆 Vanilla Weekly',
-  forex:           '💱 Sala Forex',
-  fund_paam:       '💼 Fondo PAAM',
+var API = 'https://finanzalive-backend.onrender.com';
+var SECRET = 'finanzalive_admin_2026_secret';
+var SVC_NAMES = {
+  indices:'Indici World',
+  vanilla_monthly:'Vanilla Mensile',
+  vanilla_weekly:'Vanilla Weekly',
+  forex:'Sala Forex',
+  fund_paam:'Fondo PAAM'
 };
+var SVC_ICONS = {
+  indices:'🌐',vanilla_monthly:'📅',vanilla_weekly:'📆',forex:'💱',fund_paam:'💼'
+};
+var authed = sessionStorage.getItem('fl_admin');
+var _clientsCache = [];
 
-let authed = sessionStorage.getItem('fl_admin');
+function svcLabel(code){ return (SVC_ICONS[code]||'')+' '+(SVC_NAMES[code]||code); }
 
-function doAdminLogin() {
-  const p = document.getElementById('admin-pass').value;
-  if (p === SECRET) {
-    sessionStorage.setItem('fl_admin', '1');
-    authed = '1';
-    document.getElementById('auth-screen').style.display = 'none';
-    document.getElementById('app').style.display = 'block';
+function doAdminLogin(){
+  var p=document.getElementById('admin-pass').value;
+  if(p===SECRET){
+    sessionStorage.setItem('fl_admin','1'); authed='1';
+    document.getElementById('auth-screen').style.display='none';
+    document.getElementById('app').style.display='block';
     loadOverview();
-  } else {
-    document.getElementById('auth-error').textContent = 'Password non corretta';
-  }
+  }else{ document.getElementById('auth-error').textContent='Password non corretta'; }
+}
+function doLogout(){ sessionStorage.removeItem('fl_admin'); location.reload(); }
+
+function adminApi(path,method,body){
+  var opts={method:method||'GET',headers:{'x-admin-secret':SECRET,'Content-Type':'application/json'}};
+  if(body)opts.body=JSON.stringify(body);
+  return fetch(API+path,opts).then(function(r){return r.json();}).catch(function(){return null;});
 }
 
-function doLogout() {
-  sessionStorage.removeItem('fl_admin');
-  location.reload();
-}
-
-async function adminApi(path, method='GET', body=null) {
-  const opts = { method, headers: { 'x-admin-secret': SECRET, 'Content-Type': 'application/json' } };
-  if (body) opts.body = JSON.stringify(body);
-  try {
-    const r = await fetch(API + path, opts);
-    return await r.json();
-  } catch(e) { return null; }
-}
-
-function toast(msg, ok=true) {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.className = 'toast ' + (ok ? 'ok' : 'err');
+function showToast(msg,ok){
+  var t=document.getElementById('toast');
+  t.textContent=msg; t.className='toast '+(ok!==false?'ok':'err');
   t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 3000);
+  setTimeout(function(){t.classList.remove('show');},3000);
 }
 
-function showPage(name) {
-  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
-  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+function showPage(name){
+  document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');});
+  document.querySelectorAll('.nav-item').forEach(function(n){n.classList.remove('active');});
   document.getElementById('page-'+name).classList.add('active');
-  document.querySelectorAll('.nav-item')[['overview','clients','add-client','signals'].indexOf(name)]?.classList.add('active');
-  if (name==='clients') loadClients();
-  if (name==='signals') loadSignals();
+  var navs=['overview','clients','add-client','expiry','signals'];
+  var idx=navs.indexOf(name);
+  if(idx>=0)document.querySelectorAll('.nav-item')[idx].classList.add('active');
+  if(name==='clients')loadClients();
+  if(name==='signals')loadSignals();
+  if(name==='expiry')loadExpiry();
+}
+function closeModal(){ document.getElementById('client-modal').classList.remove('open'); }
+
+// ── PANORAMICA ──
+function loadOverview(){
+  document.getElementById('ov-date').textContent=new Date().toLocaleDateString('it-IT',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+  Promise.all([adminApi('/admin/clients'),adminApi('/admin/signals?limit=5')]).then(function(res){
+    var clients=res[0]||[]; var signals=res[1]||[];
+    _clientsCache=clients;
+    var now=new Date(); var in30=new Date(now.getTime()+30*24*60*60*1000);
+    var act=0,soon=0,exp=0;
+    clients.forEach(function(c){
+      (c.subscriptions||[]).forEach(function(s){
+        if(!s.active)return;
+        if(!s.expires_at){act++;return;}
+        var d=new Date(s.expires_at);
+        if(d<now)exp++; else if(d<in30)soon++; else act++;
+      });
+    });
+    document.getElementById('ov-kpi').innerHTML=
+      '<div class="kpi"><div class="kl">Clienti totali</div><div class="kv gold">'+clients.length+'</div></div>'+
+      '<div class="kpi"><div class="kl">Abbonamenti attivi</div><div class="kv g">'+act+'</div></div>'+
+      '<div class="kpi"><div class="kl">In scadenza (30gg)</div><div class="kv a">'+soon+'</div></div>'+
+      '<div class="kpi"><div class="kl">Scaduti</div><div class="kv r">'+exp+'</div></div>';
+
+    var soonList=[];
+    clients.forEach(function(c){
+      (c.subscriptions||[]).forEach(function(s){
+        if(!s.active||!s.expires_at)return;
+        var d=new Date(s.expires_at);
+        if(d>=now&&d<in30) soonList.push({cid:c.id,name:c.full_name||c.email,code:s.services&&s.services.code?s.services.code:'',sname:s.services&&s.services.name?s.services.name:'',exp:d});
+      });
+    });
+    var expHtml='';
+    soonList.forEach(function(s,i){
+      var days=Math.ceil((s.exp-now)/(24*60*60*1000));
+      expHtml+='<div class="exp-row">'+
+        '<div class="exp-info"><div class="exp-name"><span class="semaph amber"></span>'+s.name+'</div>'+
+        '<div class="exp-detail">'+s.sname+' - scade tra '+days+' giorni ('+s.exp.toLocaleDateString('it-IT')+')</div></div>'+
+        '<div class="exp-actions"><button class="btn sm green" data-action="renew" data-cid="'+s.cid+'" data-code="'+s.code+'" data-name="'+encodeURIComponent(s.name)+'">Rinnova</button></div>'+
+      '</div>';
+    });
+    document.getElementById('ov-expiry').innerHTML=soonList.length?expHtml:'<p style="color:var(--green);font-size:13px">Nessuna scadenza imminente</p>';
+
+    var sigHtml='';
+    signals.forEach(function(s){
+      var t=new Date(s.created_at);
+      var ts=t.toLocaleDateString('it-IT')+' '+t.toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'});
+      sigHtml+='<div class="sig-item"><div class="sig-head"><span class="sig-svc">'+svcLabel(s.services&&s.services.code?s.services.code:'')+'</span><span class="sig-time">'+ts+'</span></div><div>'+(s.message_text||'')+'</div></div>';
+    });
+    document.getElementById('ov-signals').innerHTML=sigHtml||'<p style="color:var(--muted);font-size:13px">Nessun segnale ancora ricevuto</p>';
+  });
 }
 
-// ── OVERVIEW ──
-async function loadOverview() {
-  document.getElementById('ov-date').textContent = new Date().toLocaleDateString('it-IT',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
-  const [clients, signals] = await Promise.all([
-    adminApi('/admin/clients'),
-    adminApi('/admin/signals?limit=5')
-  ]);
+// ── SCADENZE ──
+function loadExpiry(){
+  adminApi('/admin/clients').then(function(clients){
+    clients=clients||[]; _clientsCache=clients;
+    var now=new Date(); var in30=new Date(now.getTime()+30*24*60*60*1000);
+    var expired=[],soon=[],active=[];
+    clients.forEach(function(c){
+      (c.subscriptions||[]).forEach(function(s){
+        if(!s.active)return;
+        var item={cid:c.id,name:c.full_name||c.email,code:s.services&&s.services.code?s.services.code:'',sname:s.services&&s.services.name?s.services.name:'',amount:s.amount,notes:s.notes,exp:s.expires_at?new Date(s.expires_at):null};
+        if(!item.exp){active.push(item);return;}
+        if(item.exp<now)expired.push(item);
+        else if(item.exp<in30)soon.push(item);
+        else active.push(item);
+      });
+    });
+    document.getElementById('exp-kpi').innerHTML=
+      '<div class="kpi"><div class="kl">Scaduti</div><div class="kv r">'+expired.length+'</div></div>'+
+      '<div class="kpi"><div class="kl">In scadenza 30gg</div><div class="kv a">'+soon.length+'</div></div>'+
+      '<div class="kpi"><div class="kl">Attivi</div><div class="kv g">'+active.length+'</div></div>';
 
-  const total = clients?.length || 0;
-  const active = clients?.filter(c=>c.active).length || 0;
-  const totalSubs = clients?.reduce((s,c)=>s+(c.subscriptions?.filter(x=>x.active).length||0),0) || 0;
+    function rowHtml(item,status){
+      var now2=new Date();
+      var days=item.exp?Math.ceil((item.exp-now2)/(24*60*60*1000)):null;
+      var expStr=item.exp?item.exp.toLocaleDateString('it-IT'):'Nessuna scadenza';
+      var daysStr=days!==null?(days<0?'scaduto '+Math.abs(days)+'gg fa':'tra '+days+'gg'):'';
+      var suspBtn=status==='red'?
+        '<button class="btn sm red" data-action="suspend" data-cid="'+item.cid+'" data-code="'+item.code+'">Blocca</button>':
+        '<button class="btn sm gray" data-action="suspend" data-cid="'+item.cid+'" data-code="'+item.code+'">Sospendi</button>';
+      return '<div class="exp-row">'+
+        '<div class="exp-info">'+
+          '<div class="exp-name"><span class="semaph '+status+'"></span>'+item.name+'</div>'+
+          '<div class="exp-detail">'+item.sname+' | Scadenza: <strong>'+expStr+'</strong>'+(daysStr?' ('+daysStr+')':'')+(item.amount?' | €'+item.amount:'')+(item.notes?' | '+item.notes:'')+'</div>'+
+        '</div>'+
+        '<div class="exp-actions">'+
+          '<button class="btn sm green" data-action="renew" data-cid="'+item.cid+'" data-code="'+item.code+'" data-name="'+encodeURIComponent(item.name)+'">Rinnova</button>'+
+          suspBtn+
+        '</div>'+
+      '</div>';
+    }
+    document.getElementById('exp-expired').innerHTML=expired.length?expired.map(function(i){return rowHtml(i,'red');}).join(''):'<p style="color:var(--muted);font-size:13px">Nessun abbonamento scaduto</p>';
+    document.getElementById('exp-soon').innerHTML=soon.length?soon.map(function(i){return rowHtml(i,'amber');}).join(''):'<p style="color:var(--muted);font-size:13px">Nessuna scadenza imminente</p>';
+    document.getElementById('exp-active').innerHTML=active.length?active.map(function(i){return rowHtml(i,'green');}).join(''):'<p style="color:var(--muted);font-size:13px">Nessun abbonamento attivo</p>';
+  });
+}
 
-  document.getElementById('ov-kpi').innerHTML = `
-    <div class="kpi"><div class="kl">Clienti totali</div><div class="kv">${total}</div></div>
-    <div class="kpi"><div class="kl">Clienti attivi</div><div class="kv">${active}</div></div>
-    <div class="kpi"><div class="kl">Abbonamenti attivi</div><div class="kv">${totalSubs}</div></div>
-    <div class="kpi"><div class="kl">Segnali ricevuti</div><div class="kv">${signals?.length||0}</div></div>`;
+// Event delegation for data-action buttons
+document.addEventListener('click',function(e){
+  var btn=e.target.closest('[data-action]');
+  if(!btn)return;
+  var action=btn.getAttribute('data-action');
+  var cid=btn.getAttribute('data-cid');
+  var code=btn.getAttribute('data-code');
+  var name=btn.getAttribute('data-name')?decodeURIComponent(btn.getAttribute('data-name')):'';
+  if(action==='renew') openRenewModal(cid,code,name);
+  if(action==='suspend') doSuspend(cid,code,btn);
+  if(action==='manage') openClientModal(cid,name);
+  if(action==='toggle-sub'){
+    var active=btn.getAttribute('data-active')==='true';
+    toggleSubModal(cid,code,!active,btn);
+  }
+});
 
-  document.getElementById('ov-signals').innerHTML = signals?.length
-    ? signals.map(renderSig).join('')
-    : '<p style="color:var(--muted);font-size:13px">Nessun segnale ancora ricevuto</p>';
+function doSuspend(cid,code,btn){
+  btn.disabled=true;
+  adminApi('/admin/subscription/'+cid+'/'+code+'?active=false','PATCH').then(function(r){
+    if(r&&r.ok){showToast('Abbonamento sospeso!');loadExpiry();}
+    else{showToast('Errore',false);btn.disabled=false;}
+  });
+}
+
+function openRenewModal(cid,code,name){
+  document.getElementById('modal-title').textContent='Rinnova - '+name;
+  var defDate=new Date(); defDate.setFullYear(defDate.getFullYear()+1);
+  var defStr=defDate.toISOString().split('T')[0];
+  document.getElementById('modal-body').innerHTML=
+    '<div class="form-group"><label>Nuova scadenza</label><input type="date" id="renew-exp" value="'+defStr+'"></div>'+
+    '<div class="form-group"><label>Importo pagato (€)</label><input type="number" id="renew-amount" placeholder="es. 500"></div>'+
+    '<div class="form-group"><label>Note</label><input type="text" id="renew-notes" placeholder="es. Rinnovo 2027"></div>'+
+    '<div class="modal-actions">'+
+      '<button class="btn sm gray" onclick="closeModal()">Annulla</button>'+
+      '<button class="btn sm green" id="renew-confirm">Conferma rinnovo</button>'+
+    '</div>';
+  document.getElementById('renew-confirm').onclick=function(){doRenew(cid,code);};
+  document.getElementById('client-modal').classList.add('open');
+}
+
+function doRenew(cid,code){
+  var exp=document.getElementById('renew-exp').value;
+  var amount=document.getElementById('renew-amount').value;
+  var notes=document.getElementById('renew-notes').value;
+  adminApi('/admin/subscription/'+cid+'/'+code+'/renew','PATCH',{
+    expires_at:new Date(exp).toISOString(),
+    amount:amount?parseFloat(amount):null,
+    notes:notes||null,
+    active:true
+  }).then(function(r){
+    if(r&&r.ok){showToast('Abbonamento rinnovato!');closeModal();loadExpiry();}
+    else showToast('Errore nel rinnovo',false);
+  });
 }
 
 // ── CLIENTI ──
-async function loadClients() {
-  document.getElementById('clients-table').innerHTML = '<div class="spinner">Caricamento...</div>';
-  const clients = await adminApi('/admin/clients');
-  if (!clients?.length) {
-    document.getElementById('clients-table').innerHTML = '<p style="color:var(--muted);font-size:13px">Nessun cliente ancora creato</p>';
-    return;
-  }
-  document.getElementById('clients-table').innerHTML = `
-    <div class="tbl-wrap"><table>
-      <thead><tr>
-        <th>Nome</th><th>Email</th><th>Telegram</th><th>Servizi attivi</th><th>Stato</th><th>Azioni</th>
-      </tr></thead>
-      <tbody>${clients.map(c => {
-        const subs = c.subscriptions?.filter(s=>s.active) || [];
-        const svcTags = subs.map(s=>`<span class="tag tb" style="margin:1px">${SVC[s.services?.code]||s.services?.code}</span>`).join('');
-        return `<tr>
-          <td style="font-weight:500">${c.full_name||'—'}</td>
-          <td style="color:var(--muted)">${c.email||'—'}</td>
-          <td style="color:var(--muted)">${c.telegram_username?'@'+c.telegram_username:'—'}</td>
-          <td>${svcTags||'<span class="tag tm">Nessuno</span>'}</td>
-          <td><span class="tag ${c.active?'tg':'tr'}">${c.active?'Attivo':'Disattivo'}</span></td>
-          <td><button class="btn sm" onclick="openSubModal('${c.id}','${c.full_name||c.email}')">Gestisci</button></td>
-        </tr>`;
-      }).join('')}</tbody>
-    </table></div>`;
+function loadClients(){
+  document.getElementById('clients-table').innerHTML='<div class="spinner">Caricamento...</div>';
+  adminApi('/admin/clients').then(function(clients){
+    clients=clients||[]; _clientsCache=clients;
+    if(!clients.length){document.getElementById('clients-table').innerHTML='<p style="color:var(--muted);font-size:13px">Nessun cliente ancora creato</p>';return;}
+    var now=new Date();
+    var html='<div class="tbl-wrap"><table><thead><tr><th>Nome</th><th>Email</th><th>Servizi</th><th>Scadenza</th><th>Stato</th><th>Azioni</th></tr></thead><tbody>';
+    clients.forEach(function(c){
+      var subs=(c.subscriptions||[]).filter(function(s){return s.active;});
+      var tags=subs.map(function(s){return '<span class="tag tb" style="margin:1px">'+(SVC_ICONS[s.services&&s.services.code?s.services.code:'']||'')+' '+(SVC_NAMES[s.services&&s.services.code?s.services.code:'']||'')+'</span>';}).join('');
+      var nearExp=null;
+      subs.forEach(function(s){if(s.expires_at){var d=new Date(s.expires_at);if(!nearExp||d<nearExp)nearExp=d;}});
+      var expStr=nearExp?nearExp.toLocaleDateString('it-IT'):'—';
+      var expCls=!nearExp?'tm':nearExp<now?'tr':nearExp<new Date(now.getTime()+30*24*60*60*1000)?'ta':'tg';
+      html+='<tr>'+
+        '<td style="font-weight:500">'+(c.full_name||'—')+'</td>'+
+        '<td style="color:var(--muted)">'+(c.email||'—')+'</td>'+
+        '<td>'+(tags||'<span class="tag tm">Nessuno</span>')+'</td>'+
+        '<td><span class="tag '+expCls+'">'+expStr+'</span></td>'+
+        '<td><span class="tag '+(c.active?'tg':'tr')+'">'+(c.active?'Attivo':'Disattivo')+'</span></td>'+
+        '<td><button class="btn sm" data-action="manage" data-cid="'+c.id+'" data-name="'+encodeURIComponent(c.full_name||c.email)+'">Gestisci</button></td>'+
+      '</tr>';
+    });
+    html+='</tbody></table></div>';
+    document.getElementById('clients-table').innerHTML=html;
+  });
 }
 
-// ── MODAL ABBONAMENTI ──
-async function openSubModal(clientId, name) {
-  document.getElementById('modal-title').textContent = '👤 ' + name;
-  document.getElementById('modal-body').innerHTML = '<div class="spinner">Caricamento...</div>';
-  document.getElementById('sub-modal').classList.add('open');
-
-  const clients = await adminApi('/admin/clients');
-  const client = clients?.find(c=>c.id===clientId);
-  const activeSubs = client?.subscriptions?.filter(s=>s.active).map(s=>s.services?.code) || [];
-
-  document.getElementById('modal-body').innerHTML = `
-    <p style="font-size:12px;color:var(--muted);margin-bottom:12px">Attiva o disattiva i servizi per questo cliente</p>
-    ${Object.entries(SVC).map(([code,label])=>{
-      const on = activeSubs.includes(code);
-      return `<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)">
-        <span>${label}</span>
-        <button class="btn sm ${on?'red':'green'}" onclick="toggleSub('${clientId}','${code}',${!on},this)">
-          ${on?'Disattiva':'Attiva'}
-        </button>
-      </div>`;
-    }).join('')}`;
+function openClientModal(cid,name){
+  document.getElementById('modal-title').textContent='Gestione - '+name;
+  document.getElementById('modal-body').innerHTML='<div class="spinner">Caricamento...</div>';
+  document.getElementById('client-modal').classList.add('open');
+  adminApi('/admin/clients').then(function(clients){
+    var client=clients&&clients.find(function(c){return c.id===cid;});
+    if(!client){document.getElementById('modal-body').innerHTML='<p style="color:var(--red)">Cliente non trovato</p>';return;}
+    var activeSubs=(client.subscriptions||[]).filter(function(s){return s.active;}).map(function(s){return s.services&&s.services.code;});
+    var html='<p style="font-size:12px;color:var(--muted);margin-bottom:12px">Attiva o disattiva i servizi</p>';
+    Object.keys(SVC_NAMES).forEach(function(code){
+      var on=activeSubs.indexOf(code)>=0;
+      html+='<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)">'+
+        '<span>'+svcLabel(code)+'</span>'+
+        '<button class="btn sm '+(on?'red':'green')+'" data-action="toggle-sub" data-cid="'+cid+'" data-code="'+code+'" data-active="'+on+'">'+(on?'Disattiva':'Attiva')+'</button>'+
+      '</div>';
+    });
+    document.getElementById('modal-body').innerHTML=html;
+  });
 }
 
-async function toggleSub(clientId, code, active, btn) {
-  btn.disabled = true;
-  btn.textContent = '...';
-  const r = await adminApi(`/admin/subscription/${clientId}/${code}?active=${active}`, 'PATCH');
-  if (r?.ok) {
-    btn.textContent = active ? 'Disattiva' : 'Attiva';
-    btn.className = 'btn sm ' + (active ? 'red' : 'green');
-    btn.onclick = () => toggleSub(clientId, code, !active, btn);
-    toast(active ? 'Servizio attivato!' : 'Servizio disattivato');
-  } else {
-    btn.textContent = active ? 'Attiva' : 'Disattiva';
-    btn.disabled = false;
-    toast('Errore — riprova', false);
-  }
-}
-
-function closeModal() {
-  document.getElementById('sub-modal').classList.remove('open');
+function toggleSubModal(cid,code,active,btn){
+  btn.disabled=true; btn.textContent='...';
+  adminApi('/admin/subscription/'+cid+'/'+code+'?active='+active,'PATCH').then(function(r){
+    if(r&&r.ok){
+      btn.textContent=active?'Disattiva':'Attiva';
+      btn.className='btn sm '+(active?'red':'green');
+      btn.setAttribute('data-active',String(active));
+      showToast(active?'Attivato!':'Disattivato!');
+    }else{btn.disabled=false;btn.textContent=active?'Attiva':'Disattiva';showToast('Errore',false);}
+  });
 }
 
 // ── NUOVO CLIENTE ──
-async function createClient() {
-  const name   = document.getElementById('nc-name').value.trim();
-  const email  = document.getElementById('nc-email').value.trim();
-  const pass   = document.getElementById('nc-pass').value;
-  const tgid   = document.getElementById('nc-tgid').value;
-  const tguser = document.getElementById('nc-tguser').value.trim();
-  const exp    = document.getElementById('nc-exp').value;
-  const svcs   = [...document.querySelectorAll('.svc-check input:checked')].map(i=>i.value);
-
-  if (!email || !pass) { toast('Email e password obbligatorie', false); return; }
-  if (pass.length < 6) { toast('Password minimo 6 caratteri', false); return; }
-
-  const res = document.getElementById('nc-result');
-  res.textContent = 'Creazione in corso...';
-  res.style.color = 'var(--muted)';
-
-  const data = {
-    email, password: pass,
-    full_name: name,
-    services: svcs,
-  };
-  if (tgid) data.telegram_chat_id = parseInt(tgid);
-  if (tguser) data.telegram_username = tguser;
-  if (exp) data.expires_at = new Date(exp).toISOString();
-
-  const r = await adminApi('/admin/client', 'POST', data);
-  if (r?.ok) {
-    res.textContent = '✓ Cliente creato con successo! ID: ' + r.client_id;
-    res.style.color = 'var(--green)';
-    toast('Cliente creato!');
-    // Reset form
-    ['nc-name','nc-email','nc-pass','nc-tgid','nc-tguser','nc-exp'].forEach(id=>{
-      document.getElementById(id).value='';
-    });
-    document.querySelectorAll('.svc-check input').forEach(i=>i.checked=false);
-  } else {
-    res.textContent = '✗ Errore: ' + (r?.detail || JSON.stringify(r));
-    res.style.color = 'var(--red)';
-    toast('Errore nella creazione', false);
-  }
+function createClient(){
+  var name=document.getElementById('nc-name').value.trim();
+  var email=document.getElementById('nc-email').value.trim();
+  var pass=document.getElementById('nc-pass').value;
+  var exp=document.getElementById('nc-exp').value;
+  var amount=document.getElementById('nc-amount').value;
+  var notes=document.getElementById('nc-notes').value.trim();
+  var svcs=[].slice.call(document.querySelectorAll('.svc-check input:checked')).map(function(i){return i.value;});
+  if(!email||!pass){showToast('Email e password obbligatorie',false);return;}
+  if(pass.length<6){showToast('Password minimo 6 caratteri',false);return;}
+  var res=document.getElementById('nc-result');
+  res.textContent='Creazione in corso...'; res.style.color='var(--muted)';
+  var data={email:email,password:pass,full_name:name,services:svcs};
+  if(exp)data.expires_at=new Date(exp).toISOString();
+  if(amount)data.amount=parseFloat(amount);
+  if(notes)data.notes=notes;
+  adminApi('/admin/client','POST',data).then(function(r){
+    if(r&&r.ok){
+      res.textContent='Cliente creato! ID: '+r.client_id; res.style.color='var(--green)';
+      showToast('Cliente creato!');
+      ['nc-name','nc-email','nc-pass','nc-exp','nc-amount','nc-notes'].forEach(function(id){document.getElementById(id).value='';});
+      document.querySelectorAll('.svc-check input').forEach(function(i){i.checked=false;});
+    }else{
+      res.textContent='Errore: '+(r&&r.detail?r.detail:JSON.stringify(r)); res.style.color='var(--red)';
+      showToast('Errore',false);
+    }
+  });
 }
 
 // ── SEGNALI ──
-async function loadSignals() {
-  document.getElementById('signals-list').innerHTML = '<div class="spinner">Caricamento...</div>';
-  const sigs = await adminApi('/admin/signals?limit=100');
-  if (!sigs?.length) {
-    document.getElementById('signals-list').innerHTML = '<p style="color:var(--muted);font-size:13px">Nessun segnale ricevuto</p>';
-    return;
-  }
-  document.getElementById('signals-list').innerHTML = `
-    <div class="tbl-wrap"><table>
-      <thead><tr><th>Data</th><th>Servizio</th><th>Tipo</th><th>Testo</th><th>Strike</th><th>OTM%</th><th>Premio</th></tr></thead>
-      <tbody>${sigs.map(s=>{
-        const t = new Date(s.created_at);
-        const ts = t.toLocaleDateString('it-IT')+' '+t.toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'});
-        const typeClass = s.signal_type==='OPEN'?'tb':s.signal_type==='CLOSE'?'tg':s.signal_type==='ALERT'?'tm':'tm';
-        return `<tr>
-          <td style="color:var(--muted);white-space:nowrap">${ts}</td>
-          <td>${SVC[s.services?.code]||s.services?.name||'—'}</td>
-          <td><span class="tag ${typeClass}">${s.signal_type||'INFO'}</span></td>
-          <td style="max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${s.message_text}</td>
-          <td>${s.strike||'—'}</td>
-          <td>${s.strike_pct?s.strike_pct+'%':'—'}</td>
-          <td style="color:var(--green)">${s.premium?'€'+s.premium:'—'}</td>
-        </tr>`;
-      }).join('')}</tbody>
-    </table></div>`;
+function loadSignals(){
+  document.getElementById('signals-list').innerHTML='<div class="spinner">Caricamento...</div>';
+  adminApi('/admin/signals?limit=100').then(function(sigs){
+    sigs=sigs||[];
+    if(!sigs.length){document.getElementById('signals-list').innerHTML='<p style="color:var(--muted);font-size:13px">Nessun segnale ricevuto</p>';return;}
+    var html='<div class="tbl-wrap"><table><thead><tr><th>Data</th><th>Servizio</th><th>Tipo</th><th>Testo</th></tr></thead><tbody>';
+    sigs.forEach(function(s){
+      var t=new Date(s.created_at);
+      var ts=t.toLocaleDateString('it-IT')+' '+t.toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'});
+      var tc=s.signal_type==='OPEN'?'tb':s.signal_type==='CLOSE'?'tg':s.signal_type==='ALERT'?'ta':'tm';
+      var txt=(s.message_text||'').substring(0,60); if(s.message_text&&s.message_text.length>60)txt+='...';
+      html+='<tr><td style="color:var(--muted);white-space:nowrap">'+ts+'</td><td>'+svcLabel(s.services&&s.services.code?s.services.code:'')+'</td><td><span class="tag '+tc+'">'+(s.signal_type||'INFO')+'</span></td><td>'+txt+'</td></tr>';
+    });
+    html+='</tbody></table></div>';
+    document.getElementById('signals-list').innerHTML=html;
+  });
 }
 
-function renderSig(s) {
-  const t = new Date(s.created_at);
-  const ts = t.toLocaleDateString('it-IT')+' '+t.toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'});
-  return `<div class="sig-item">
-    <div class="sig-head">
-      <span class="sig-svc">${SVC[s.services?.code]||''}</span>
-      <span class="sig-time">${ts}</span>
-    </div>
-    <div>${s.message_text}</div>
-  </div>`;
-}
-
-// Avvio
-if (authed) {
-  document.getElementById('auth-screen').style.display = 'none';
-  document.getElementById('app').style.display = 'block';
+if(authed){
+  document.getElementById('auth-screen').style.display='none';
+  document.getElementById('app').style.display='block';
   loadOverview();
-} else {
-  document.getElementById('auth-screen').style.display = 'flex';
+}else{
+  document.getElementById('auth-screen').style.display='flex';
 }
 </script>
 </body>
