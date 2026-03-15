@@ -260,6 +260,14 @@ tr:hover td{background:rgba(255,255,255,0.02);}
         <div class="pg-title" id="dash-title">Benvenuto</div>
         <div class="pg-sub" id="dash-sub"></div>
         <div class="card"><div class="card-title">I tuoi servizi</div><div class="svc-grid" id="dash-svcs"><div class="spinner">Caricamento...</div></div></div>
+        <div class="card">
+          <div class="card-title">&#x1F4CA; Performance oggi</div>
+          <div class="kpi-row" id="dash-daily-pnl">
+            <div class="kpi"><div class="kl">&#x1F310; Indici oggi</div><div class="kv">\u2014</div><div class="ks">Caricamento...</div></div>
+            <div class="kpi"><div class="kl">&#x1F4B1; Forex oggi</div><div class="kv">\u2014</div><div class="ks">Caricamento...</div></div>
+            <div class="kpi gold"><div class="kl">&#x1F4C5; Vanilla mese</div><div class="kv gold">\u2014</div><div class="ks">Caricamento...</div></div>
+          </div>
+        </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
           <div class="card" style="margin-bottom:0">
             <div class="card-title">&#x1F4C5; Calendario economico <span style="font-size:10px;color:var(--amber)">&#x25CF; questa settimana</span></div>
@@ -525,6 +533,48 @@ function loadDashboard(activeCodes){
       sigs.slice(0,5).map(renderSig).join(''):
       '<p style="color:var(--muted);font-size:13px">Nessun segnale ancora ricevuto</p>';
   });
+  // PnL giornaliero
+  loadDailyPnl();
+}
+
+function loadDailyPnl(){
+  var today=new Date().toLocaleDateString('it-IT');
+  var todayISO=new Date().toISOString().split('T')[0];
+  Promise.all([
+    api('/api/trades?service_code=indices'),
+    api('/api/trades?service_code=forex'),
+    api('/api/trades?service_code=vanilla_monthly')
+  ]).then(function(res){
+    var indices=res[0]||[];
+    var forex=res[1]||[];
+    var vanilla=res[2]||[];
+
+    function todayPnl(trades){
+      return trades.filter(function(t){
+        return t.status==='CLOSED' && t.closed_at && t.closed_at.startsWith(todayISO);
+      }).reduce(function(s,t){return s+(parseFloat(t.pnl)||0);},0);
+    }
+
+    function monthPremium(trades){
+      var now=new Date();
+      return trades.filter(function(t){
+        if(t.status!=='CLOSED'||!t.closed_at)return false;
+        var d=new Date(t.closed_at);
+        return d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear();
+      }).reduce(function(s,t){return s+(parseFloat(t.premium_collected)||0);},0);
+    }
+
+    var idxPnl=todayPnl(indices);
+    var fxPnl=todayPnl(forex);
+    var vanPrem=monthPremium(vanilla);
+
+    var el=document.getElementById('dash-daily-pnl');
+    if(!el)return;
+    el.innerHTML=
+      '<div class="kpi '+(idxPnl>=0?'':'')+'"><div class="kl">&#x1F310; Indici oggi</div><div class="kv '+(idxPnl>0?'g':idxPnl<0?'r':'')+'">'+(idxPnl===0?'\u2014':(idxPnl>0?'+':'')+idxPnl.toFixed(2)+' $')+'</div><div class="ks">PnL giornaliero</div></div>'+
+      '<div class="kpi"><div class="kl">&#x1F4B1; Forex oggi</div><div class="kv '+(fxPnl>0?'g':fxPnl<0?'r':'')+'">'+(fxPnl===0?'\u2014':(fxPnl>0?'+':'')+fxPnl.toFixed(2)+' $')+'</div><div class="ks">PnL giornaliero</div></div>'+
+      '<div class="kpi gold"><div class="kl">&#x1F4C5; Vanilla mese</div><div class="kv gold">'+(vanPrem>0?'\u20ac '+vanPrem.toLocaleString('it-IT'):'\u2014')+'</div><div class="ks">Premio incassato</div></div>';
+  });
 }
 
 // ── POLLING ──
@@ -537,7 +587,7 @@ function checkNewSignals(){
   api('/api/signals?limit=1').then(function(sigs){
     if(!sigs||!sigs.length)return;
     var latest=sigs[0];
-    if(lastSignalId===0){lastSignalId=latest.id-1;}
+    if(lastSignalId===0){lastSignalId=latest.id;return;}
     if(latest.id>lastSignalId){
       api('/api/signals?limit=20').then(function(all){
         if(!all)return;
@@ -678,7 +728,7 @@ function loadVanillaMonthly(){
           '<td style="font-weight:500">'+month+'</td>'+
           '<td>'+(isFlat?'—':parseFloat(t.strike).toLocaleString('it-IT'))+'</td>'+
           '<td>'+(isFlat?'—':parseFloat(t.strike_pct).toFixed(2)+'%')+'</td>'+
-          '<td style="color:var(--green);font-weight:600">'+(isFlat?'—':t.status==='OPEN'?'<span class="tag tb">In corso</span>':'\u20ac '+t.premium_collected)+'</td>'+
+          '<td style="color:var(--green);font-weight:600">'+(isFlat?'—':'€ '+t.premium_collected)+'</td>'+
           '<td style="color:'+ddC+'">'+(isFlat?'—':parseFloat(t.drawdown_max).toFixed(2)+'%')+'</td>'+
           '<td><span class="tag '+(isFlat?'tm':'tg')+'">'+(isFlat?'FLAT':'GAIN')+'</span></td>'+
         '</tr>';
