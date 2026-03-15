@@ -537,7 +537,7 @@ function checkNewSignals(){
   api('/api/signals?limit=1').then(function(sigs){
     if(!sigs||!sigs.length)return;
     var latest=sigs[0];
-    if(lastSignalId===0){lastSignalId=latest.id;return;}
+    if(lastSignalId===0){lastSignalId=latest.id-1;}
     if(latest.id>lastSignalId){
       api('/api/signals?limit=20').then(function(all){
         if(!all)return;
