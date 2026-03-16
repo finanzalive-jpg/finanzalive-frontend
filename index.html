@@ -425,47 +425,38 @@ function initApp(user){
 
 // ── TICKER MERCATI ──
 function loadTicker(){
-  // Usa API gratuita Yahoo Finance via proxy
-  var symbols=[
-    {s:'%5EGSPC',n:'S&P 500'},
-    {s:'%5EIXIC',n:'Nasdaq'},
-    {s:'GC%3DF',n:'Oro'},
-    {s:'EURUSD%3DX',n:'EUR/USD'},
-    {s:'BTC-USD',n:'Bitcoin'},
-    {s:'%5EVIX',n:'VIX'},
-    {s:'CL%3DF',n:'Petrolio'}
-  ];
-  var results=[];
-  var done=0;
-  symbols.forEach(function(sym){
-    fetch('https://query1.finance.yahoo.com/v8/finance/chart/'+sym.s+'?interval=1d&range=2d')
-      .then(function(r){return r.json();})
-      .then(function(d){
-        try{
-          var q=d.chart.result[0].meta;
-          var price=q.regularMarketPrice;
-          var prev=q.previousClose||q.chartPreviousClose;
-          var chg=((price-prev)/prev*100);
-          results.push({name:sym.n,price:price,chg:chg,symbol:sym.s});
-        }catch(e){}
-        done++;
-        if(done===symbols.length) renderTicker(results);
-      }).catch(function(){done++;if(done===symbols.length)renderTicker(results);});
-  });
+  // Usa il nostro backend come proxy per evitare problemi CORS
+  fetch(API_BASE+'/api/quotes')
+    .then(function(r){return r.json();})
+    .then(function(data){
+      if(!data||!data.length){
+        document.getElementById('ticker-track').innerHTML='<div style="padding:0 2rem;font-size:12px;color:var(--muted)">Mercati non disponibili</div>';
+        return;
+      }
+      renderTicker(data.filter(function(d){return !d.error;}));
+    })
+    .catch(function(){
+      document.getElementById('ticker-track').innerHTML='<div style="padding:0 2rem;font-size:12px;color:var(--muted)">Mercati non disponibili</div>';
+    });
+  // Aggiorna ogni 60 secondi
+  setTimeout(loadTicker, 60000);
 }
 
 function renderTicker(data){
-  if(!data.length){document.getElementById('ticker-track').innerHTML='<div style="padding:0 2rem;font-size:12px;color:var(--muted)">Mercati non disponibili</div>';return;}
+  if(!data||!data.length){
+    document.getElementById('ticker-track').innerHTML='<div style="padding:0 2rem;font-size:12px;color:var(--muted)">Mercati non disponibili</div>';
+    return;
+  }
   var html='';
-  // Duplica per loop continuo
   for(var j=0;j<2;j++){
     data.forEach(function(d){
-      var up=d.chg>=0;
-      var priceStr=d.price>1000?d.price.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}):d.price.toFixed(d.price>10?2:4);
+      var up=d.up!==false&&d.change>=0;
+      var price=d.price||0;
+      var priceStr=price>1000?price.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}):price.toFixed(price>10?2:4);
       html+='<div class="ticker-item">'+
         '<span class="ticker-name">'+d.name+'</span>'+
         '<span class="ticker-price '+(up?'ticker-up':'ticker-down')+'">'+priceStr+'</span>'+
-        '<span class="ticker-change '+(up?'ticker-up':'ticker-down')+'">'+(up?'+':'')+d.chg.toFixed(2)+'%</span>'+
+        '<span class="ticker-change '+(up?'ticker-up':'ticker-down')+'">'+(up?'+':'')+d.change.toFixed(2)+'%</span>'+
       '</div>';
     });
   }
