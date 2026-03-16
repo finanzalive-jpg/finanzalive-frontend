@@ -544,6 +544,31 @@ function loadDashboard(activeCodes){
   });
   // PnL giornaliero
   loadDailyPnl();
+  loadNews();
+}
+
+function loadNews(){
+  var el=document.getElementById('dash-news');
+  if(!el)return;
+  fetch(API_BASE+'/api/news')
+    .then(function(r){return r.json();})
+    .then(function(news){
+      news=news||[];
+      if(!news.length){
+        el.innerHTML='<p style="color:var(--muted);font-size:12px;padding:6px 0">Nessuna comunicazione</p>';
+        return;
+      }
+      el.innerHTML=news.slice(0,4).map(function(n){
+        var d=new Date(n.created_at);
+        var ds=d.toLocaleDateString('it-IT')+' '+d.toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'});
+        return '<div style="padding:7px 0;border-bottom:1px solid var(--border)">'+
+          '<div style="font-size:10px;color:var(--muted)">'+ds+'</div>'+
+          '<div style="font-size:12px;margin-top:2px">'+n.message+'</div>'+
+        '</div>';
+      }).join('');
+    }).catch(function(){
+      el.innerHTML='';
+    });
 }
 
 function loadDailyPnl(){
