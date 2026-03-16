@@ -122,6 +122,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
       <div class="nav-item" onclick="showPage('clients')"><span>&#x1F465;</span> Clienti</div>
       <div class="nav-item" onclick="showPage('add-client')"><span>&#x2795;</span> Nuovo cliente</div>
       <div class="nav-item" onclick="showPage('expiry')"><span>&#x23F0;</span> Scadenze</div>
+      <div class="nav-item" onclick="showPage('news')"><span>&#x1F4AC;</span> Comunicazioni</div>
       <div class="nav-item" onclick="showPage('signals')"><span>&#x1F4E1;</span> Segnali</div>
     </div>
     <div class="main">
@@ -198,6 +199,21 @@ tr:hover td{background:rgba(255,255,255,0.02);}
         </div>
       </div>
 
+      <!-- COMUNICAZIONI -->
+      <div class="page" id="page-news">
+        <div class="pg-title">Comunicazioni</div>
+        <div class="pg-sub">Pubblica messaggi visibili ai clienti nella dashboard</div>
+        <div class="card">
+          <div class="card-title">Nuova comunicazione</div>
+          <div class="form-group"><label>Messaggio</label><textarea id="news-text" style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px 12px;color:var(--text);font-size:13px;outline:none;resize:vertical;min-height:80px;" placeholder="Es. Mercati chiusi domani per festività..."></textarea></div>
+          <button class="btn green" onclick="publishNews()">&#x1F4E4; Pubblica</button>
+        </div>
+        <div class="card" style="margin-top:1rem;">
+          <div class="card-title">Comunicazioni pubblicate</div>
+          <div id="news-list"></div>
+        </div>
+      </div>
+
       <!-- SEGNALI -->
       <div class="page" id="page-signals">
         <div class="pg-title">Segnali ricevuti</div>
@@ -266,16 +282,58 @@ function showToast(msg,ok){
   setTimeout(function(){t.classList.remove('show');},3000);
 }
 
+function publishNews(){
+  var text=document.getElementById('news-text').value.trim();
+  if(!text){showToast('Scrivi un messaggio',false);return;}
+  var news=[];
+  try{news=JSON.parse(localStorage.getItem('iup_news')||'[]');}catch(e){}
+  news.unshift({text:text,date:new Date().toLocaleDateString('it-IT')+' '+new Date().toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'})});
+  // Mantieni solo ultimi 10
+  if(news.length>10)news=news.slice(0,10);
+  localStorage.setItem('iup_news',JSON.stringify(news));
+  document.getElementById('news-text').value='';
+  showToast('Comunicazione pubblicata!');
+  renderNewsList(news);
+}
+
+function renderNewsList(news){
+  var el=document.getElementById('news-list');
+  if(!el)return;
+  if(!news.length){el.innerHTML='<p style="color:var(--muted);font-size:13px">Nessuna comunicazione</p>';return;}
+  el.innerHTML=news.map(function(n,i){
+    return '<div style="display:flex;justify-content:space-between;align-items:flex-start;padding:10px 0;border-bottom:1px solid var(--border)">'+
+      '<div><div style="font-size:11px;color:var(--muted);margin-bottom:4px">'+n.date+'</div><div style="font-size:13px">'+n.text+'</div></div>'+
+      '<button class="btn sm red" onclick="deleteNews('+i+')">&#x2715;</button>'+
+    '</div>';
+  }).join('');
+}
+
+function deleteNews(idx){
+  var news=[];
+  try{news=JSON.parse(localStorage.getItem('iup_news')||'[]');}catch(e){}
+  news.splice(idx,1);
+  localStorage.setItem('iup_news',JSON.stringify(news));
+  renderNewsList(news);
+  showToast('Eliminata');
+}
+
+function loadNewsPage(){
+  var news=[];
+  try{news=JSON.parse(localStorage.getItem('iup_news')||'[]');}catch(e){}
+  renderNewsList(news);
+}
+
 function showPage(name){
   document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');});
   document.querySelectorAll('.nav-item').forEach(function(n){n.classList.remove('active');});
   document.getElementById('page-'+name).classList.add('active');
-  var navs=['overview','clients','add-client','expiry','signals'];
+  var navs=['overview','clients','add-client','expiry','news','signals'];
   var idx=navs.indexOf(name);
   if(idx>=0)document.querySelectorAll('.nav-item')[idx].classList.add('active');
   if(name==='clients')loadClients();
   if(name==='signals')loadSignals();
   if(name==='expiry')loadExpiry();
+  if(name==='news')loadNewsPage();
 }
 function closeModal(){ document.getElementById('client-modal').classList.remove('open'); }
 
