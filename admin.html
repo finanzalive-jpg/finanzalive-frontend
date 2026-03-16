@@ -202,15 +202,19 @@ tr:hover td{background:rgba(255,255,255,0.02);}
       <!-- COMUNICAZIONI -->
       <div class="page" id="page-news">
         <div class="pg-title">Comunicazioni</div>
-        <div class="pg-sub">Pubblica messaggi visibili ai clienti nella dashboard</div>
+        <div class="pg-sub">Pubblica messaggi visibili nella dashboard di tutti i clienti</div>
         <div class="card">
           <div class="card-title">Nuova comunicazione</div>
-          <div class="form-group"><label>Messaggio</label><textarea id="news-text" style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px 12px;color:var(--text);font-size:13px;outline:none;resize:vertical;min-height:80px;" placeholder="Es. Mercati chiusi domani per festività..."></textarea></div>
+          <div class="form-group">
+            <label>Messaggio</label>
+            <textarea id="news-text" style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px 12px;color:var(--text);font-size:13px;outline:none;resize:vertical;min-height:80px;transition:border .2s;" placeholder="Es. Mercati chiusi domani per festività..."></textarea>
+          </div>
           <button class="btn green" onclick="publishNews()">&#x1F4E4; Pubblica</button>
+          <div id="news-result" style="margin-top:8px;font-size:13px;"></div>
         </div>
         <div class="card" style="margin-top:1rem;">
-          <div class="card-title">Comunicazioni pubblicate</div>
-          <div id="news-list"></div>
+          <div class="card-title">Comunicazioni attive</div>
+          <div id="news-list"><div class="spinner">Caricamento...</div></div>
         </div>
       </div>
 
@@ -284,43 +288,47 @@ function showToast(msg,ok){
 
 function publishNews(){
   var text=document.getElementById('news-text').value.trim();
+  var res=document.getElementById('news-result');
   if(!text){showToast('Scrivi un messaggio',false);return;}
-  var news=[];
-  try{news=JSON.parse(localStorage.getItem('iup_news')||'[]');}catch(e){}
-  news.unshift({text:text,date:new Date().toLocaleDateString('it-IT')+' '+new Date().toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'})});
-  // Mantieni solo ultimi 10
-  if(news.length>10)news=news.slice(0,10);
-  localStorage.setItem('iup_news',JSON.stringify(news));
-  document.getElementById('news-text').value='';
-  showToast('Comunicazione pubblicata!');
-  renderNewsList(news);
+  res.textContent='Pubblicazione...';res.style.color='var(--muted)';
+  adminApi('/admin/news','POST',{message:text}).then(function(r){
+    if(r&&r.ok){
+      showToast('Comunicazione pubblicata!');
+      document.getElementById('news-text').value='';
+      res.textContent='';
+      loadNewsList();
+    }else{
+      res.textContent='Errore';res.style.color='var(--red)';
+      showToast('Errore',false);
+    }
+  });
 }
 
-function renderNewsList(news){
-  var el=document.getElementById('news-list');
-  if(!el)return;
-  if(!news.length){el.innerHTML='<p style="color:var(--muted);font-size:13px">Nessuna comunicazione</p>';return;}
-  el.innerHTML=news.map(function(n,i){
-    return '<div style="display:flex;justify-content:space-between;align-items:flex-start;padding:10px 0;border-bottom:1px solid var(--border)">'+
-      '<div><div style="font-size:11px;color:var(--muted);margin-bottom:4px">'+n.date+'</div><div style="font-size:13px">'+n.text+'</div></div>'+
-      '<button class="btn sm red" onclick="deleteNews('+i+')">&#x2715;</button>'+
-    '</div>';
-  }).join('');
+function loadNewsList(){
+  fetch(API+'/api/news').then(function(r){return r.json();}).then(function(news){
+    news=news||[];
+    var el=document.getElementById('news-list');
+    if(!el)return;
+    if(!news.length){el.innerHTML='<p style="color:var(--muted);font-size:13px">Nessuna comunicazione attiva</p>';return;}
+    el.innerHTML=news.map(function(n){
+      var d=new Date(n.created_at);
+      var ds=d.toLocaleDateString('it-IT')+' '+d.toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'});
+      return '<div style="display:flex;align-items:flex-start;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border)">'+
+        '<div style="flex:1">'+
+          '<div style="font-size:11px;color:var(--muted);margin-bottom:4px">'+ds+'</div>'+
+          '<div style="font-size:13px">'+n.message+'</div>'+
+        '</div>'+
+        '<button class="btn sm red" style="margin-left:12px;flex-shrink:0" onclick="deleteNews('+n.id+')">&#x2715;</button>'+
+      '</div>';
+    }).join('');
+  });
 }
 
-function deleteNews(idx){
-  var news=[];
-  try{news=JSON.parse(localStorage.getItem('iup_news')||'[]');}catch(e){}
-  news.splice(idx,1);
-  localStorage.setItem('iup_news',JSON.stringify(news));
-  renderNewsList(news);
-  showToast('Eliminata');
-}
-
-function loadNewsPage(){
-  var news=[];
-  try{news=JSON.parse(localStorage.getItem('iup_news')||'[]');}catch(e){}
-  renderNewsList(news);
+function deleteNews(id){
+  adminApi('/admin/news/'+id,'DELETE').then(function(r){
+    if(r&&r.ok){showToast('Eliminata!');loadNewsList();}
+    else showToast('Errore',false);
+  });
 }
 
 function showPage(name){
@@ -333,7 +341,7 @@ function showPage(name){
   if(name==='clients')loadClients();
   if(name==='signals')loadSignals();
   if(name==='expiry')loadExpiry();
-  if(name==='news')loadNewsPage();
+  if(name==='news')loadNewsList();
 }
 function closeModal(){ document.getElementById('client-modal').classList.remove('open'); }
 
