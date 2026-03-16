@@ -646,7 +646,7 @@ function checkNewSignals(){
     }
   });
 }
-
+loadNews();
 function updateNavBadge(code){
   var count=unreadCounts[code]||0;
   var navId=code==='signals'?'nav-signals':'nav-'+code;
