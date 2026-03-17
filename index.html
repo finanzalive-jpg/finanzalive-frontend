@@ -1044,11 +1044,14 @@ function loadProfile(){
 }
 
 function renderSig(s){
-  var info=SVC[s.services&&s.services.code?s.services.code:'']||{};
+  var code=s.services&&s.services.code?s.services.code:'';
+  var info=SVC[code]||{};
   var tc=s.signal_type==='OPEN'?'tb':s.signal_type==='CLOSE'?'tg':s.signal_type==='ALERT'?'ta':'tm';
   var t=new Date(s.created_at);
   var ts=t.toLocaleDateString('it-IT')+' '+t.toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'});
-  return '<div class="sig"><div class="sig-head"><span class="sig-svc">'+(info.icon||'')+' '+(s.services&&s.services.name?s.services.name:'')+'</span><span class="sig-time">'+ts+'</span></div><div class="sig-text">'+s.message_text+'</div><div class="sig-tags"><span class="tag '+tc+'">'+(s.signal_type||'INFO')+'</span>'+(s.strike?'<span class="tag tm">Strike '+parseFloat(s.strike).toLocaleString('it-IT')+'</span>':'')+(s.strike_pct?'<span class="tag tm">'+s.strike_pct+'% OTM</span>':'')+(s.premium?'<span class="tag tg">€ '+s.premium+'</span>':'')+'</div></div>';
+  var logos={'indices':'https://raw.githubusercontent.com/finanzalive-jpg/finanzalive-frontend/main/indici_world_logo.jpg','vanilla_monthly':'https://raw.githubusercontent.com/finanzalive-jpg/finanzalive-frontend/main/Logo%20S%26P500%20con%20bandiera%20americana.jpg','vanilla_weekly':'https://raw.githubusercontent.com/finanzalive-jpg/finanzalive-frontend/main/Opzioni%20settimanali%20S%26P500%20con%20bandiera%20USA.jpg','forex':'https://raw.githubusercontent.com/finanzalive-jpg/finanzalive-frontend/main/forex%20logo.jpg','fund_paam':'https://raw.githubusercontent.com/finanzalive-jpg/finanzalive-frontend/main/fondo%20paam.jpg'};
+  var logoHtml=logos[code]?'<img src="'+logos[code]+'" style="width:22px;height:22px;border-radius:5px;object-fit:contain;background:#f5f0e8;vertical-align:-5px;margin-right:5px">':(info.icon?info.icon+' ':'');
+  return '<div class="sig"><div class="sig-head"><span class="sig-svc">'+logoHtml+(s.services&&s.services.name?s.services.name:'')+'</span><span class="sig-time">'+ts+'</span></div><div class="sig-text">'+s.message_text+'</div><div class="sig-tags"><span class="tag '+tc+'">'+(s.signal_type||'INFO')+'</span>'+(s.strike?'<span class="tag tm">Strike '+parseFloat(s.strike).toLocaleString('it-IT')+'</span>':'')+(s.strike_pct?'<span class="tag tm">'+s.strike_pct+'% OTM</span>':'')+(s.premium?'<span class="tag tg">\u20ac '+s.premium+'</span>':'')+'</div></div>';
 }
 
 // Avvio
