@@ -585,7 +585,9 @@ function loadDailyPnl(){
 
     function todayPnl(trades){
       return trades.filter(function(t){
-        return t.status==='CLOSED' && t.closed_at && t.closed_at.startsWith(todayISO);
+        if(t.status!=='CLOSED'||!t.opened_at)return false;
+        // Usa opened_at per il filtro giornaliero (più affidabile)
+        return t.opened_at.startsWith(todayISO) || (t.closed_at&&t.closed_at.startsWith(todayISO));
       }).reduce(function(s,t){return s+(parseFloat(t.pnl)||0);},0);
     }
 
@@ -605,7 +607,7 @@ function loadDailyPnl(){
     var el=document.getElementById('dash-daily-pnl');
     if(!el)return;
     el.innerHTML=
-      '<div class="kpi '+(idxPnl>=0?'':'')+'"><div class="kl">&#x1F310; Indici oggi</div><div class="kv '+(idxPnl>0?'g':idxPnl<0?'r':'')+'">'+(idxPnl===0?'\u2014':(idxPnl>0?'+':'')+idxPnl.toFixed(2)+' $')+'</div><div class="ks">PnL giornaliero</div></div>'+
+      '<div class="kpi"><div class="kl">&#x1F310; Indici oggi</div><div class="kv '+(idxPnl>0?'g':idxPnl<0?'r':'')+'">'+(idxPnl===0?'\u2014':(idxPnl>0?'+':'')+idxPnl.toFixed(2)+' $')+'</div><div class="ks">PnL giornaliero</div></div>'+
       '<div class="kpi"><div class="kl">&#x1F4B1; Forex oggi</div><div class="kv '+(fxPnl>0?'g':fxPnl<0?'r':'')+'">'+(fxPnl===0?'\u2014':(fxPnl>0?'+':'')+fxPnl.toFixed(2)+' $')+'</div><div class="ks">PnL giornaliero</div></div>'+
       '<div class="kpi gold"><div class="kl">&#x1F4C5; Vanilla mese</div><div class="kv gold">'+(vanPrem>0?'\u20ac '+vanPrem.toLocaleString('it-IT'):'\u2014')+'</div><div class="ks">Premio incassato</div></div>';
   });
