@@ -299,7 +299,10 @@ tr:hover td{background:rgba(255,255,255,0.02);}
 
       <!-- SERVIZIO -->
       <div class="page" id="page-service">
-        <div class="pg-title" id="svc-pg-title"></div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+          <div class="pg-title" id="svc-pg-title" style="display:flex;align-items:center;gap:12px;"></div>
+          <button onclick="showPage('dashboard')" style="background:var(--bg3);border:1px solid var(--border);color:var(--muted);border-radius:8px;padding:7px 14px;cursor:pointer;font-size:12px;display:flex;align-items:center;gap:6px;flex-shrink:0;">&#x2302; Home</button>
+        </div>
         <div class="pg-sub" id="svc-pg-sub"></div>
         <div id="svc-pg-content"></div>
       </div>
@@ -705,10 +708,9 @@ function showService(code){
   clearBadge(code);
   var info=SVC[code];
   var svcLogos={indices:'https://raw.githubusercontent.com/finanzalive-jpg/finanzalive-frontend/main/indici_world_logo.jpg',vanilla_monthly:'https://raw.githubusercontent.com/finanzalive-jpg/finanzalive-frontend/main/Logo%20S%26P500%20con%20bandiera%20americana.jpg',vanilla_weekly:'https://raw.githubusercontent.com/finanzalive-jpg/finanzalive-frontend/main/Opzioni%20settimanali%20S%26P500%20con%20bandiera%20USA.jpg',forex:'https://raw.githubusercontent.com/finanzalive-jpg/finanzalive-frontend/main/forex%20logo.jpg',fund_paam:'https://raw.githubusercontent.com/finanzalive-jpg/finanzalive-frontend/main/fondo%20paam.jpg'};
-  var logoHtml=svcLogos[code]?'<img src="'+svcLogos[code]+'" style="width:52px;height:52px;border-radius:10px;object-fit:contain;background:#f5f0e8;margin-right:14px;vertical-align:middle;flex-shrink:0">':'';
+  var logoHtml=svcLogos[code]?'<img src="'+svcLogos[code]+'" style="width:52px;height:52px;border-radius:10px;object-fit:contain;background:#f5f0e8;flex-shrink:0">':'';
   document.getElementById('svc-pg-title').innerHTML=logoHtml+'<span>'+info.name+'</span>';
-  document.getElementById('svc-pg-title').style.display='flex';
-  document.getElementById('svc-pg-title').style.alignItems='center';
+
   document.getElementById('svc-pg-sub').textContent=info.desc;
   if(code==='fund_paam'){
     document.getElementById('svc-pg-content').innerHTML='<div class="coming-soon"><div class="cs-icon">&#x1F4BC;</div><h3>In arrivo</h3><p>La sezione Fondo PAAM sarà disponibile a breve.<br>I risultati verranno aggiornati settimanalmente dal conto MT4.</p></div>';
