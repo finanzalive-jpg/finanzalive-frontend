@@ -400,7 +400,7 @@ function loadOverview(){
 
 // ── SCADENZE ──
 function loadExpiry(){
-  adminApi('/admin/clients').then(function(clients){
+  adminApi('/admin/clients?t='+Date.now()).then(function(clients){
     clients=clients||[]; _clientsCache=clients;
     var now=new Date(); var in30=new Date(now.getTime()+30*24*60*60*1000);
     var expired=[],soon=[],active=[];
@@ -512,7 +512,7 @@ function doRenew(cid,code){
 // ── CLIENTI ──
 function loadClients(){
   document.getElementById('clients-table').innerHTML='<div class="spinner">Caricamento...</div>';
-  adminApi('/admin/clients').then(function(clients){
+  adminApi('/admin/clients?t='+Date.now()).then(function(clients){
     clients=clients||[]; _clientsCache=clients;
     if(!clients.length){document.getElementById('clients-table').innerHTML='<p style="color:var(--muted);font-size:13px">Nessun cliente ancora creato</p>';return;}
     var now=new Date();
@@ -542,7 +542,7 @@ function openClientModal(cid,name){
   document.getElementById('modal-title').textContent='Gestione - '+name;
   document.getElementById('modal-body').innerHTML='<div class="spinner">Caricamento...</div>';
   document.getElementById('client-modal').classList.add('open');
-  adminApi('/admin/clients').then(function(clients){
+  adminApi('/admin/clients?t='+Date.now()).then(function(clients){
     var client=clients&&clients.find(function(c){return c.id===cid;});
     if(!client){document.getElementById('modal-body').innerHTML='<p style="color:var(--red)">Cliente non trovato</p>';return;}
     var subsMap={};
@@ -575,11 +575,15 @@ function toggleSubModal(cid,code,active,btn){
   btn.disabled=true; btn.textContent='...';
   adminApi('/admin/subscription/'+cid+'/'+code+'?active='+active,'PATCH').then(function(r){
     if(r&&r.ok){
-      btn.textContent=active?'Disattiva':'Attiva';
-      btn.className='btn sm '+(active?'red':'green');
-      btn.setAttribute('data-active',String(active));
       showToast(active?'Attivato!':'Disattivato!');
-    }else{btn.disabled=false;btn.textContent=active?'Attiva':'Disattiva';showToast('Errore',false);}
+      // Ricarica il modal con dati freschi
+      var name=document.getElementById('modal-title').textContent.replace('Gestione - ','');
+      openClientModal(cid,name);
+    }else{
+      btn.disabled=false;
+      btn.textContent=active?'Attiva':'Disattiva';
+      showToast('Errore',false);
+    }
   });
 }
 
