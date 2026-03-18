@@ -459,6 +459,15 @@ document.addEventListener('click',function(e){
     var active=btn.getAttribute('data-active')==='true';
     toggleSubModal(cid,code,!active,btn);
   }
+  if(action==='save-expiry'){
+    var exp=document.getElementById('exp-'+code).value;
+    btn.disabled=true;
+    adminApi('/admin/subscription/'+cid+'/'+code+'/renew','PATCH',{expires_at:exp,active:true}).then(function(r){
+      btn.disabled=false;
+      if(r&&r.ok)showToast('Scadenza salvata!');
+      else showToast('Errore',false);
+    });
+  }
 });
 
 function doSuspend(cid,code,btn){
@@ -536,18 +545,31 @@ function openClientModal(cid,name){
   adminApi('/admin/clients').then(function(clients){
     var client=clients&&clients.find(function(c){return c.id===cid;});
     if(!client){document.getElementById('modal-body').innerHTML='<p style="color:var(--red)">Cliente non trovato</p>';return;}
-    var activeSubs=(client.subscriptions||[]).filter(function(s){return s.active;}).map(function(s){return s.services&&s.services.code;});
-    var html='<p style="font-size:12px;color:var(--muted);margin-bottom:12px">Attiva o disattiva i servizi</p>';
+    var subsMap={};
+    (client.subscriptions||[]).forEach(function(s){
+      if(s.services&&s.services.code) subsMap[s.services.code]=s;
+    });
+    var html='<p style="font-size:12px;color:var(--muted);margin-bottom:12px">Gestisci servizi e scadenze</p>';
     Object.keys(SVC_NAMES).forEach(function(code){
-      var on=activeSubs.indexOf(code)>=0;
-      html+='<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)">'+
-        '<span>'+svcLabel(code)+'</span>'+
-        '<button class="btn sm '+(on?'red':'green')+'" data-action="toggle-sub" data-cid="'+cid+'" data-code="'+code+'" data-active="'+on+'">'+(on?'Disattiva':'Attiva')+'</button>'+
+      var sub=subsMap[code];
+      var on=sub&&sub.active;
+      var exp=sub&&sub.expires_at?sub.expires_at.split('T')[0]:'';
+      html+='<div style="padding:12px 0;border-bottom:1px solid var(--border)">'+
+        '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">'+
+          '<span style="font-size:13px;font-weight:600">'+svcLabel(code)+'</span>'+
+          '<button class="btn sm '+(on?'red':'green')+'" data-action="toggle-sub" data-cid="'+cid+'" data-code="'+code+'" data-active="'+on+'">'+(on?'Disattiva':'Attiva')+'</button>'+
+        '</div>'+
+        '<div style="display:flex;align-items:center;gap:8px">'+
+          '<label style="font-size:11px;color:var(--muted)">Scadenza:</label>'+
+          '<input type="date" id="exp-'+code+'" value="'+exp+'" style="background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:4px 8px;color:var(--text);font-size:12px;flex:1">'+
+          '<button class="btn sm" data-action="save-expiry" data-cid="'+cid+'" data-code="'+code+'">Salva</button>'+
+        '</div>'+
       '</div>';
     });
     document.getElementById('modal-body').innerHTML=html;
   });
 }
+
 
 function toggleSubModal(cid,code,active,btn){
   btn.disabled=true; btn.textContent='...';
