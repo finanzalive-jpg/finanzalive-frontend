@@ -253,6 +253,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
       <div class="nav-item" id="nav-vanilla_monthly" onclick="showService('vanilla_monthly')"><span>&#x1F4C5;</span> Vanilla Mensile</div>
       <div class="nav-item" id="nav-vanilla_weekly" onclick="showService('vanilla_weekly')"><span>&#x1F4C6;</span> Vanilla Weekly</div>
       <div class="nav-item" id="nav-forex" onclick="showService('forex')"><span>&#x1F4B1;</span> Sala Forex</div>
+      <div class="nav-item" id="nav-gold" onclick="showService('gold')"><img src="https://raw.githubusercontent.com/finanzalive-jpg/finanzalive-frontend/main/gold%20logo.jpg" style="width:18px;height:18px;border-radius:4px;object-fit:contain;background:#f5f0e8;flex-shrink:0;vertical-align:-3px"> Sala Gold</div>
       <div class="nav-item" id="nav-fund_paam" onclick="showService('fund_paam')"><span>&#x1F4BC;</span> Fondo PAAM</div>
       <div class="nav-sec">Account</div>
       <div class="nav-item" onclick="showPage('profile')"><span>&#x1F464;</span> Profilo</div>
@@ -336,6 +337,7 @@ var SVC={
   vanilla_monthly:{name:'Opzioni Vanilla Mensile',icon:'📅',desc:'Put Sell US500 scadenza 30gg, filtro Bayesiano/Markov'},
   vanilla_weekly:{name:'Opzioni Vanilla Weekly',icon:'📆',desc:'Segnali opzioni vanilla scadenza settimanale'},
   forex:{name:'Sala Forex',icon:'💱',desc:'Segnali Forex in tempo reale'},
+  gold:{name:'Sala Gold',icon:'🥇',desc:'Segnali su Oro in tempo reale'},
   fund_paam:{name:'Fondo PAAM',icon:'💼',desc:'Andamento e aggiornamenti fondo PAAM'}
 };
 var token=localStorage.getItem('iup_tok');
@@ -431,7 +433,7 @@ function initApp(user){
         nav.querySelectorAll('.nav-badge').forEach(function(b){b.remove();});
         var b=document.createElement('span');
         if(code==='fund_paam'){b.className='nav-badge nb-on';b.textContent='●';}
-        else if(activeCodes.indexOf(code)>=0){b.className='nav-badge nb-on';b.textContent='●';}
+        else if(activeCodes.indexOf(code)>=0||code==='gold'){b.className='nav-badge nb-on';b.textContent='●';}
         else{b.className='nav-badge nb-off';b.textContent='🔒';}
         nav.appendChild(b);
         unreadCounts[code]=0;
@@ -532,7 +534,7 @@ function loadDashboard(activeCodes){
       var badge=soon?'<span class="tag tb">Prossimamente</span>':'<span class="tag '+(on?'tg':'tm')+'">'+(on?'Attivo':'Non abbonato')+'</span>';
       var lastSig=lastBySvc[code];
       var lastStr=lastSig?('<span class="svc-last">Ultimo: '+new Date(lastSig.created_at).toLocaleDateString('it-IT',{day:'2-digit',month:'short'})+' '+new Date(lastSig.created_at).toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'})+'</span>'):'';
-      var imgs={indices:'https://raw.githubusercontent.com/finanzalive-jpg/finanzalive-frontend/main/indici_world_logo.jpg',vanilla_monthly:'https://raw.githubusercontent.com/finanzalive-jpg/finanzalive-frontend/main/Logo%20S%26P500%20con%20bandiera%20americana.jpg',vanilla_weekly:'https://raw.githubusercontent.com/finanzalive-jpg/finanzalive-frontend/main/Opzioni%20settimanali%20S%26P500%20con%20bandiera%20USA.jpg',forex:'https://raw.githubusercontent.com/finanzalive-jpg/finanzalive-frontend/main/forex%20logo.jpg',fund_paam:'https://raw.githubusercontent.com/finanzalive-jpg/finanzalive-frontend/main/fondo%20paam.jpg'};
+      var imgs={indices:'https://raw.githubusercontent.com/finanzalive-jpg/finanzalive-frontend/main/indici_world_logo.jpg',vanilla_monthly:'https://raw.githubusercontent.com/finanzalive-jpg/finanzalive-frontend/main/Logo%20S%26P500%20con%20bandiera%20americana.jpg',vanilla_weekly:'https://raw.githubusercontent.com/finanzalive-jpg/finanzalive-frontend/main/Opzioni%20settimanali%20S%26P500%20con%20bandiera%20USA.jpg',forex:'https://raw.githubusercontent.com/finanzalive-jpg/finanzalive-frontend/main/forex%20logo.jpg',gold:'https://raw.githubusercontent.com/finanzalive-jpg/finanzalive-frontend/main/gold%20logo.jpg',fund_paam:'https://raw.githubusercontent.com/finanzalive-jpg/finanzalive-frontend/main/fondo%20paam.jpg'};
       var imgSrc=imgs[code]||'';
       var imgH=imgSrc?('<div style="margin:-1.3rem -1.3rem 1rem -1.3rem;width:calc(100% + 2.6rem);height:220px;overflow:hidden;border-radius:10px 10px 0 0"><img src="'+imgSrc+'" style="width:100%;height:220px;object-fit:contain;display:block;background:#f5f0e8"></div>'):'';
       return '<div class="svc-card '+cls+'" '+oc+'>'+
@@ -707,7 +709,7 @@ function showService(code){
   document.getElementById('page-service').classList.add('active');
   clearBadge(code);
   var info=SVC[code];
-  var svcLogos={indices:'https://raw.githubusercontent.com/finanzalive-jpg/finanzalive-frontend/main/indici_world_logo.jpg',vanilla_monthly:'https://raw.githubusercontent.com/finanzalive-jpg/finanzalive-frontend/main/Logo%20S%26P500%20con%20bandiera%20americana.jpg',vanilla_weekly:'https://raw.githubusercontent.com/finanzalive-jpg/finanzalive-frontend/main/Opzioni%20settimanali%20S%26P500%20con%20bandiera%20USA.jpg',forex:'https://raw.githubusercontent.com/finanzalive-jpg/finanzalive-frontend/main/forex%20logo.jpg',fund_paam:'https://raw.githubusercontent.com/finanzalive-jpg/finanzalive-frontend/main/fondo%20paam.jpg'};
+  var svcLogos={indices:'https://raw.githubusercontent.com/finanzalive-jpg/finanzalive-frontend/main/indici_world_logo.jpg',vanilla_monthly:'https://raw.githubusercontent.com/finanzalive-jpg/finanzalive-frontend/main/Logo%20S%26P500%20con%20bandiera%20americana.jpg',vanilla_weekly:'https://raw.githubusercontent.com/finanzalive-jpg/finanzalive-frontend/main/Opzioni%20settimanali%20S%26P500%20con%20bandiera%20USA.jpg',forex:'https://raw.githubusercontent.com/finanzalive-jpg/finanzalive-frontend/main/forex%20logo.jpg',gold:'https://raw.githubusercontent.com/finanzalive-jpg/finanzalive-frontend/main/gold%20logo.jpg',fund_paam:'https://raw.githubusercontent.com/finanzalive-jpg/finanzalive-frontend/main/fondo%20paam.jpg'};
   var logoHtml=svcLogos[code]?'<img src="'+svcLogos[code]+'" style="width:52px;height:52px;border-radius:10px;object-fit:contain;background:#f5f0e8;flex-shrink:0">':'';
   document.getElementById('svc-pg-title').innerHTML=logoHtml+'<span>'+info.name+'</span>';
 
