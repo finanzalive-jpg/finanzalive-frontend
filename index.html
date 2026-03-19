@@ -585,11 +585,15 @@ function loadDailyPnl(){
   Promise.all([
     api('/api/trades?service_code=indices'),
     api('/api/trades?service_code=forex'),
-    api('/api/trades?service_code=vanilla_monthly')
+    api('/api/trades?service_code=vanilla_monthly'),
+    api('/api/trades?service_code=fund_paam'),
+    api('/api/trades?service_code=gold')
   ]).then(function(res){
     var indices=res[0]||[];
     var forex=res[1]||[];
     var vanilla=res[2]||[];
+    var paam=res[3]||[];
+    var gold=res[4]||[];
 
     function todayPnl(trades){
       return trades.filter(function(t){
@@ -611,13 +615,17 @@ function loadDailyPnl(){
     var idxPnl=todayPnl(indices);
     var fxPnl=todayPnl(forex);
     var vanPrem=monthPremium(vanilla);
+    var paamPnl=todayPnl(paam);
+    var goldPnl=todayPnl(gold);
 
     var el=document.getElementById('dash-daily-pnl');
     if(!el)return;
     el.innerHTML=
       '<div class="kpi"><div class="kl">&#x1F310; Indici oggi</div><div class="kv '+(idxPnl>0?'g':idxPnl<0?'r':'')+'">'+(idxPnl===0?'\u2014':(idxPnl>0?'+':'')+idxPnl.toFixed(2)+' $')+'</div><div class="ks">PnL giornaliero</div></div>'+
       '<div class="kpi"><div class="kl">&#x1F4B1; Forex oggi</div><div class="kv '+(fxPnl>0?'g':fxPnl<0?'r':'')+'">'+(fxPnl===0?'\u2014':(fxPnl>0?'+':'')+fxPnl.toFixed(2)+' $')+'</div><div class="ks">PnL giornaliero</div></div>'+
-      '<div class="kpi gold"><div class="kl">&#x1F4C5; Vanilla mese</div><div class="kv gold">'+(vanPrem>0?'\u20ac '+vanPrem.toLocaleString('it-IT'):'\u2014')+'</div><div class="ks">Premio incassato</div></div>';
+      '<div class="kpi"><div class="kl">&#x1F947; Gold oggi</div><div class="kv '+(goldPnl>0?'g':goldPnl<0?'r':'')+'">'+(goldPnl===0?'\u2014':(goldPnl>0?'+':'')+goldPnl.toFixed(2)+' $')+'</div><div class="ks">PnL giornaliero</div></div>'+
+      '<div class="kpi gold"><div class="kl">&#x1F4C5; Vanilla mese</div><div class="kv gold">'+(vanPrem>0?'\u20ac '+vanPrem.toLocaleString('it-IT'):'\u2014')+'</div><div class="ks">Premio incassato</div></div>'+
+      '<div class="kpi"><div class="kl">&#x1F4BC; PAAM oggi</div><div class="kv '+(paamPnl>0?'g':paamPnl<0?'r':'')+'">'+(paamPnl===0?'\u2014':(paamPnl>0?'+':'')+paamPnl.toFixed(2)+' $')+'</div><div class="ks">PnL giornaliero</div></div>';
   });
 }
 
@@ -715,7 +723,7 @@ function showService(code){
 
   document.getElementById('svc-pg-sub').textContent=info.desc;
   if(code==='fund_paam'){
-    document.getElementById('svc-pg-content').innerHTML='<div class="coming-soon"><div class="cs-icon">&#x1F4BC;</div><h3>In arrivo</h3><p>La sezione Fondo PAAM sarà disponibile a breve.<br>I risultati verranno aggiornati settimanalmente dal conto MT4.</p></div>';
+    loadGenericService(code);
     return;
   }
   var activeCodes=myServices.filter(function(s){return s.active;}).map(function(s){return s.services.code;});
