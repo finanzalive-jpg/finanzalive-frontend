@@ -432,7 +432,7 @@ function initApp(user){
         if(!nav)return;
         nav.querySelectorAll('.nav-badge').forEach(function(b){b.remove();});
         var b=document.createElement('span');
-        if(code==='fund_paam'){b.className='nav-badge nb-soon';b.textContent='presto';}
+        if(code==='fund_paam'){b.className='nav-badge nb-on';b.textContent='●';}
         else if(activeCodes.indexOf(code)>=0){b.className='nav-badge nb-on';b.textContent='●';}
         else{b.className='nav-badge nb-off';b.textContent='🔒';}
         nav.appendChild(b);
@@ -528,7 +528,7 @@ function loadDashboard(activeCodes){
     document.getElementById('dash-svcs').innerHTML=Object.keys(SVC).map(function(code){
       var info=SVC[code];
       var on=activeCodes.indexOf(code)>=0;
-      var soon=code==='fund_paam';
+      var soon=false; // fund_paam ora attivo
       var cls=soon?'soon':on?'on':'off';
       var oc=(on&&!soon)?('onclick="showService(\'' + code + '\')"'):'';
       var badge=soon?'<span class="tag tb">Prossimamente</span>':'<span class="tag '+(on?'tg':'tm')+'">'+(on?'Attivo':'Non abbonato')+'</span>';
