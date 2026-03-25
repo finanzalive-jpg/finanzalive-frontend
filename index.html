@@ -615,8 +615,8 @@ function loadDailyPnl(){
     var el=document.getElementById('dash-daily-pnl');
     if(!el)return;
     el.innerHTML=
-      '<div class="kpi"><div class="kl">&#x1F310; Indici oggi</div><div class="kv '+(idxPnl>0?'g':idxPnl<0?'r':'')+'">'+(idxPnl===0?'\u2014':(idxPnl>0?'+':'')+idxPnl.toFixed(2)+' $')+'</div><div class="ks">PnL giornaliero</div></div>'+
-      '<div class="kpi"><div class="kl">&#x1F4B1; Forex oggi</div><div class="kv '+(fxPnl>0?'g':fxPnl<0?'r':'')+'">'+(fxPnl===0?'\u2014':(fxPnl>0?'+':'')+fxPnl.toFixed(2)+' $')+'</div><div class="ks">PnL giornaliero</div></div>'+
+      '<div class="kpi"><div class="kl">&#x1F310; Indici oggi</div><div class="kv '+(idxPnl>0?'g':idxPnl<0?'r':'')+'">'+(idxPnl===0?'\u2014':(idxPnl>0?'+':'')+idxPnl.toFixed(2)+' €')+'</div><div class="ks">PnL giornaliero</div></div>'+
+      '<div class="kpi"><div class="kl">&#x1F4B1; Forex oggi</div><div class="kv '+(fxPnl>0?'g':fxPnl<0?'r':'')+'">'+(fxPnl===0?'\u2014':(fxPnl>0?'+':'')+fxPnl.toFixed(2)+' €')+'</div><div class="ks">PnL giornaliero</div></div>'+
       '<div class="kpi gold"><div class="kl">&#x1F4C5; Vanilla mese</div><div class="kv gold">'+(vanPrem>0?'\u20ac '+vanPrem.toLocaleString('it-IT'):'\u2014')+'</div><div class="ks">Premio incassato</div></div>';
   });
 }
@@ -882,7 +882,7 @@ function loadIndicesWorld() {
     // ── KPI GENERALI ──
     html += '<div class="kpi-row" style="grid-template-columns:repeat(4,1fr);margin-bottom:1.2rem">' +
       '<div class="kpi gold"><div class="kl">Capitale iniziale</div><div class="kv gold">€ '+CAPITAL.toLocaleString('it-IT')+'</div><div class="ks">Base di riferimento</div></div>' +
-      '<div class="kpi"><div class="kl">PnL totale netto</div><div class="kv '+(totPnl>=0?'g':'r')+'">'+(totPnl>=0?'+':'')+totPnl.toFixed(2)+' $</div><div class="ks">Tutti e 4 gli indici</div></div>' +
+      '<div class="kpi"><div class="kl">PnL totale netto</div><div class="kv '+(totPnl>=0?'g':'r')+'">'+(totPnl>=0?'+':'')+totPnl.toFixed(2)+' €</div><div class="ks">Tutti e 4 gli indici</div></div>' +
       '<div class="kpi"><div class="kl">Win rate globale</div><div class="kv gold">'+globalWR+'%</div><div class="ks">'+totWin+'W / '+(totTrades-totWin)+'L su '+totTrades+' op.</div></div>' +
       '<div class="kpi"><div class="kl">Posizioni aperte</div><div class="kv '+(openT.length?'tb':'')+'">'+openT.length+'</div><div class="ks">Live in questo momento</div></div>' +
     '</div>';
@@ -973,7 +973,7 @@ function loadIndicesWorld() {
     html += '<div class="card"><div class="card-title">Storico completo operazioni</div>' +
       '<div class="tbl-wrap"><table><thead><tr>' +
         '<th>Indice</th><th>Data ingresso</th><th>Ora</th><th>Dir.</th>' +
-        '<th>Prezzo ingresso</th><th>Data uscita</th><th>PnL $</th><th>Esito</th>' +
+        '<th>Prezzo ingresso</th><th>Data uscita</th><th>PnL €</th><th>Esito</th>' +
       '</tr></thead><tbody>' +
       allRecent.map(function(t) {
         var dIn  = t.opened_at  ? new Date(t.opened_at)  : null;
@@ -1112,7 +1112,7 @@ function loadGenericService(code){
       '<div class="kpi"><div class="kl">Operazioni totali</div><div class="kv">'+closed.length+'</div><div class="ks">Storico completo</div></div>'+
       '<div class="kpi"><div class="kl">Oggi</div><div class="kv '+(todayOps>0?'g':'')+'">'+(todayOps||'0')+'</div><div class="ks">Operazioni chiuse</div></div>'+
       '<div class="kpi"><div class="kl">Questa settimana</div><div class="kv">'+weekOps+'</div><div class="ks">Ultimi 7 giorni</div></div>'+
-      '<div class="kpi"><div class="kl">PnL totale</div><div class="kv '+(totPnl>=0?'g':'r')+'">'+(totPnl>=0?'+':'')+totPnl.toFixed(2)+' $</div><div class="ks">Netto storico</div></div>'+
+      '<div class="kpi"><div class="kl">PnL totale</div><div class="kv '+(totPnl>=0?'g':'r')+'">'+(totPnl>=0?'+':'')+totPnl.toFixed(2)+' €</div><div class="ks">Netto storico</div></div>'+
       '<div class="kpi"><div class="kl">In corso</div><div class="kv '+(openT.length>0?'tb':'')+'">'+openT.length+'</div><div class="ks">Posizioni aperte</div></div>'+
     '</div>';
 
@@ -1155,7 +1155,7 @@ function loadGenericService(code){
     html+='<div class="card"><div class="card-title">Storico operazioni</div>'+
       '<div class="tbl-wrap"><table><thead><tr>'+
         '<th>Data ingresso</th><th>Ora</th><th>Strumento</th><th>Dir.</th>'+
-        '<th>Prezzo ingresso</th><th>Data uscita</th><th>PnL $</th><th>Esito</th>'+
+        '<th>Prezzo ingresso</th><th>Data uscita</th><th>PnL €</th><th>Esito</th>'+
       '</tr></thead><tbody>'+
       recent.map(function(t){
         var dIn=t.opened_at?new Date(t.opened_at):null;
@@ -1208,7 +1208,7 @@ function loadGenericService(code){
         data:{labels:eqL,datasets:[{data:eqD,borderColor:'#c9a84c',backgroundColor:'rgba(201,168,76,0.08)',fill:true,tension:0.2,pointRadius:0,pointHoverRadius:4,borderWidth:2}]},
         options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{
           x:{ticks:{color:'#7a7870',font:{size:9},maxTicksLimit:12,maxRotation:45},grid:{color:'rgba(255,255,255,0.03)'}},
-          y:{ticks:{color:'#7a7870',font:{size:10},callback:function(v){return '$'+v.toFixed(0);}},grid:{color:'rgba(255,255,255,0.04)'}}
+          y:{ticks:{color:'#7a7870',font:{size:10},callback:function(v){return '€'+v.toFixed(0);}},grid:{color:'rgba(255,255,255,0.04)'}}
         }}
       });
     }
@@ -1225,7 +1225,7 @@ function loadGenericService(code){
         data:{labels:days,datasets:[{data:dayV,backgroundColor:dayV.map(function(v){return v>=0?'rgba(29,185,122,0.7)':'rgba(232,75,74,0.7)';}),borderRadius:3}]},
         options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{
           x:{ticks:{color:'#7a7870',font:{size:9},maxTicksLimit:15,maxRotation:45},grid:{color:'rgba(255,255,255,0.03)'}},
-          y:{ticks:{color:'#7a7870',font:{size:10},callback:function(v){return '$'+v.toFixed(0);}},grid:{color:'rgba(255,255,255,0.04)'}}
+          y:{ticks:{color:'#7a7870',font:{size:10},callback:function(v){return '€'+v.toFixed(0);}},grid:{color:'rgba(255,255,255,0.04)'}}
         }}
       });
     }
@@ -1242,7 +1242,7 @@ function loadGenericService(code){
         }]},
         options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{
           x:{ticks:{color:'#7a7870',font:{size:10}},grid:{color:'rgba(255,255,255,0.03)'}},
-          y:{ticks:{color:'#7a7870',font:{size:10},callback:function(v){return '$'+v.toFixed(0);}},grid:{color:'rgba(255,255,255,0.04)'}}
+          y:{ticks:{color:'#7a7870',font:{size:10},callback:function(v){return '€'+v.toFixed(0);}},grid:{color:'rgba(255,255,255,0.04)'}}
         }}
       });
     }
