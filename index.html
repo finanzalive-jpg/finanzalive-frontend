@@ -781,7 +781,7 @@ function loadVanillaMonthly(){
           '<td>'+(isFlat?'—':parseFloat(t.strike_pct).toFixed(2)+'%')+'</td>'+
           '<td style="color:var(--green);font-weight:600">'+(isFlat?'—':'€ '+t.premium_collected)+'</td>'+
           '<td style="color:'+ddC+'">'+(isFlat?'—':parseFloat(t.drawdown_max).toFixed(2)+'%')+'</td>'+
-          '<td><span class="tag '+(isFlat?'tm':'tg')+'">'+(isFlat?'FLAT':'GAIN')+'</span></td>'+
+          '<td><span class="tag '+(isFlat?'tm':t.status==='OPEN'?'ta':'tg')+'">'+(isFlat?'FLAT':t.status==='OPEN'?'IN CORSO':'GAIN')+'</span></td>'+
         '</tr>';
       }).join('')+'</tbody></table></div></div>';
 
