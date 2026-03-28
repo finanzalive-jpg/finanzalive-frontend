@@ -746,6 +746,7 @@ function loadVanillaMonthly(){
     closed.forEach(function(t){var y=new Date(t.opened_at).getFullYear();if(!byYear[y])byYear[y]={count:0,premium:0};byYear[y].count++;byYear[y].premium+=parseFloat(t.premium_collected)||0;});
 
     var html='<div class="kpi-row">'+
+      '<div class="kpi gold"><div class="kl">Capitale iniziale</div><div class="kv gold">€ 20.000</div><div class="ks">Base di riferimento</div></div>'+
       '<div class="kpi gold"><div class="kl">Win rate</div><div class="kv gold">100%</div><div class="ks">'+closed.length+' gain / 0 loss</div></div>'+
       '<div class="kpi"><div class="kl">Premi totali lordi</div><div class="kv g">€ '+totP.toLocaleString('it-IT')+'</div><div class="ks">Dic 2023 - oggi</div></div>'+
       '<div class="kpi"><div class="kl">Premio medio</div><div class="kv g">€ '+Math.round(totP/closed.length).toLocaleString('it-IT')+'</div><div class="ks">Per operazione</div></div>'+
