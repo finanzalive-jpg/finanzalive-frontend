@@ -1320,7 +1320,7 @@ function loadGoldService(){
       '<div class="tabs">'+
         '<div class="tab active" data-tab="tab-eq-g">Equity Curve</div>'+
         '<div class="tab" data-tab="tab-day-g">PnL Giornaliero</div>'+
-        '<div class="tab" data-tab="tab-sym-g">Per strumento</div>'+
+        '<div class="tab" data-tab="tab-sym-g">Per anno</div>'+
       '</div>'+
       '<div class="tab-content active" id="tab-eq-g"><div class="chart-wrap" style="height:260px"><canvas id="chart-eq-g"></canvas></div></div>'+
       '<div class="tab-content" id="tab-day-g"><div class="chart-wrap" style="height:260px"><canvas id="chart-day-g"></canvas></div></div>'+
@@ -1409,14 +1409,27 @@ function loadGoldService(){
         }}
       });
     }
-    var syms=Object.keys(bySymbol).sort(function(a,b){return bySymbol[b].pnl-bySymbol[a].pnl;});
+    var byYear={};
+    closed.forEach(function(t){
+      if(!t.opened_at)return;
+      var y=new Date(t.opened_at).getFullYear();
+      if(!byYear[y])byYear[y]={pnl:0,count:0,win:0};
+      byYear[y].count++;
+      byYear[y].pnl+=parseFloat(t.pnl)||0;
+      if((parseFloat(t.pnl)||0)>0)byYear[y].win++;
+    });
+    var years=Object.keys(byYear).sort();
     if(document.getElementById('chart-sym-g')){
       chartInstances['sym-g']=new Chart(document.getElementById('chart-sym-g'),{
         type:'bar',
-        data:{labels:syms,datasets:[{data:syms.map(function(s){return parseFloat(bySymbol[s].pnl.toFixed(2));}),backgroundColor:syms.map(function(s){return bySymbol[s].pnl>=0?'rgba(201,168,76,0.7)':'rgba(232,75,74,0.7)';}),borderRadius:4}]},
-        options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{
-          x:{ticks:{color:'#7a7870',font:{size:10}},grid:{color:'rgba(255,255,255,0.03)'}},
-          y:{ticks:{color:'#7a7870',font:{size:10},callback:function(v){return '€'+v.toFixed(0);}},grid:{color:'rgba(255,255,255,0.04)'}}
+        data:{labels:years,datasets:[
+          {label:'PnL €',data:years.map(function(y){return parseFloat(byYear[y].pnl.toFixed(2));}),backgroundColor:'rgba(201,168,76,0.7)',borderRadius:6,yAxisID:'y'},
+          {label:'Operazioni',data:years.map(function(y){return byYear[y].count;}),backgroundColor:'rgba(29,185,122,0.4)',borderRadius:6,yAxisID:'y1',type:'line',borderColor:'#1db97a',pointBackgroundColor:'#1db97a',pointRadius:4}
+        ]},
+        options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,labels:{color:'#8b90a0',font:{size:11}}}},scales:{
+          x:{ticks:{color:'#7a7870',font:{size:11}},grid:{color:'rgba(255,255,255,0.03)'}},
+          y:{ticks:{color:'#7a7870',font:{size:10},callback:function(v){return '€'+v.toFixed(0);}},grid:{color:'rgba(255,255,255,0.04)'}},
+          y1:{position:'right',ticks:{color:'#7a7870',font:{size:10}},grid:{display:false}}
         }}
       });
     }
@@ -1485,7 +1498,7 @@ function loadGenericService(code){
       '<div class="tabs">'+
         '<div class="tab active" data-tab="tab-eq-g">Equity Curve</div>'+
         '<div class="tab" data-tab="tab-day-g">PnL Giornaliero</div>'+
-        '<div class="tab" data-tab="tab-sym-g">Per strumento</div>'+
+        '<div class="tab" data-tab="tab-sym-g">Per anno</div>'+
       '</div>'+
       '<div class="tab-content active" id="tab-eq-g"><div class="chart-wrap" style="height:260px"><canvas id="chart-eq-g"></canvas></div></div>'+
       '<div class="tab-content" id="tab-day-g"><div class="chart-wrap" style="height:260px"><canvas id="chart-day-g"></canvas></div></div>'+
