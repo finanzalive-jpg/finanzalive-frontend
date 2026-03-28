@@ -771,7 +771,7 @@ function loadVanillaMonthly(){
 
     html+='<div class="card"><div class="card-title">Storico completo operazioni</div>'+
       '<div class="tbl-wrap"><table><thead><tr><th>Mese</th><th>Strike</th><th>OTM%</th><th>Premio €</th><th>DD max%</th><th>Stato</th></tr></thead><tbody>'+
-      trades.slice().reverse().map(function(t){
+      trades.map(function(t){
         var month=t.opened_at?new Date(t.opened_at).toLocaleDateString('it-IT',{month:'short',year:'numeric'}):'—';
         var isFlat=t.status==='FLAT';
         var ddC=!isFlat?(parseFloat(t.drawdown_max)>=5?'var(--red)':parseFloat(t.drawdown_max)>=3?'var(--amber)':'var(--green)'):'var(--muted)';
