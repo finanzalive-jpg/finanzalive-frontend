@@ -735,7 +735,7 @@ function loadVanillaMonthly(){
   Promise.all([api('/api/trades?service_code=vanilla_monthly'),api('/api/signals?service_code=vanilla_monthly&limit=20')]).then(function(res){
     var trades=res[0]||[];
     var sigs=res[1]||[];
-    trades=trades.slice().sort(function(a,b){return new Date(a.opened_at)-new Date(b.opened_at);});
+    trades=trades.slice().sort(function(a,b){return new Date(b.opened_at)-new Date(a.opened_at);});
     var closed=trades.filter(function(t){return t.status==='CLOSED';});
     var flat=trades.filter(function(t){return t.status==='FLAT';});
     var totP=closed.reduce(function(s,t){return s+(parseFloat(t.premium_collected)||0);},0);
@@ -771,7 +771,7 @@ function loadVanillaMonthly(){
 
     html+='<div class="card"><div class="card-title">Storico completo operazioni</div>'+
       '<div class="tbl-wrap"><table><thead><tr><th>Mese</th><th>Strike</th><th>OTM%</th><th>Premio €</th><th>DD max%</th><th>Stato</th></tr></thead><tbody>'+
-      trades.map(function(t){
+      trades.slice().reverse().map(function(t){
         var month=t.opened_at?new Date(t.opened_at).toLocaleDateString('it-IT',{month:'short',year:'numeric'}):'—';
         var isFlat=t.status==='FLAT';
         var ddC=!isFlat?(parseFloat(t.drawdown_max)>=5?'var(--red)':parseFloat(t.drawdown_max)>=3?'var(--amber)':'var(--green)'):'var(--muted)';
