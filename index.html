@@ -727,6 +727,7 @@ function showService(code){
   if(code==='indices'){loadIndicesWorld();}
   else if(code==='forex'){loadForexWorld();}
   else if(code==='vanilla_monthly'){loadVanillaMonthly();}
+  else if(code==='gold'){loadGoldService();}
   else{loadGenericService(code);}
 }
 
@@ -1266,6 +1267,160 @@ function hexToRgb(hex) {
     b=parseInt(hex.slice(5,7),16);
   }
   return r+','+g+','+b;
+}
+
+function loadGoldService(){
+  Promise.all([
+    api('/api/signals?service_code=gold&limit=50'),
+    api('/api/trades?service_code=gold')
+  ]).then(function(res){
+    var sigs   = res[0]||[];
+    var allT   = res[1]||[];
+    var trades = allT.slice().sort(function(a,b){return new Date(a.opened_at)-new Date(b.opened_at);});
+    var closed = trades.filter(function(t){return t.status==='CLOSED';});
+    var openT  = trades.filter(function(t){return t.status==='OPEN';});
+    var win    = closed.filter(function(t){return (parseFloat(t.pnl)||0)>0;});
+    var loss   = closed.filter(function(t){return (parseFloat(t.pnl)||0)<=0;});
+    var totPnl = closed.reduce(function(s,t){return s+(parseFloat(t.pnl)||0);},0);
+    var wr     = closed.length?((win.length/closed.length)*100).toFixed(1):0;
+    var now    = new Date();
+    var todayS = now.toISOString().split('T')[0];
+    var weekS  = new Date(now-7*24*60*60*1000).toISOString().split('T')[0];
+    var todayOps = closed.filter(function(t){return t.opened_at&&t.opened_at.startsWith(todayS);}).length;
+    var weekOps  = closed.filter(function(t){return t.opened_at&&t.opened_at>=weekS;}).length;
+    var byDay={};
+    closed.forEach(function(t){
+      if(!t.opened_at)return;
+      var d=new Date(t.opened_at).toLocaleDateString('it-IT');
+      if(!byDay[d])byDay[d]=0;
+      byDay[d]+=parseFloat(t.pnl)||0;
+    });
+    var bySymbol={};
+    closed.forEach(function(t){
+      var sym=t.notes?(t.notes.replace('Storico ','').replace('Auto - ','').split(' ')[0]||'?'):'?';
+      if(!bySymbol[sym])bySymbol[sym]={win:0,loss:0,pnl:0,count:0};
+      bySymbol[sym].count++;
+      if((parseFloat(t.pnl)||0)>0)bySymbol[sym].win++;
+      else bySymbol[sym].loss++;
+      bySymbol[sym].pnl+=parseFloat(t.pnl)||0;
+    });
+
+    var html='';
+    html+='<div class="kpi-row">'+
+      '<div class="kpi gold"><div class="kl">Capitale iniziale</div><div class="kv gold">€ 1.000</div><div class="ks">Base di riferimento</div></div>'+
+      '<div class="kpi gold"><div class="kl">Win rate</div><div class="kv gold">'+wr+'%</div><div class="ks">'+win.length+'W / '+loss.length+'L</div></div>'+
+      '<div class="kpi"><div class="kl">Operazioni totali</div><div class="kv">'+closed.length+'</div><div class="ks">Storico completo</div></div>'+
+      '<div class="kpi"><div class="kl">Oggi</div><div class="kv '+(todayOps>0?'g':'')+'">'+(todayOps||'0')+'</div><div class="ks">Operazioni chiuse</div></div>'+
+      '<div class="kpi"><div class="kl">Questa settimana</div><div class="kv">'+weekOps+'</div><div class="ks">Ultimi 7 giorni</div></div>'+
+      '<div class="kpi"><div class="kl">PnL totale</div><div class="kv '+(totPnl>=0?'g':'r')+'">'+(totPnl>=0?'+':'')+totPnl.toFixed(2)+' €</div><div class="ks">Netto storico</div></div>'+
+      '<div class="kpi"><div class="kl">In corso</div><div class="kv '+(openT.length>0?'tb':'')+'">'+openT.length+'</div><div class="ks">Posizioni aperte</div></div>'+
+    '</div>';
+
+    html+='<div class="card gold-border"><div class="card-title">Analisi rendimenti</div>'+
+      '<div class="tabs">'+
+        '<div class="tab active" data-tab="tab-eq-g">Equity Curve</div>'+
+        '<div class="tab" data-tab="tab-day-g">PnL Giornaliero</div>'+
+        '<div class="tab" data-tab="tab-sym-g">Per strumento</div>'+
+      '</div>'+
+      '<div class="tab-content active" id="tab-eq-g"><div class="chart-wrap" style="height:260px"><canvas id="chart-eq-g"></canvas></div></div>'+
+      '<div class="tab-content" id="tab-day-g"><div class="chart-wrap" style="height:260px"><canvas id="chart-day-g"></canvas></div></div>'+
+      '<div class="tab-content" id="tab-sym-g"><div class="chart-wrap" style="height:260px"><canvas id="chart-sym-g"></canvas></div></div>'+
+    '</div>';
+
+    if(openT.length){
+      html+='<div class="card"><div class="card-title" style="color:var(--gold)">&#x26A1; Posizioni aperte</div>'+
+        '<div class="tbl-wrap"><table><thead><tr><th>Data apertura</th><th>Ora</th><th>Dir.</th><th>Prezzo ingresso</th></tr></thead><tbody>'+
+        openT.map(function(t){
+          var d=t.opened_at?new Date(t.opened_at):null;
+          return '<tr>'+
+            '<td>'+(d?d.toLocaleDateString('it-IT'):'\u2014')+'</td>'+
+            '<td style="color:var(--muted)">'+(d?d.toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'}):'\u2014')+'</td>'+
+            '<td><span class="tag '+(t.direction==='BUY'?'tg':'tr')+'">'+(t.direction||'\u2014')+'</span></td>'+
+            '<td style="font-weight:500">'+(t.strike?parseFloat(t.strike).toLocaleString('it-IT',{minimumFractionDigits:2}):'\u2014')+'</td>'+
+          '</tr>';
+        }).join('')+'</tbody></table></div></div>';
+    }
+
+    var recent=allT.filter(function(t){return t.status==='CLOSED';})
+                   .sort(function(a,b){return new Date(b.opened_at)-new Date(a.opened_at);})
+                   .slice(0,100);
+    html+='<div class="card"><div class="card-title">Storico operazioni</div>'+
+      '<div class="tbl-wrap"><table><thead><tr><th>Data</th><th>Ora</th><th>Dir.</th><th>Prezzo ingresso</th><th>Data uscita</th><th>PnL €</th><th>Esito</th></tr></thead><tbody>'+
+      recent.map(function(t){
+        var dIn=t.opened_at?new Date(t.opened_at):null;
+        var dOut=t.closed_at?new Date(t.closed_at):null;
+        var pnl=parseFloat(t.pnl)||0;
+        return '<tr>'+
+          '<td style="white-space:nowrap">'+(dIn?dIn.toLocaleDateString('it-IT'):'\u2014')+'</td>'+
+          '<td style="color:var(--muted)">'+(dIn?dIn.toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'}):'\u2014')+'</td>'+
+          '<td><span class="tag '+(t.direction==='BUY'?'tg':'tr')+'">'+(t.direction||'?')+'</span></td>'+
+          '<td style="font-weight:500">'+(t.strike?parseFloat(t.strike).toLocaleString('it-IT',{minimumFractionDigits:2}):'\u2014')+'</td>'+
+          '<td style="color:var(--muted);white-space:nowrap">'+(dOut?dOut.toLocaleDateString('it-IT')+' '+dOut.toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'}):'\u2014')+'</td>'+
+          '<td style="color:'+(pnl>=0?'var(--green)':'var(--red)')+';font-weight:600">'+(pnl>=0?'+':'')+pnl.toFixed(2)+'</td>'+
+          '<td><span class="tag '+(pnl>=0?'tg':'tr')+'">'+(pnl>=0?'GAIN':'LOSS')+'</span></td>'+
+        '</tr>';
+      }).join('')+'</tbody></table></div></div>';
+
+    html+='<div class="card"><div class="card-title">Segnali recenti <span class="card-title-live">&#x25cf; live</span></div>'+
+      (sigs.length?sigs.map(renderSig).join(''):'<p style="color:var(--muted);font-size:13px">Nessun segnale ricevuto</p>')+
+    '</div>';
+
+    document.getElementById('svc-pg-content').innerHTML=html;
+
+    document.getElementById('svc-pg-content').addEventListener('click',function(e){
+      var tab=e.target.closest('.tab');
+      if(!tab||!tab.getAttribute('data-tab'))return;
+      var tid=tab.getAttribute('data-tab');
+      tab.parentElement.querySelectorAll('.tab').forEach(function(x){x.classList.remove('active');});
+      tab.classList.add('active');
+      tab.parentElement.parentElement.querySelectorAll('.tab-content').forEach(function(x){x.classList.remove('active');});
+      document.getElementById(tid).classList.add('active');
+      setTimeout(function(){Object.keys(chartInstances).forEach(function(k){try{chartInstances[k].resize();}catch(e){}});},50);
+    });
+
+    Object.keys(chartInstances).forEach(function(k){try{chartInstances[k].destroy();}catch(e){}});
+    chartInstances={};
+
+    var cum=0;
+    var eqL=closed.map(function(t){return t.opened_at?new Date(t.opened_at).toLocaleDateString('it-IT',{day:'2-digit',month:'short'}):''});
+    var eqD=closed.map(function(t){cum+=parseFloat(t.pnl)||0;return parseFloat(cum.toFixed(2));});
+    if(document.getElementById('chart-eq-g')){
+      chartInstances['eq-g']=new Chart(document.getElementById('chart-eq-g'),{
+        type:'line',
+        data:{labels:eqL,datasets:[{data:eqD,borderColor:'#c9a84c',backgroundColor:'rgba(201,168,76,0.08)',fill:true,tension:0.2,pointRadius:0,pointHoverRadius:4,borderWidth:2}]},
+        options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{
+          x:{ticks:{color:'#7a7870',font:{size:9},maxTicksLimit:12,maxRotation:45},grid:{color:'rgba(255,255,255,0.03)'}},
+          y:{ticks:{color:'#7a7870',font:{size:10},callback:function(v){return '€'+v.toFixed(0);}},grid:{color:'rgba(255,255,255,0.04)'}}
+        }}
+      });
+    }
+    var days=Object.keys(byDay).sort(function(a,b){
+      var pa=a.split('/');var pb=b.split('/');
+      return new Date(pa[2],pa[1]-1,pa[0])-new Date(pb[2],pb[1]-1,pb[0]);
+    });
+    var dayV=days.map(function(d){return parseFloat(byDay[d].toFixed(2));});
+    if(document.getElementById('chart-day-g')){
+      chartInstances['day-g']=new Chart(document.getElementById('chart-day-g'),{
+        type:'bar',
+        data:{labels:days,datasets:[{data:dayV,backgroundColor:dayV.map(function(v){return v>=0?'rgba(29,185,122,0.7)':'rgba(232,75,74,0.7)';}),borderRadius:3}]},
+        options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{
+          x:{ticks:{color:'#7a7870',font:{size:9},maxTicksLimit:15,maxRotation:45},grid:{color:'rgba(255,255,255,0.03)'}},
+          y:{ticks:{color:'#7a7870',font:{size:10},callback:function(v){return '€'+v.toFixed(0);}},grid:{color:'rgba(255,255,255,0.04)'}}
+        }}
+      });
+    }
+    var syms=Object.keys(bySymbol).sort(function(a,b){return bySymbol[b].pnl-bySymbol[a].pnl;});
+    if(document.getElementById('chart-sym-g')){
+      chartInstances['sym-g']=new Chart(document.getElementById('chart-sym-g'),{
+        type:'bar',
+        data:{labels:syms,datasets:[{data:syms.map(function(s){return parseFloat(bySymbol[s].pnl.toFixed(2));}),backgroundColor:syms.map(function(s){return bySymbol[s].pnl>=0?'rgba(201,168,76,0.7)':'rgba(232,75,74,0.7)';}),borderRadius:4}]},
+        options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{
+          x:{ticks:{color:'#7a7870',font:{size:10}},grid:{color:'rgba(255,255,255,0.03)'}},
+          y:{ticks:{color:'#7a7870',font:{size:10},callback:function(v){return '€'+v.toFixed(0);}},grid:{color:'rgba(255,255,255,0.04)'}}
+        }}
+      });
+    }
+  });
 }
 
 function loadGenericService(code){
