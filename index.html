@@ -529,7 +529,7 @@ function loadDashboard(activeCodes){
 
     document.getElementById('dash-svcs').innerHTML=Object.keys(SVC).map(function(code){
       var info=SVC[code];
-      var on=activeCodes.indexOf(code)>=0;
+      var on=activeCodes.indexOf(code)>=0||code==='gold'||code==='fondo_rotativo';
       var soon=false;
       var cls=soon?'soon':on?'on':'off';
       var oc=(on&&!soon)?('onclick="showService(\'' + code + '\')"'):'';
@@ -714,16 +714,11 @@ function showService(code){
   var svcLogos={indices:'https://raw.githubusercontent.com/finanzalive-jpg/finanzalive-frontend/main/indici_world_logo.jpg',vanilla_monthly:'https://raw.githubusercontent.com/finanzalive-jpg/finanzalive-frontend/main/Logo%20S%26P500%20con%20bandiera%20americana.jpg',vanilla_weekly:'https://raw.githubusercontent.com/finanzalive-jpg/finanzalive-frontend/main/Opzioni%20settimanali%20S%26P500%20con%20bandiera%20USA.jpg',forex:'https://raw.githubusercontent.com/finanzalive-jpg/finanzalive-frontend/main/forex%20logo.jpg',gold:'https://raw.githubusercontent.com/finanzalive-jpg/finanzalive-frontend/main/gold%20logo.jpg',fund_paam:'https://raw.githubusercontent.com/finanzalive-jpg/finanzalive-frontend/main/fondo%20paam.jpg',fondo_rotativo:'https://raw.githubusercontent.com/finanzalive-jpg/finanzalive-frontend/main/fondo%20rotativo.jpg'};
   var logoHtml=svcLogos[code]?'<img src="'+svcLogos[code]+'" style="width:52px;height:52px;border-radius:10px;object-fit:contain;background:#f5f0e8;flex-shrink:0">':'';
   document.getElementById('svc-pg-title').innerHTML=logoHtml+'<span>'+info.name+'</span>';
-
   document.getElementById('svc-pg-sub').textContent=info.desc;
-  if(code==='fund_paam'){
-    loadGenericService(code);
-    return;
-  }
-  if(code==='fondo_rotativo'){
-    loadFondoRotativo();
-    return;
-  }
+  // Servizi sempre accessibili senza abbonamento
+  if(code==='fund_paam'){loadGenericService(code);return;}
+  if(code==='fondo_rotativo'){loadFondoRotativo();return;}
+  // Check abbonamento per tutti gli altri
   var activeCodes=myServices.filter(function(s){return s.active;}).map(function(s){return s.services.code;});
   if(activeCodes.indexOf(code)<0){
     document.getElementById('svc-pg-content').innerHTML='<div class="locked"><div class="lock">&#x1F512;</div><p>Non sei abbonato a questo servizio.<br>Contatta il tuo consulente per attivarlo.</p></div>';
@@ -1658,60 +1653,84 @@ function renderSig(s){
 // ── FONDO ROTATIVO MULTI-PRODOTTO ──
 function loadFondoRotativo(){
   var SVCS_CFG=[
-    {code:'indices',      name:'Indici World',    short:'Indici',   color:'#f0a030', cap:10000, id:1},
-    {code:'vanilla_monthly',name:'Vanilla Mensile',short:'Vanilla M',color:'#c9a84c', cap:20000, id:2},
-    {code:'forex',        name:'Sala Forex',       short:'Forex',    color:'#1db97a', cap:3000,  id:4},
-    {code:'gold',         name:'Sala Gold',        short:'Gold',     color:'#e8c96a', cap:1000,  id:6},
+    {code:'indices',         name:'Indici World',    short:'Indici',   color:'#f0a030', cap:10000},
+    {code:'vanilla_monthly', name:'Vanilla Mensile', short:'Vanilla M',color:'#c9a84c', cap:20000},
+    {code:'forex',           name:'Sala Forex',       short:'Forex',    color:'#1db97a', cap:3000 },
+    {code:'gold',            name:'Sala Gold',        short:'Gold',     color:'#e8c96a', cap:1000 },
   ];
   var SVCS_COMING=[
-    {code:'fund_paam',    name:'Fondo PAAM',       short:'PAAM',     color:'#b06ef3', note:'Lancio imminente'},
-    {code:'vanilla_weekly',name:'Vanilla Weekly',  short:'Vanilla W',color:'#8b90a0', note:'Storico in caricamento'},
+    {code:'fund_paam',     name:'Fondo PAAM',     short:'PAAM',     color:'#b06ef3', note:'Lancio imminente'},
+    {code:'vanilla_weekly',name:'Vanilla Weekly', short:'Vanilla W',color:'#8b90a0', note:'Storico in caricamento'},
   ];
   var TOTAL_CAP=34000;
 
   document.getElementById('svc-pg-content').innerHTML='<div class="spinner">Caricamento benchmark...</div>';
 
-  // Fetch tutti i trades in parallelo
   Promise.all(SVCS_CFG.map(function(s){return api('/api/trades?service_code='+s.code);})).then(function(results){
-    // Arricchisci ogni servizio con stats
+
+    // ── 1. Calcola stats e byMonth per ogni servizio ──
     SVCS_CFG.forEach(function(svc,i){
       var all=results[i]||[];
       var closed=all.filter(function(t){return t.status==='CLOSED';})
                     .sort(function(a,b){return new Date(a.opened_at)-new Date(b.opened_at);});
-      var totalPnl=closed.reduce(function(s,t){return s+(parseFloat(t.pnl)||0);},0);
-      // Vanilla usa premium_collected se pnl è 0
-      if(svc.code==='vanilla_monthly'){
-        totalPnl=closed.reduce(function(s,t){return s+(parseFloat(t.premium_collected)||parseFloat(t.pnl)||0);},0);
-      }
-      var equity=svc.cap+totalPnl;
-      var pnlPct=(totalPnl/svc.cap)*100;
-      var wins=closed.filter(function(t){return (parseFloat(t.pnl)||parseFloat(t.premium_collected)||0)>0;}).length;
-      var winRate=closed.length?(wins/closed.length*100):0;
-      // Equity mensile cumulativa
-      var monthly=buildFRMonthly(closed,svc.cap,svc.code);
-      var peak=svc.cap;var maxDD=0;
-      monthly.values.forEach(function(v){if(v>peak)peak=v;var dd=(peak-v)/peak;if(dd>maxDD)maxDD=dd;});
-      svc.stats={totalPnl:totalPnl,equity:equity,pnlPct:pnlPct,
-                 tradeCount:closed.length,winRate:winRate,monthly:monthly,maxDD:maxDD};
-    });
-
-    // Allinea timeline
-    var masterLabels=[];
-    SVCS_CFG.forEach(function(s){
-      s.stats.monthly.labels.forEach(function(l){if(masterLabels.indexOf(l)<0)masterLabels.push(l);});
-    });
-    SVCS_CFG.forEach(function(s){
-      var aligned=masterLabels.map(function(lbl){
-        var idx=s.stats.monthly.labels.indexOf(lbl);
-        if(idx>=0)return s.stats.monthly.values[idx];
-        var mIdx=masterLabels.indexOf(lbl);
-        var firstIdx=masterLabels.indexOf(s.stats.monthly.labels[0]);
-        return mIdx<firstIdx?s.cap:s.stats.monthly.values[s.stats.monthly.values.length-1]||s.cap;
+      var pnlFn=function(t){
+        return svc.code==='vanilla_monthly'
+          ? (parseFloat(t.premium_collected)||parseFloat(t.pnl)||0)
+          : (parseFloat(t.pnl)||0);
+      };
+      var totalPnl=closed.reduce(function(s,t){return s+pnlFn(t);},0);
+      var wins=closed.filter(function(t){return pnlFn(t)>0;}).length;
+      // Raggruppa PnL per chiave YYYY-MM (usa closed_at, fallback opened_at)
+      var byMonth={};
+      closed.forEach(function(t){
+        var ds=t.closed_at||t.opened_at; if(!ds)return;
+        var d=new Date(ds);
+        var k=d.getFullYear()+'-'+(('0'+(d.getMonth()+1)).slice(-2));
+        byMonth[k]=(byMonth[k]||0)+pnlFn(t);
       });
-      s.stats.monthly.aligned=aligned;
+      svc.stats={
+        totalPnl:totalPnl, equity:svc.cap+totalPnl,
+        pnlPct:(totalPnl/svc.cap)*100,
+        tradeCount:closed.length,
+        winRate:closed.length?(wins/closed.length*100):0,
+        byMonth:byMonth
+      };
     });
 
-    // Totali aggregati
+    // ── 2. Timeline master ORDINATA (chiavi YYYY-MM) ──
+    var keySet={};
+    SVCS_CFG.forEach(function(s){Object.keys(s.stats.byMonth).forEach(function(k){keySet[k]=true;});});
+    var masterKeys=Object.keys(keySet).sort(); // ordine cronologico garantito
+    var masterLabels=masterKeys.map(function(k){
+      var p=k.split('-');
+      return new Date(p[0],p[1]-1,1).toLocaleDateString('it-IT',{month:'short',year:'2-digit'});
+    });
+
+    // ── 3. Equity aggregata mensile (partenza TOTAL_CAP) ──
+    // Per ogni mese somma i PnL di tutti i servizi e accumula
+    var aggEquity=[]; // equity totale del portafoglio per ogni mese
+    var running=TOTAL_CAP;
+    masterKeys.forEach(function(k){
+      var monthPnl=SVCS_CFG.reduce(function(a,s){return a+(s.stats.byMonth[k]||0);},0);
+      running+=monthPnl;
+      aggEquity.push(Math.round(running*100)/100);
+    });
+
+    // PnL mensile in € (per barchart)
+    var monthlyPnl=masterKeys.map(function(k){
+      return parseFloat(SVCS_CFG.reduce(function(a,s){return a+(s.stats.byMonth[k]||0);},0).toFixed(2));
+    });
+
+    // Equity individuale per mini-charts (cumulativa da cap)
+    SVCS_CFG.forEach(function(svc){
+      var run=svc.cap;
+      svc.stats.miniEq=masterKeys.map(function(k){
+        run+=(svc.stats.byMonth[k]||0);
+        return Math.round(run*100)/100;
+      });
+    });
+
+    // ── 4. Totali aggregati ──
     var totalEq=SVCS_CFG.reduce(function(a,s){return a+s.stats.equity;},0);
     var totalPnl=totalEq-TOTAL_CAP;
     var totalPct=(totalPnl/TOTAL_CAP)*100;
@@ -1725,12 +1744,12 @@ function loadFondoRotativo(){
 
     var html='';
 
-    // ── INFO BANNER ──
+    // ── BANNER ──
     html+='<div style="background:rgba(201,168,76,0.06);border:1px solid rgba(201,168,76,0.2);border-radius:10px;padding:10px 14px;margin-bottom:1.2rem;font-size:12px;color:var(--muted);">'+
-      '📊 Benchmark consolidato di tutti i servizi FinanzaLive. Equity aggregata calcolata in tempo reale dal DB IUPPITER. Capitale base totale: <strong style="color:var(--gold)">€ 34.000</strong>.'+
+      '📊 Benchmark consolidato di tutti i servizi IUPPITER. Equity aggregata calcolata in tempo reale dal database. Capitale base totale: <strong style="color:var(--gold)">€ 34.000</strong>.'+
     '</div>';
 
-    // ── KPI ROW ──
+    // ── KPI ──
     html+='<div class="kpi-row" style="grid-template-columns:repeat(5,1fr)">'+
       '<div class="kpi gold"><div class="kl">Capitale iniziale</div><div class="kv gold">€ '+fmt(TOTAL_CAP)+'</div><div class="ks">4 servizi attivi</div></div>'+
       '<div class="kpi"><div class="kl">Equity Attuale</div><div class="kv '+(totalPnl>=0?'g':'r')+'">€ '+fmt(totalEq)+'</div><div class="ks">'+(totalPnl>=0?'▲ +':'▼ ')+'€'+fmt(Math.abs(totalPnl))+' dal lancio</div></div>'+
@@ -1739,11 +1758,11 @@ function loadFondoRotativo(){
       '<div class="kpi"><div class="kl">Operazioni chiuse</div><div class="kv">'+totalOps+'</div><div class="ks">Tutti i servizi</div></div>'+
     '</div>';
 
-    // ── EQUITY CURVE + PIE ──
+    // ── EQUITY UNICA + PIE ──
     html+='<div style="display:grid;grid-template-columns:1fr 300px;gap:12px;margin-bottom:1.2rem">'+
-      '<div class="card gold-border" style="margin:0"><div class="card-title">📈 Equity Curve — Rendimento % per Servizio</div>'+
+      '<div class="card gold-border" style="margin:0">'+
+        '<div class="card-title">📈 Equity Curve — Portafoglio Aggregato (€)</div>'+
         '<div class="chart-wrap" style="height:240px"><canvas id="fr-chart-equity"></canvas></div>'+
-        '<div id="fr-legend" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:10px"></div>'+
       '</div>'+
       '<div class="card" style="margin:0"><div class="card-title">🥧 Pesi Portafoglio</div>'+
         '<div class="chart-wrap" style="height:180px"><canvas id="fr-chart-pie"></canvas></div>'+
@@ -1751,13 +1770,12 @@ function loadFondoRotativo(){
       '</div>'+
     '</div>';
 
-    // ── CARD SERVIZI ATTIVI ──
+    // ── SERVIZI ATTIVI ──
     html+='<div style="font-size:10px;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px">Servizi Attivi</div>';
     html+='<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:1.2rem">';
     SVCS_CFG.forEach(function(svc){
       var st=svc.stats;
-      var pc=st.totalPnl>=0?'g':'r';
-      html+='<div class="card" style="margin:0;border-left:3px solid '+svc.color+';position:relative;overflow:hidden">'+
+      html+='<div class="card" style="margin:0;border-left:3px solid '+svc.color+'">'+
         '<div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px">'+
           '<div><div style="font-size:13px;font-weight:700">'+svc.name+'</div>'+
           '<div style="font-size:10px;color:var(--muted);margin-top:2px">Cap. base: €'+fmt(svc.cap)+'</div></div>'+
@@ -1794,25 +1812,25 @@ function loadFondoRotativo(){
     });
     html+='</div>';
 
-    // ── TABELLA + BAR MENSILE ──
+    // ── TABELLA + MONTHLY ──
     html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">'+
       '<div class="card gold-border" style="margin:0"><div class="card-title">Riepilogo P&L per Servizio</div>'+
-        '<table><thead><tr><th>Servizio</th><th>Cap.</th><th>Equity</th><th>P&L €</th><th>P&L %</th><th>Op.</th></tr></thead><tbody id="fr-tbody"></tbody>'+
-        '<tfoot id="fr-tfoot"></tfoot></table>'+
+        '<table><thead><tr><th>Servizio</th><th>Cap.</th><th>Equity</th><th>P&L €</th><th>P&L %</th><th>Op.</th></tr></thead>'+
+        '<tbody id="fr-tbody"></tbody><tfoot id="fr-tfoot"></tfoot></table>'+
       '</div>'+
-      '<div class="card" style="margin:0"><div class="card-title">Rendimento Mensile Aggregato</div>'+
+      '<div class="card" style="margin:0"><div class="card-title">P&L Mensile — Portafoglio Aggregato (€)</div>'+
         '<div class="chart-wrap" style="height:220px"><canvas id="fr-chart-monthly"></canvas></div>'+
       '</div>'+
     '</div>';
 
     document.getElementById('svc-pg-content').innerHTML=html;
 
-    // ── POPOLA TABELLA ──
+    // Tabella
     var sortedSvcs=SVCS_CFG.slice().sort(function(a,b){return b.stats.pnlPct-a.stats.pnlPct;});
     document.getElementById('fr-tbody').innerHTML=sortedSvcs.map(function(s){
-      var st=s.stats;var pc=st.totalPnl>=0?'g':'r';
+      var st=s.stats;
       return '<tr>'+
-        '<td style="display:flex;align-items:center;gap:6px"><span style="display:inline-block;width:8px;height:8px;background:'+s.color+';border-radius:2px"></span>'+s.short+'</td>'+
+        '<td><span style="display:inline-flex;align-items:center;gap:6px"><span style="display:inline-block;width:8px;height:8px;background:'+s.color+';border-radius:2px;flex-shrink:0"></span>'+s.short+'</span></td>'+
         '<td>€'+fmt(s.cap)+'</td>'+
         '<td style="color:'+clr(st.totalPnl)+'">€'+fmt(st.equity)+'</td>'+
         '<td style="color:'+clr(st.totalPnl)+';font-weight:600">'+sign(st.totalPnl)+'€'+fmt(Math.abs(st.totalPnl))+'</td>'+
@@ -1830,42 +1848,40 @@ function loadFondoRotativo(){
         '<td style="padding-top:10px;color:var(--muted)">'+totalOps+'</td>'+
       '</tr>';
 
-    // ── DISTRUGGI VECCHI CHART ──
+    // Distruggi vecchi chart
     Object.keys(chartInstances).forEach(function(k){try{chartInstances[k].destroy();}catch(e){}});
     chartInstances={};
 
-    // ── EQUITY CURVE CHART ──
-    var eqDatasets=SVCS_CFG.map(function(s){
-      return {
-        label:s.short,
-        data:masterLabels.map(function(lbl,i){
-          var v=s.stats.monthly.aligned[i]||s.cap;
-          return parseFloat(((v-s.cap)/s.cap*100).toFixed(2));
-        }),
-        borderColor:s.color,backgroundColor:s.color+'18',
-        borderWidth:2,pointRadius:0,pointHoverRadius:4,tension:0.4,fill:false
-      };
-    });
+    // ── EQUITY CURVE UNICA ──
     if(document.getElementById('fr-chart-equity')){
+      // Prepend il punto di partenza (€34k) prima del primo mese reale
+      var eqLabels=['Inizio'].concat(masterLabels);
+      var eqValues=[TOTAL_CAP].concat(aggEquity);
       chartInstances['fr-eq']=new Chart(document.getElementById('fr-chart-equity'),{
         type:'line',
-        data:{labels:masterLabels,datasets:eqDatasets},
-        options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
-          plugins:{legend:{display:false},tooltip:{backgroundColor:'#1a1d27',callbacks:{label:function(c){return ' '+c.dataset.label+': '+(c.parsed.y>=0?'+':'')+c.parsed.y.toFixed(2)+'%';}}}},
-          scales:{x:{ticks:{color:'#7a7870',font:{size:9},maxTicksLimit:12,maxRotation:45},grid:{color:'rgba(255,255,255,0.03)'}},
-                  y:{ticks:{color:'#7a7870',font:{size:10},callback:function(v){return (v>=0?'+':'')+v+'%';}},grid:{color:'rgba(255,255,255,0.04)'}}}}
-      });
-    }
-
-    // ── LEGENDA EQUITY ──
-    var legEl=document.getElementById('fr-legend');
-    if(legEl){
-      SVCS_CFG.forEach(function(s){
-        var item=document.createElement('div');
-        item.style.cssText='display:flex;align-items:center;gap:5px;cursor:pointer';
-        item.innerHTML='<span style="display:inline-block;width:8px;height:8px;background:'+s.color+';border-radius:2px"></span>'+
-          '<span style="font-size:11px;color:var(--muted)">'+s.short+'</span>';
-        legEl.appendChild(item);
+        data:{labels:eqLabels,datasets:[{
+          label:'Portafoglio',
+          data:eqValues,
+          borderColor:'#c9a84c',
+          backgroundColor:'rgba(201,168,76,0.08)',
+          fill:true,tension:0.3,
+          pointRadius:0,pointHoverRadius:5,
+          borderWidth:2.5
+        }]},
+        options:{responsive:true,maintainAspectRatio:false,
+          interaction:{mode:'index',intersect:false},
+          plugins:{legend:{display:false},
+            tooltip:{backgroundColor:'#1a1d27',callbacks:{
+              label:function(c){
+                var v=c.parsed.y;
+                var pct=((v-TOTAL_CAP)/TOTAL_CAP*100);
+                return ' €'+fmt(v)+' ('+sign(pct)+pct.toFixed(1)+'%)';
+              }
+            }}},
+          scales:{
+            x:{ticks:{color:'#7a7870',font:{size:9},maxTicksLimit:14,maxRotation:45},grid:{color:'rgba(255,255,255,0.03)'}},
+            y:{ticks:{color:'#7a7870',font:{size:10},callback:function(v){return '€'+fmt(v);}},grid:{color:'rgba(255,255,255,0.04)'}}
+          }}
       });
     }
 
@@ -1882,9 +1898,9 @@ function loadFondoRotativo(){
         },
         options:{responsive:true,maintainAspectRatio:false,cutout:'62%',
           plugins:{legend:{display:false},tooltip:{backgroundColor:'#1a1d27',callbacks:{label:function(c){
-            return ' '+c.label+': '+(c.parsed/totalEq*100).toFixed(1)+'% (€'+fmt(c.parsed)+')';}}}}}
+            return ' '+c.label+': '+(c.parsed/totalEq*100).toFixed(1)+'% (€'+fmt(c.parsed)+')';
+          }}}}}
       });
-      // Pie legend
       var pieleg=document.getElementById('fr-pie-legend');
       if(pieleg){
         SVCS_CFG.forEach(function(s){
@@ -1900,13 +1916,13 @@ function loadFondoRotativo(){
       }
     }
 
-    // ── MINI CHARTS ──
+    // ── MINI CHARTS (per card servizio) ──
     SVCS_CFG.forEach(function(s){
       var el=document.getElementById('fr-mini-'+s.code);
-      if(!el||!s.stats.monthly.aligned.length)return;
+      if(!el||!s.stats.miniEq.length)return;
       chartInstances['fr-mini-'+s.code]=new Chart(el,{
         type:'line',
-        data:{labels:masterLabels,datasets:[{data:s.stats.monthly.aligned,borderColor:s.color,
+        data:{labels:masterLabels,datasets:[{data:s.stats.miniEq,borderColor:s.color,
           backgroundColor:s.color+'20',borderWidth:1.5,pointRadius:0,tension:0.4,fill:true}]},
         options:{responsive:true,maintainAspectRatio:false,animation:false,
           plugins:{legend:{display:false},tooltip:{enabled:false}},
@@ -1914,51 +1930,24 @@ function loadFondoRotativo(){
       });
     });
 
-    // ── MONTHLY BAR ──
-    if(document.getElementById('fr-chart-monthly')&&masterLabels.length>1){
-      var monthlyRets=masterLabels.slice(1).map(function(lbl,i){
-        var prev=0,curr=0;
-        SVCS_CFG.forEach(function(s){
-          var al=s.stats.monthly.aligned;
-          prev+=al[i]||s.cap;curr+=al[i+1]||s.cap;
-        });
-        return prev>0?parseFloat(((curr-prev)/prev*100).toFixed(2)):0;
-      });
+    // ── P&L MENSILE IN € ──
+    if(document.getElementById('fr-chart-monthly')&&masterLabels.length){
       chartInstances['fr-monthly']=new Chart(document.getElementById('fr-chart-monthly'),{
         type:'bar',
-        data:{labels:masterLabels.slice(1),datasets:[{data:monthlyRets,
-          backgroundColor:monthlyRets.map(function(v){return v>=0?'rgba(29,185,122,0.65)':'rgba(232,75,74,0.65)';}),
-          borderColor:monthlyRets.map(function(v){return v>=0?'var(--green)':'var(--red)';}),
+        data:{labels:masterLabels,datasets:[{data:monthlyPnl,
+          backgroundColor:monthlyPnl.map(function(v){return v>=0?'rgba(29,185,122,0.65)':'rgba(232,75,74,0.65)';}),
+          borderColor:monthlyPnl.map(function(v){return v>=0?'var(--green)':'var(--red)';}),
           borderWidth:1,borderRadius:4}]},
-        options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},
-          tooltip:{backgroundColor:'#1a1d27',callbacks:{label:function(c){return ' '+(c.parsed.y>=0?'+':'')+c.parsed.y.toFixed(2)+'%';}}}},
-          scales:{x:{ticks:{color:'#7a7870',font:{size:9},maxTicksLimit:12,maxRotation:45},grid:{display:false}},
-                  y:{ticks:{color:'#7a7870',font:{size:10},callback:function(v){return (v>=0?'+':'')+v.toFixed(1)+'%';}},grid:{color:'rgba(255,255,255,0.04)'}}}}
+        options:{responsive:true,maintainAspectRatio:false,
+          plugins:{legend:{display:false},
+            tooltip:{backgroundColor:'#1a1d27',callbacks:{label:function(c){return ' '+(c.parsed.y>=0?'+':'')+c.parsed.y.toFixed(2)+' €';}}}},
+          scales:{
+            x:{ticks:{color:'#7a7870',font:{size:9},maxTicksLimit:14,maxRotation:45},grid:{display:false}},
+            y:{ticks:{color:'#7a7870',font:{size:10},callback:function(v){return (v>=0?'+':'')+fmt(v)+'€';}},grid:{color:'rgba(255,255,255,0.04)'}}
+          }}
       });
     }
   });
-}
-
-// Helper: costruisce timeline mensile equity cumulativa per fondo rotativo
-function buildFRMonthly(closed,capitalInitial,code){
-  if(!closed.length)return{labels:[],values:[]};
-  var byMonth={};
-  closed.forEach(function(t){
-    var dateStr=t.closed_at||t.opened_at;
-    if(!dateStr)return;
-    var d=new Date(dateStr);
-    var key=d.getFullYear()+'-'+(('0'+(d.getMonth()+1)).slice(-2));
-    var val=parseFloat(code==='vanilla_monthly'?(t.premium_collected||t.pnl||0):(t.pnl||0))||0;
-    byMonth[key]=(byMonth[key]||0)+val;
-  });
-  var keys=Object.keys(byMonth).sort();
-  var labels=keys.map(function(k){
-    var parts=k.split('-');
-    return new Date(parts[0],parts[1]-1,1).toLocaleDateString('it-IT',{month:'short',year:'2-digit'});
-  });
-  var running=capitalInitial;
-  var values=keys.map(function(k){running+=byMonth[k];return Math.round(running*100)/100;});
-  return{labels:labels,values:values};
 }
 
 // Avvio
