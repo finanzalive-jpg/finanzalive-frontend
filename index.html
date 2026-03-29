@@ -1094,7 +1094,7 @@ function loadForexWorld() {
 
     // ── KPI GENERALI ──
     html += '<div class="kpi-row" style="grid-template-columns:repeat(4,1fr);margin-bottom:1.2rem">' +
-      '<div class="kpi gold"><div class="kl">Coppie attive</div><div class="kv gold">'+FOREX.length+'</div><div class="ks">Simboli monitorati</div></div>' +
+      '<div class="kpi gold"><div class="kl">Capitale iniziale</div><div class="kv gold">€ 10.000</div><div class="ks">Base di riferimento</div></div>' +'<div class="kpi gold"><div class="kl">Coppie attive</div><div class="kv gold">'+FOREX.length+'</div><div class="ks">Simboli monitorati</div></div>' +
       '<div class="kpi"><div class="kl">PnL totale netto</div><div class="kv '+(totPnl>=0?'g':'r')+'">'+(totPnl>=0?'+':'')+totPnl.toFixed(2)+' €</div><div class="ks">Tutte le coppie</div></div>' +
       '<div class="kpi"><div class="kl">Win rate globale</div><div class="kv gold">'+globalWR+'%</div><div class="ks">'+totWin+'W / '+(totTrades-totWin)+'L su '+totTrades+' op.</div></div>' +
       '<div class="kpi"><div class="kl">Posizioni aperte</div><div class="kv '+(openT.length?'tb':'')+'">'+openT.length+'</div><div class="ks">Live in questo momento</div></div>' +
