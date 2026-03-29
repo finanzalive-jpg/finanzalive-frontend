@@ -1721,12 +1721,17 @@ function loadFondoRotativo(){
       return parseFloat(SVCS_CFG.reduce(function(a,s){return a+(s.stats.byMonth[k]||0);},0).toFixed(2));
     });
 
-    // Equity individuale per mini-charts (cumulativa da cap)
+    // Equity individuale per mini-charts — usa SOLO le chiavi proprie del servizio
     SVCS_CFG.forEach(function(svc){
+      var ownKeys=Object.keys(svc.stats.byMonth).sort();
       var run=svc.cap;
-      svc.stats.miniEq=masterKeys.map(function(k){
+      svc.stats.miniEq=ownKeys.map(function(k){
         run+=(svc.stats.byMonth[k]||0);
         return Math.round(run*100)/100;
+      });
+      svc.stats.miniLabels=ownKeys.map(function(k){
+        var p=k.split('-');
+        return new Date(p[0],p[1]-1,1).toLocaleDateString('it-IT',{month:'short',year:'2-digit'});
       });
     });
 
@@ -1772,24 +1777,24 @@ function loadFondoRotativo(){
 
     // ── SERVIZI ATTIVI ──
     html+='<div style="font-size:10px;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px">Servizi Attivi</div>';
-    html+='<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:1.2rem">';
+    html+='<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:1.2rem">';
     SVCS_CFG.forEach(function(svc){
       var st=svc.stats;
-      html+='<div class="card" style="margin:0;border-left:3px solid '+svc.color+'">'+
-        '<div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px">'+
-          '<div><div style="font-size:13px;font-weight:700">'+svc.name+'</div>'+
-          '<div style="font-size:10px;color:var(--muted);margin-top:2px">Cap. base: €'+fmt(svc.cap)+'</div></div>'+
-          '<span class="tag tg" style="font-size:9px">ATTIVO</span>'+
+      html+='<div class="card" style="margin:0;border-left:3px solid '+svc.color+';padding:.9rem .9rem .7rem">'+
+        '<div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px">'+
+          '<div><div style="font-size:12px;font-weight:700;line-height:1.2">'+svc.name+'</div>'+
+          '<div style="font-size:9px;color:var(--muted);margin-top:1px">Cap. €'+fmt(svc.cap)+'</div></div>'+
+          '<span class="tag tg" style="font-size:8px;padding:1px 6px">ATTIVO</span>'+
         '</div>'+
-        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">'+
-          '<div><div class="kl">Equity</div><div style="font-size:14px;font-weight:700;color:'+clr(st.totalPnl)+'">€'+fmt(st.equity)+'</div></div>'+
-          '<div><div class="kl">P&L %</div><div style="font-size:14px;font-weight:700;color:'+clr(st.totalPnl)+'">'+sign(st.pnlPct)+fmtD(st.pnlPct)+'%</div></div>'+
-          '<div><div class="kl">P&L €</div><div style="font-size:12px;font-weight:600;color:'+clr(st.totalPnl)+'">'+sign(st.totalPnl)+'€'+fmt(Math.abs(st.totalPnl))+'</div></div>'+
-          '<div><div class="kl">Win Rate</div><div style="font-size:12px;font-weight:600">'+fmtD(st.winRate)+'%</div></div>'+
-          '<div><div class="kl">Operaz.</div><div style="font-size:12px;font-weight:600">'+st.tradeCount+'</div></div>'+
-          '<div><div class="kl">Peso</div><div style="font-size:12px;font-weight:600">'+(svc.cap/TOTAL_CAP*100).toFixed(1)+'%</div></div>'+
+        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:5px">'+
+          '<div><div style="font-size:9px;color:var(--muted)">Equity</div><div style="font-size:13px;font-weight:700;color:'+clr(st.totalPnl)+'">€'+fmt(st.equity)+'</div></div>'+
+          '<div><div style="font-size:9px;color:var(--muted)">P&L %</div><div style="font-size:13px;font-weight:700;color:'+clr(st.totalPnl)+'">'+sign(st.pnlPct)+fmtD(st.pnlPct)+'%</div></div>'+
+          '<div><div style="font-size:9px;color:var(--muted)">P&L €</div><div style="font-size:11px;font-weight:600;color:'+clr(st.totalPnl)+'">'+sign(st.totalPnl)+'€'+fmt(Math.abs(st.totalPnl))+'</div></div>'+
+          '<div><div style="font-size:9px;color:var(--muted)">Win Rate</div><div style="font-size:11px;font-weight:600">'+fmtD(st.winRate)+'%</div></div>'+
+          '<div><div style="font-size:9px;color:var(--muted)">Operaz.</div><div style="font-size:11px;font-weight:600">'+st.tradeCount+'</div></div>'+
+          '<div><div style="font-size:9px;color:var(--muted)">Peso</div><div style="font-size:11px;font-weight:600">'+(svc.cap/TOTAL_CAP*100).toFixed(1)+'%</div></div>'+
         '</div>'+
-        '<div style="height:36px;margin-top:10px"><canvas id="fr-mini-'+svc.code+'"></canvas></div>'+
+        '<div style="height:34px;margin-top:8px"><canvas id="fr-mini-'+svc.code+'"></canvas></div>'+
       '</div>';
     });
     html+='</div>';
@@ -1916,13 +1921,13 @@ function loadFondoRotativo(){
       }
     }
 
-    // ── MINI CHARTS (per card servizio) ──
+    // ── MINI CHARTS (per card servizio) — timeline propria di ogni servizio ──
     SVCS_CFG.forEach(function(s){
       var el=document.getElementById('fr-mini-'+s.code);
       if(!el||!s.stats.miniEq.length)return;
       chartInstances['fr-mini-'+s.code]=new Chart(el,{
         type:'line',
-        data:{labels:masterLabels,datasets:[{data:s.stats.miniEq,borderColor:s.color,
+        data:{labels:s.stats.miniLabels,datasets:[{data:s.stats.miniEq,borderColor:s.color,
           backgroundColor:s.color+'20',borderWidth:1.5,pointRadius:0,tension:0.4,fill:true}]},
         options:{responsive:true,maintainAspectRatio:false,animation:false,
           plugins:{legend:{display:false},tooltip:{enabled:false}},
