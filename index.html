@@ -912,7 +912,7 @@ function loadIndicesWorld() {
       // Header colonna
       html += '<div style="background:rgba('+hexToRgb(idx.color)+',0.1);padding:12px 14px;border-bottom:1px solid rgba('+hexToRgb(idx.color)+',0.2)">' +
         '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">' +
-          '<span style="font-size:15px;font-weight:800;color:'+idx.color+'">'+idx.flag+' '+idx.code+'</span>' +
+          '<span style="font-size:15px;font-weight:800;color:'+idx.color+'">'+idx.code+'</span>' +
           '<span style="font-size:11px;color:var(--muted)">'+idx.name+'</span>' +
         '</div>' +
         '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">' +
@@ -985,7 +985,7 @@ function loadIndicesWorld() {
         var sym  = getSym(t)||'?';
         var idxInfo = INDICES.find(function(i){return i.code===sym;})||{color:'var(--muted)',flag:''};
         return '<tr>' +
-          '<td><span style="font-weight:700;color:'+idxInfo.color+'">'+idxInfo.flag+' '+sym+'</span></td>' +
+          '<td><span style="font-weight:700;color:'+idxInfo.color+'">'+sym+'</span></td>' +
           '<td style="white-space:nowrap">'+(dIn?dIn.toLocaleDateString('it-IT'):'—')+'</td>' +
           '<td style="color:var(--muted)">'+(dIn?dIn.toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'}):'—')+'</td>' +
           '<td><span class="tag '+(t.direction==='BUY'?'tg':'tr')+'">'+(t.direction||'?')+'</span></td>' +
@@ -1124,7 +1124,7 @@ function loadForexWorld() {
       html += '<div style="background:rgba('+rgb+',0.08);padding:10px 12px;border-bottom:1px solid rgba('+rgb+',0.15)">' +
         '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">' +
           '<span style="font-size:13px;font-weight:800;color:'+fx.color+'">'+fx.code+'</span>' +
-          '<span style="font-size:13px">'+fx.flag+'</span>' +
+          
         '</div>' +
         '<div style="display:grid;grid-template-columns:1fr 1fr;gap:4px">' +
           '<div style="background:var(--bg3);border-radius:6px;padding:5px 7px"><div style="font-size:9px;color:var(--muted)">PnL</div><div style="font-size:13px;font-weight:700;color:'+(pnl>=0?'var(--green)':'var(--red)')+'">'+(pnl>=0?'+':'')+pnl.toFixed(0)+'€</div></div>' +
