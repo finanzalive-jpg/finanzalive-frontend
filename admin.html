@@ -60,6 +60,7 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSy
 .svc-check{display:flex;align-items:center;gap:8px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:8px 10px;cursor:pointer;}
 .svc-check input{width:16px;height:16px;cursor:pointer;accent-color:var(--gold);}
 .svc-check label{font-size:13px;cursor:pointer;}
+.svc-check.fr{border-color:rgba(201,168,76,0.35);background:rgba(201,168,76,0.05);}
 table{width:100%;border-collapse:collapse;font-size:13px;}
 th{font-size:11px;color:var(--muted);text-align:left;padding:7px 10px;border-bottom:1px solid var(--border);font-weight:500;}
 td{padding:8px 10px;border-bottom:1px solid rgba(255,255,255,0.04);vertical-align:middle;}
@@ -71,13 +72,11 @@ tr:hover td{background:rgba(255,255,255,0.02);}
 .ta{background:rgba(240,160,48,.15);color:var(--amber);}
 .tb{background:rgba(201,168,76,.12);color:var(--gold);}
 .tm{background:rgba(139,144,160,.15);color:var(--muted);}
-/* SEMAFORO */
 .semaph{width:10px;height:10px;border-radius:50%;display:inline-block;margin-right:6px;}
 .semaph.green{background:var(--green);}
 .semaph.amber{background:var(--amber);}
 .semaph.red{background:var(--red);animation:blink 1s infinite;}
 @keyframes blink{0%,100%{opacity:1;}50%{opacity:.3;}}
-/* SCADENZE */
 .exp-row{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border);}
 .exp-info{flex:1;}
 .exp-name{font-size:14px;font-weight:500;margin-bottom:3px;}
@@ -175,6 +174,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
             <div class="svc-check"><input type="checkbox" id="svc-forex" value="forex"><label for="svc-forex">&#x1F4B1; Sala Forex</label></div>
             <div class="svc-check"><input type="checkbox" id="svc-gold" value="gold"><label for="svc-gold">&#x1F947; Sala Gold</label></div>
             <div class="svc-check"><input type="checkbox" id="svc-fund_paam" value="fund_paam"><label for="svc-fund_paam">&#x1F4BC; Fondo PAAM</label></div>
+            <div class="svc-check fr"><input type="checkbox" id="svc-fondo_rotativo" value="fondo_rotativo"><label for="svc-fondo_rotativo">&#x1F504; Fondo Rotativo</label></div>
           </div>
         </div>
         <button class="btn green" onclick="createClient()">&#x2713; Crea cliente</button>
@@ -186,18 +186,9 @@ tr:hover td{background:rgba(255,255,255,0.02);}
         <div class="pg-title">Gestione Scadenze</div>
         <div class="pg-sub">Monitora e rinnova gli abbonamenti dei clienti</div>
         <div class="kpi-row" id="exp-kpi"></div>
-        <div class="card">
-          <div class="card-title">&#x1F534; Scaduti</div>
-          <div id="exp-expired"><div class="spinner">Caricamento...</div></div>
-        </div>
-        <div class="card">
-          <div class="card-title">&#x1F7E1; In scadenza (entro 30 giorni)</div>
-          <div id="exp-soon"><div class="spinner">Caricamento...</div></div>
-        </div>
-        <div class="card">
-          <div class="card-title">&#x1F7E2; Attivi</div>
-          <div id="exp-active"><div class="spinner">Caricamento...</div></div>
-        </div>
+        <div class="card"><div class="card-title">&#x1F534; Scaduti</div><div id="exp-expired"><div class="spinner">Caricamento...</div></div></div>
+        <div class="card"><div class="card-title">&#x1F7E1; In scadenza (entro 30 giorni)</div><div id="exp-soon"><div class="spinner">Caricamento...</div></div></div>
+        <div class="card"><div class="card-title">&#x1F7E2; Attivi</div><div id="exp-active"><div class="spinner">Caricamento...</div></div></div>
       </div>
 
       <!-- COMUNICAZIONI -->
@@ -206,26 +197,18 @@ tr:hover td{background:rgba(255,255,255,0.02);}
         <div class="pg-sub">Pubblica messaggi visibili nella dashboard di tutti i clienti</div>
         <div class="card">
           <div class="card-title">Nuova comunicazione</div>
-          <div class="form-group">
-            <label>Messaggio</label>
-            <textarea id="news-text" style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px 12px;color:var(--text);font-size:13px;outline:none;resize:vertical;min-height:80px;transition:border .2s;" placeholder="Es. Mercati chiusi domani per festività..."></textarea>
-          </div>
+          <div class="form-group"><label>Messaggio</label><textarea id="news-text" style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px 12px;color:var(--text);font-size:13px;outline:none;resize:vertical;min-height:80px;" placeholder="Es. Mercati chiusi domani per festività..."></textarea></div>
           <button class="btn green" onclick="publishNews()">&#x1F4E4; Pubblica</button>
           <div id="news-result" style="margin-top:8px;font-size:13px;"></div>
         </div>
-        <div class="card" style="margin-top:1rem;">
-          <div class="card-title">Comunicazioni attive</div>
-          <div id="news-list"><div class="spinner">Caricamento...</div></div>
-        </div>
+        <div class="card" style="margin-top:1rem;"><div class="card-title">Comunicazioni attive</div><div id="news-list"><div class="spinner">Caricamento...</div></div></div>
       </div>
 
       <!-- SEGNALI -->
       <div class="page" id="page-signals">
         <div class="pg-title">Segnali ricevuti</div>
         <div class="pg-sub">Tutti i segnali dal webhook Telegram</div>
-        <div class="card">
-          <div id="signals-list"><div class="spinner">Caricamento...</div></div>
-        </div>
+        <div class="card"><div id="signals-list"><div class="spinner">Caricamento...</div></div></div>
       </div>
 
     </div>
@@ -237,28 +220,39 @@ tr:hover td{background:rgba(255,255,255,0.02);}
   <div class="modal">
     <div class="modal-title" id="modal-title">Gestione cliente</div>
     <div id="modal-body"></div>
-    <div class="modal-actions">
-      <button class="btn sm gray" onclick="closeModal()">Chiudi</button>
-    </div>
+    <div class="modal-actions"><button class="btn sm gray" onclick="closeModal()">Chiudi</button></div>
   </div>
 </div>
 
 <div class="toast" id="toast"></div>
 
 <script>
-var API = 'https://finanzalive-backend.onrender.com';
+var API    = 'https://finanzalive-backend.onrender.com';
 var SECRET = 'finanzalive_admin_2026_secret';
+
+// ── REGISTRO SERVIZI ─────────────────────────────────────────────
+// Per aggiungere un nuovo servizio basta aggiungere una riga qui.
+// Il modal di gestione e tutti gli altri pannelli si aggiornano da soli.
 var SVC_NAMES = {
-  indices:'Indici World',
-  vanilla_monthly:'Vanilla Mensile',
-  vanilla_weekly:'Vanilla Weekly',
-  forex:'Sala Forex',
-  gold:'Sala Gold',
-  fund_paam:'Fondo PAAM'
+  indices:          'Indici World',
+  vanilla_monthly:  'Vanilla Mensile',
+  vanilla_weekly:   'Vanilla Weekly',
+  forex:            'Sala Forex',
+  gold:             'Sala Gold',
+  fund_paam:        'Fondo PAAM',
+  fondo_rotativo:   'Fondo Rotativo'   // ★ BENCHMARK MULTI-PRODOTTO
 };
 var SVC_ICONS = {
-  indices:'🌐',vanilla_monthly:'📅',vanilla_weekly:'📆',forex:'💱',gold:'🥇',fund_paam:'💼'
+  indices:          '🌐',
+  vanilla_monthly:  '📅',
+  vanilla_weekly:   '📆',
+  forex:            '💱',
+  gold:             '🥇',
+  fund_paam:        '💼',
+  fondo_rotativo:   '🔄'              // ★
 };
+// ─────────────────────────────────────────────────────────────────
+
 var authed = sessionStorage.getItem('fl_admin');
 var _clientsCache = [];
 
@@ -286,51 +280,6 @@ function showToast(msg,ok){
   t.textContent=msg; t.className='toast '+(ok!==false?'ok':'err');
   t.classList.add('show');
   setTimeout(function(){t.classList.remove('show');},3000);
-}
-
-function publishNews(){
-  var text=document.getElementById('news-text').value.trim();
-  var res=document.getElementById('news-result');
-  if(!text){showToast('Scrivi un messaggio',false);return;}
-  res.textContent='Pubblicazione...';res.style.color='var(--muted)';
-  adminApi('/admin/news','POST',{message:text}).then(function(r){
-    if(r&&r.ok){
-      showToast('Comunicazione pubblicata!');
-      document.getElementById('news-text').value='';
-      res.textContent='';
-      loadNewsList();
-    }else{
-      res.textContent='Errore';res.style.color='var(--red)';
-      showToast('Errore',false);
-    }
-  });
-}
-
-function loadNewsList(){
-  fetch(API+'/api/news').then(function(r){return r.json();}).then(function(news){
-    news=news||[];
-    var el=document.getElementById('news-list');
-    if(!el)return;
-    if(!news.length){el.innerHTML='<p style="color:var(--muted);font-size:13px">Nessuna comunicazione attiva</p>';return;}
-    el.innerHTML=news.map(function(n){
-      var d=new Date(n.created_at);
-      var ds=d.toLocaleDateString('it-IT')+' '+d.toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'});
-      return '<div style="display:flex;align-items:flex-start;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border)">'+
-        '<div style="flex:1">'+
-          '<div style="font-size:11px;color:var(--muted);margin-bottom:4px">'+ds+'</div>'+
-          '<div style="font-size:13px">'+n.message+'</div>'+
-        '</div>'+
-        '<button class="btn sm red" style="margin-left:12px;flex-shrink:0" onclick="deleteNews('+n.id+')">&#x2715;</button>'+
-      '</div>';
-    }).join('');
-  });
-}
-
-function deleteNews(id){
-  adminApi('/admin/news/'+id,'DELETE').then(function(r){
-    if(r&&r.ok){showToast('Eliminata!');loadNewsList();}
-    else showToast('Errore',false);
-  });
 }
 
 function showPage(name){
@@ -378,11 +327,11 @@ function loadOverview(){
       });
     });
     var expHtml='';
-    soonList.forEach(function(s,i){
+    soonList.forEach(function(s){
       var days=Math.ceil((s.exp-now)/(24*60*60*1000));
       expHtml+='<div class="exp-row">'+
         '<div class="exp-info"><div class="exp-name"><span class="semaph amber"></span>'+s.name+'</div>'+
-        '<div class="exp-detail">'+s.sname+' - scade tra '+days+' giorni ('+s.exp.toLocaleDateString('it-IT')+')</div></div>'+
+        '<div class="exp-detail">'+s.sname+' — scade tra '+days+' giorni ('+s.exp.toLocaleDateString('it-IT')+')</div></div>'+
         '<div class="exp-actions"><button class="btn sm green" data-action="renew" data-cid="'+s.cid+'" data-code="'+s.code+'" data-name="'+encodeURIComponent(s.name)+'">Rinnova</button></div>'+
       '</div>';
     });
@@ -407,7 +356,11 @@ function loadExpiry(){
     clients.forEach(function(c){
       (c.subscriptions||[]).forEach(function(s){
         if(!s.active)return;
-        var item={cid:c.id,name:c.full_name||c.email,code:s.services&&s.services.code?s.services.code:'',sname:s.services&&s.services.name?s.services.name:'',amount:s.amount,notes:s.notes,exp:s.expires_at?new Date(s.expires_at):null};
+        var item={cid:c.id,name:c.full_name||c.email,
+          code:s.services&&s.services.code?s.services.code:'',
+          sname:s.services&&s.services.name?s.services.name:'',
+          amount:s.amount,notes:s.notes,
+          exp:s.expires_at?new Date(s.expires_at):null};
         if(!item.exp){active.push(item);return;}
         if(item.exp<now)expired.push(item);
         else if(item.exp<in30)soon.push(item);
@@ -430,7 +383,8 @@ function loadExpiry(){
       return '<div class="exp-row">'+
         '<div class="exp-info">'+
           '<div class="exp-name"><span class="semaph '+status+'"></span>'+item.name+'</div>'+
-          '<div class="exp-detail">'+item.sname+' | Scadenza: <strong>'+expStr+'</strong>'+(daysStr?' ('+daysStr+')':'')+(item.amount?' | €'+item.amount:'')+(item.notes?' | '+item.notes:'')+'</div>'+
+          '<div class="exp-detail">'+svcLabel(item.code)+' | Scadenza: <strong>'+expStr+'</strong>'+
+          (daysStr?' ('+daysStr+')':'')+(item.amount?' | €'+item.amount:'')+(item.notes?' | '+item.notes:'')+'</div>'+
         '</div>'+
         '<div class="exp-actions">'+
           '<button class="btn sm green" data-action="renew" data-cid="'+item.cid+'" data-code="'+item.code+'" data-name="'+encodeURIComponent(item.name)+'">Rinnova</button>'+
@@ -444,7 +398,7 @@ function loadExpiry(){
   });
 }
 
-// Event delegation for data-action buttons
+// ── EVENT DELEGATION ──
 document.addEventListener('click',function(e){
   var btn=e.target.closest('[data-action]');
   if(!btn)return;
@@ -452,12 +406,12 @@ document.addEventListener('click',function(e){
   var cid=btn.getAttribute('data-cid');
   var code=btn.getAttribute('data-code');
   var name=btn.getAttribute('data-name')?decodeURIComponent(btn.getAttribute('data-name')):'';
-  if(action==='renew') openRenewModal(cid,code,name);
-  if(action==='suspend') doSuspend(cid,code,btn);
-  if(action==='manage') openClientModal(cid,name);
+  if(action==='renew')openRenewModal(cid,code,name);
+  if(action==='suspend')doSuspend(cid,code,btn);
+  if(action==='manage')openClientModal(cid,name);
   if(action==='toggle-sub'){
-    var active=btn.getAttribute('data-active')==='true';
-    toggleSubModal(cid,code,!active,btn);
+    var isActive=btn.getAttribute('data-active')==='true';
+    toggleSubModal(cid,code,!isActive,btn);
   }
   if(action==='save-expiry'){
     var exp=document.getElementById('exp-'+code).value;
@@ -479,7 +433,7 @@ function doSuspend(cid,code,btn){
 }
 
 function openRenewModal(cid,code,name){
-  document.getElementById('modal-title').textContent='Rinnova - '+name;
+  document.getElementById('modal-title').textContent='Rinnova — '+name;
   var defDate=new Date(); defDate.setFullYear(defDate.getFullYear()+1);
   var defStr=defDate.toISOString().split('T')[0];
   document.getElementById('modal-body').innerHTML=
@@ -519,7 +473,10 @@ function loadClients(){
     var html='<div class="tbl-wrap"><table><thead><tr><th>Nome</th><th>Email</th><th>Servizi</th><th>Scadenza</th><th>Stato</th><th>Azioni</th></tr></thead><tbody>';
     clients.forEach(function(c){
       var subs=(c.subscriptions||[]).filter(function(s){return s.active;});
-      var tags=subs.map(function(s){return '<span class="tag tb" style="margin:1px">'+(SVC_ICONS[s.services&&s.services.code?s.services.code:'']||'')+' '+(SVC_NAMES[s.services&&s.services.code?s.services.code:'']||'')+'</span>';}).join('');
+      var tags=subs.map(function(s){
+        var code=s.services&&s.services.code?s.services.code:'';
+        return '<span class="tag tb" style="margin:1px">'+(SVC_ICONS[code]||'')+' '+(SVC_NAMES[code]||code)+'</span>';
+      }).join('');
       var nearExp=null;
       subs.forEach(function(s){if(s.expires_at){var d=new Date(s.expires_at);if(!nearExp||d<nearExp)nearExp=d;}});
       var expStr=nearExp?nearExp.toLocaleDateString('it-IT'):'—';
@@ -538,8 +495,9 @@ function loadClients(){
   });
 }
 
+// ── MODAL GESTIONE CLIENTE ──
 function openClientModal(cid,name){
-  document.getElementById('modal-title').textContent='Gestione - '+name;
+  document.getElementById('modal-title').textContent='Gestione — '+name;
   document.getElementById('modal-body').innerHTML='<div class="spinner">Caricamento...</div>';
   document.getElementById('client-modal').classList.add('open');
   adminApi('/admin/clients?t='+Date.now()).then(function(clients){
@@ -549,39 +507,40 @@ function openClientModal(cid,name){
     (client.subscriptions||[]).forEach(function(s){
       if(s.services&&s.services.code) subsMap[s.services.code]=s;
     });
-    var html='<p style="font-size:12px;color:var(--muted);margin-bottom:12px">Gestisci servizi e scadenze</p>';
+    var html='<p style="font-size:12px;color:var(--muted);margin-bottom:12px">Attiva / disattiva servizi e imposta scadenze</p>';
+    // Itera SVC_NAMES — include automaticamente tutti i servizi registrati
     Object.keys(SVC_NAMES).forEach(function(code){
       var sub=subsMap[code];
-      var on=sub&&sub.active;
+      var on=!!(sub&&sub.active);
       var exp=sub&&sub.expires_at?sub.expires_at.split('T')[0]:'';
-      html+='<div style="padding:12px 0;border-bottom:1px solid var(--border)">'+
-        '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">'+
-          '<span style="font-size:13px;font-weight:600">'+svcLabel(code)+'</span>'+
-          '<button class="btn sm '+(on?'red':'green')+'" data-action="toggle-sub" data-cid="'+cid+'" data-code="'+code+'" data-active="'+on+'">'+(on?'Disattiva':'Attiva')+'</button>'+
-        '</div>'+
-        '<div style="display:flex;align-items:center;gap:8px">'+
-          '<label style="font-size:11px;color:var(--muted)">Scadenza:</label>'+
-          '<input type="date" id="exp-'+code+'" value="'+exp+'" style="background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:4px 8px;color:var(--text);font-size:12px;flex:1">'+
-          '<button class="btn sm" data-action="save-expiry" data-cid="'+cid+'" data-code="'+code+'">Salva</button>'+
-        '</div>'+
-      '</div>';
+      var isFR=code==='fondo_rotativo';
+      html+=
+        '<div style="padding:12px 0;border-bottom:1px solid var(--border);'+(isFR?'border-left:3px solid var(--gold);padding-left:10px;margin-left:-10px':'')+'">'+
+          '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">'+
+            '<span style="font-size:13px;font-weight:600">'+svcLabel(code)+
+            (isFR?' <span style="font-size:9px;background:rgba(201,168,76,0.12);color:var(--gold);padding:2px 7px;border-radius:3px;letter-spacing:.5px">BENCHMARK</span>':'')+'</span>'+
+            '<button class="btn sm '+(on?'red':'green')+'" data-action="toggle-sub" data-cid="'+cid+'" data-code="'+code+'" data-active="'+on+'">'+(on?'Disattiva':'Attiva')+'</button>'+
+          '</div>'+
+          '<div style="display:flex;align-items:center;gap:8px">'+
+            '<label style="font-size:11px;color:var(--muted);white-space:nowrap">Scadenza:</label>'+
+            '<input type="date" id="exp-'+code+'" value="'+exp+'" style="background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:4px 8px;color:var(--text);font-size:12px;flex:1">'+
+            '<button class="btn sm" data-action="save-expiry" data-cid="'+cid+'" data-code="'+code+'">Salva</button>'+
+          '</div>'+
+        '</div>';
     });
     document.getElementById('modal-body').innerHTML=html;
   });
 }
-
 
 function toggleSubModal(cid,code,active,btn){
   btn.disabled=true; btn.textContent='...';
   adminApi('/admin/subscription/'+cid+'/'+code+'?active='+active,'PATCH').then(function(r){
     if(r&&r.ok){
       showToast(active?'Attivato!':'Disattivato!');
-      // Ricarica il modal con dati freschi
-      var name=document.getElementById('modal-title').textContent.replace('Gestione - ','');
+      var name=document.getElementById('modal-title').textContent.replace('Gestione — ','');
       openClientModal(cid,name);
     }else{
-      btn.disabled=false;
-      btn.textContent=active?'Attiva':'Disattiva';
+      btn.disabled=false; btn.textContent=active?'Attiva':'Disattiva';
       showToast('Errore',false);
     }
   });
@@ -617,6 +576,38 @@ function createClient(){
   });
 }
 
+// ── COMUNICAZIONI ──
+function publishNews(){
+  var text=document.getElementById('news-text').value.trim();
+  var res=document.getElementById('news-result');
+  if(!text){showToast('Scrivi un messaggio',false);return;}
+  res.textContent='Pubblicazione...'; res.style.color='var(--muted)';
+  adminApi('/admin/news','POST',{message:text}).then(function(r){
+    if(r&&r.ok){showToast('Pubblicata!');document.getElementById('news-text').value='';res.textContent='';loadNewsList();}
+    else{res.textContent='Errore';res.style.color='var(--red)';showToast('Errore',false);}
+  });
+}
+function loadNewsList(){
+  fetch(API+'/api/news').then(function(r){return r.json();}).then(function(news){
+    news=news||[];
+    var el=document.getElementById('news-list');if(!el)return;
+    if(!news.length){el.innerHTML='<p style="color:var(--muted);font-size:13px">Nessuna comunicazione attiva</p>';return;}
+    el.innerHTML=news.map(function(n){
+      var d=new Date(n.created_at);
+      var ds=d.toLocaleDateString('it-IT')+' '+d.toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'});
+      return '<div style="display:flex;align-items:flex-start;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border)">'+
+        '<div style="flex:1"><div style="font-size:11px;color:var(--muted);margin-bottom:4px">'+ds+'</div><div style="font-size:13px">'+n.message+'</div></div>'+
+        '<button class="btn sm red" style="margin-left:12px;flex-shrink:0" onclick="deleteNews('+n.id+')">&#x2715;</button>'+
+      '</div>';
+    }).join('');
+  });
+}
+function deleteNews(id){
+  adminApi('/admin/news/'+id,'DELETE').then(function(r){
+    if(r&&r.ok){showToast('Eliminata!');loadNewsList();}else showToast('Errore',false);
+  });
+}
+
 // ── SEGNALI ──
 function loadSignals(){
   document.getElementById('signals-list').innerHTML='<div class="spinner">Caricamento...</div>';
@@ -628,7 +619,7 @@ function loadSignals(){
       var t=new Date(s.created_at);
       var ts=t.toLocaleDateString('it-IT')+' '+t.toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'});
       var tc=s.signal_type==='OPEN'?'tb':s.signal_type==='CLOSE'?'tg':s.signal_type==='ALERT'?'ta':'tm';
-      var txt=(s.message_text||'').substring(0,60); if(s.message_text&&s.message_text.length>60)txt+='...';
+      var txt=(s.message_text||'').substring(0,60)+(s.message_text&&s.message_text.length>60?'...':'');
       html+='<tr><td style="color:var(--muted);white-space:nowrap">'+ts+'</td><td>'+svcLabel(s.services&&s.services.code?s.services.code:'')+'</td><td><span class="tag '+tc+'">'+(s.signal_type||'INFO')+'</span></td><td>'+txt+'</td></tr>';
     });
     html+='</tbody></table></div>';
@@ -636,6 +627,7 @@ function loadSignals(){
   });
 }
 
+// ── BOOT ──
 if(authed){
   document.getElementById('auth-screen').style.display='none';
   document.getElementById('app').style.display='block';
