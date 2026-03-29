@@ -255,6 +255,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
       <div class="nav-item" id="nav-forex" onclick="showService('forex')"><img src="https://raw.githubusercontent.com/finanzalive-jpg/finanzalive-frontend/main/forex%20logo.jpg" style="width:18px;height:18px;border-radius:4px;object-fit:contain;background:#f5f0e8;flex-shrink:0;vertical-align:-3px"> Sala Forex</div>
       <div class="nav-item" id="nav-gold" onclick="showService('gold')"><img src="https://raw.githubusercontent.com/finanzalive-jpg/finanzalive-frontend/main/gold%20logo.jpg" style="width:18px;height:18px;border-radius:4px;object-fit:contain;background:#f5f0e8;flex-shrink:0;vertical-align:-3px"> Sala Gold</div>
       <div class="nav-item" id="nav-fund_paam" onclick="showService('fund_paam')"><img src="https://raw.githubusercontent.com/finanzalive-jpg/finanzalive-frontend/main/fondo%20paam.jpg" style="width:18px;height:18px;border-radius:4px;object-fit:contain;background:#f5f0e8;flex-shrink:0;vertical-align:-3px"> Fondo PAAM</div>
+      <div class="nav-item" id="nav-fondo_rotativo" onclick="showService('fondo_rotativo')" style="color:var(--gold);border-left:2px solid transparent;"><img src="https://raw.githubusercontent.com/finanzalive-jpg/finanzalive-frontend/main/fondo%20rotativo.jpg" style="width:18px;height:18px;border-radius:4px;object-fit:contain;background:#f5f0e8;flex-shrink:0;vertical-align:-3px"> Fondo Rotativo</div>
       <div class="nav-sec">Account</div>
       <div class="nav-item" onclick="showPage('profile')"><span style="font-size:15px">◈</span> Profilo</div>
     </div>
@@ -338,7 +339,8 @@ var SVC={
   vanilla_weekly:{name:'Opzioni Vanilla Weekly',icon:'📆',desc:'Segnali opzioni vanilla scadenza settimanale'},
   forex:{name:'Sala Forex',icon:'💱',desc:'Segnali Forex in tempo reale'},
   gold:{name:'Sala Gold',icon:'🥇',desc:'Segnali su Oro in tempo reale'},
-  fund_paam:{name:'Fondo PAAM',icon:'💼',desc:'Andamento e aggiornamenti fondo PAAM'}
+  fund_paam:{name:'Fondo PAAM',icon:'💼',desc:'Andamento e aggiornamenti fondo PAAM'},
+  fondo_rotativo:{name:'Fondo Rotativo Multi-Prodotto',icon:'🔄',desc:'Benchmark consolidato — equity aggregata di tutti i servizi FinanzaLive'}
 };
 var token=localStorage.getItem('iup_tok');
 var myServices=[];
@@ -432,7 +434,7 @@ function initApp(user){
         if(!nav)return;
         nav.querySelectorAll('.nav-badge').forEach(function(b){b.remove();});
         var b=document.createElement('span');
-        if(code==='fund_paam'){b.className='nav-badge nb-on';b.textContent='●';}
+        if(code==='fund_paam'||code==='fondo_rotativo'){b.className='nav-badge nb-on';b.textContent='●';}
         else if(activeCodes.indexOf(code)>=0||code==='gold'){b.className='nav-badge nb-on';b.textContent='●';}
         else{b.className='nav-badge nb-off';b.textContent='🔒';}
         nav.appendChild(b);
@@ -534,7 +536,7 @@ function loadDashboard(activeCodes){
       var badge=soon?'<span class="tag tb">Prossimamente</span>':'<span class="tag '+(on?'tg':'tm')+'">'+(on?'Attivo':'Non abbonato')+'</span>';
       var lastSig=lastBySvc[code];
       var lastStr=lastSig?('<span class="svc-last">Ultimo: '+new Date(lastSig.created_at).toLocaleDateString('it-IT',{day:'2-digit',month:'short'})+' '+new Date(lastSig.created_at).toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'})+'</span>'):'';
-      var imgs={indices:'https://raw.githubusercontent.com/finanzalive-jpg/finanzalive-frontend/main/indici_world_logo.jpg',vanilla_monthly:'https://raw.githubusercontent.com/finanzalive-jpg/finanzalive-frontend/main/Logo%20S%26P500%20con%20bandiera%20americana.jpg',vanilla_weekly:'https://raw.githubusercontent.com/finanzalive-jpg/finanzalive-frontend/main/Opzioni%20settimanali%20S%26P500%20con%20bandiera%20USA.jpg',forex:'https://raw.githubusercontent.com/finanzalive-jpg/finanzalive-frontend/main/forex%20logo.jpg',gold:'https://raw.githubusercontent.com/finanzalive-jpg/finanzalive-frontend/main/gold%20logo.jpg',fund_paam:'https://raw.githubusercontent.com/finanzalive-jpg/finanzalive-frontend/main/fondo%20paam.jpg'};
+      var imgs={indices:'https://raw.githubusercontent.com/finanzalive-jpg/finanzalive-frontend/main/indici_world_logo.jpg',vanilla_monthly:'https://raw.githubusercontent.com/finanzalive-jpg/finanzalive-frontend/main/Logo%20S%26P500%20con%20bandiera%20americana.jpg',vanilla_weekly:'https://raw.githubusercontent.com/finanzalive-jpg/finanzalive-frontend/main/Opzioni%20settimanali%20S%26P500%20con%20bandiera%20USA.jpg',forex:'https://raw.githubusercontent.com/finanzalive-jpg/finanzalive-frontend/main/forex%20logo.jpg',gold:'https://raw.githubusercontent.com/finanzalive-jpg/finanzalive-frontend/main/gold%20logo.jpg',fund_paam:'https://raw.githubusercontent.com/finanzalive-jpg/finanzalive-frontend/main/fondo%20paam.jpg',fondo_rotativo:'https://raw.githubusercontent.com/finanzalive-jpg/finanzalive-frontend/main/fondo%20rotativo.jpg'};
       var imgSrc=imgs[code]||'';
       var imgH=imgSrc?('<div style="margin:-1.3rem -1.3rem 1rem -1.3rem;width:calc(100% + 2.6rem);height:220px;overflow:hidden;border-radius:10px 10px 0 0"><img src="'+imgSrc+'" style="width:100%;height:220px;object-fit:contain;display:block;background:#f5f0e8"></div>'):'';
       return '<div class="svc-card '+cls+'" '+oc+'>'+
@@ -709,13 +711,17 @@ function showService(code){
   document.getElementById('page-service').classList.add('active');
   clearBadge(code);
   var info=SVC[code];
-  var svcLogos={indices:'https://raw.githubusercontent.com/finanzalive-jpg/finanzalive-frontend/main/indici_world_logo.jpg',vanilla_monthly:'https://raw.githubusercontent.com/finanzalive-jpg/finanzalive-frontend/main/Logo%20S%26P500%20con%20bandiera%20americana.jpg',vanilla_weekly:'https://raw.githubusercontent.com/finanzalive-jpg/finanzalive-frontend/main/Opzioni%20settimanali%20S%26P500%20con%20bandiera%20USA.jpg',forex:'https://raw.githubusercontent.com/finanzalive-jpg/finanzalive-frontend/main/forex%20logo.jpg',gold:'https://raw.githubusercontent.com/finanzalive-jpg/finanzalive-frontend/main/gold%20logo.jpg',fund_paam:'https://raw.githubusercontent.com/finanzalive-jpg/finanzalive-frontend/main/fondo%20paam.jpg'};
+  var svcLogos={indices:'https://raw.githubusercontent.com/finanzalive-jpg/finanzalive-frontend/main/indici_world_logo.jpg',vanilla_monthly:'https://raw.githubusercontent.com/finanzalive-jpg/finanzalive-frontend/main/Logo%20S%26P500%20con%20bandiera%20americana.jpg',vanilla_weekly:'https://raw.githubusercontent.com/finanzalive-jpg/finanzalive-frontend/main/Opzioni%20settimanali%20S%26P500%20con%20bandiera%20USA.jpg',forex:'https://raw.githubusercontent.com/finanzalive-jpg/finanzalive-frontend/main/forex%20logo.jpg',gold:'https://raw.githubusercontent.com/finanzalive-jpg/finanzalive-frontend/main/gold%20logo.jpg',fund_paam:'https://raw.githubusercontent.com/finanzalive-jpg/finanzalive-frontend/main/fondo%20paam.jpg',fondo_rotativo:'https://raw.githubusercontent.com/finanzalive-jpg/finanzalive-frontend/main/fondo%20rotativo.jpg'};
   var logoHtml=svcLogos[code]?'<img src="'+svcLogos[code]+'" style="width:52px;height:52px;border-radius:10px;object-fit:contain;background:#f5f0e8;flex-shrink:0">':'';
   document.getElementById('svc-pg-title').innerHTML=logoHtml+'<span>'+info.name+'</span>';
 
   document.getElementById('svc-pg-sub').textContent=info.desc;
   if(code==='fund_paam'){
     loadGenericService(code);
+    return;
+  }
+  if(code==='fondo_rotativo'){
+    loadFondoRotativo();
     return;
   }
   var activeCodes=myServices.filter(function(s){return s.active;}).map(function(s){return s.services.code;});
@@ -1647,6 +1653,312 @@ function renderSig(s){
   var t=new Date(s.created_at);
   var ts=t.toLocaleDateString('it-IT')+' '+t.toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'});
   return '<div class="sig"><div class="sig-head"><span class="sig-svc">'+(info.icon||'')+' '+(s.services&&s.services.name?s.services.name:'')+'</span><span class="sig-time">'+ts+'</span></div><div class="sig-text">'+s.message_text+'</div><div class="sig-tags"><span class="tag '+tc+'">'+(s.signal_type||'INFO')+'</span>'+(s.strike?'<span class="tag tm">Strike '+parseFloat(s.strike).toLocaleString('it-IT')+'</span>':'')+(s.strike_pct?'<span class="tag tm">'+s.strike_pct+'% OTM</span>':'')+(s.premium?'<span class="tag tg">€ '+s.premium+'</span>':'')+'</div></div>';
+}
+
+// ── FONDO ROTATIVO MULTI-PRODOTTO ──
+function loadFondoRotativo(){
+  var SVCS_CFG=[
+    {code:'indices',      name:'Indici World',    short:'Indici',   color:'#f0a030', cap:10000, id:1},
+    {code:'vanilla_monthly',name:'Vanilla Mensile',short:'Vanilla M',color:'#c9a84c', cap:20000, id:2},
+    {code:'forex',        name:'Sala Forex',       short:'Forex',    color:'#1db97a', cap:3000,  id:4},
+    {code:'gold',         name:'Sala Gold',        short:'Gold',     color:'#e8c96a', cap:1000,  id:6},
+  ];
+  var SVCS_COMING=[
+    {code:'fund_paam',    name:'Fondo PAAM',       short:'PAAM',     color:'#b06ef3', note:'Lancio imminente'},
+    {code:'vanilla_weekly',name:'Vanilla Weekly',  short:'Vanilla W',color:'#8b90a0', note:'Storico in caricamento'},
+  ];
+  var TOTAL_CAP=34000;
+
+  document.getElementById('svc-pg-content').innerHTML='<div class="spinner">Caricamento benchmark...</div>';
+
+  // Fetch tutti i trades in parallelo
+  Promise.all(SVCS_CFG.map(function(s){return api('/api/trades?service_code='+s.code);})).then(function(results){
+    // Arricchisci ogni servizio con stats
+    SVCS_CFG.forEach(function(svc,i){
+      var all=results[i]||[];
+      var closed=all.filter(function(t){return t.status==='CLOSED';})
+                    .sort(function(a,b){return new Date(a.opened_at)-new Date(b.opened_at);});
+      var totalPnl=closed.reduce(function(s,t){return s+(parseFloat(t.pnl)||0);},0);
+      // Vanilla usa premium_collected se pnl è 0
+      if(svc.code==='vanilla_monthly'){
+        totalPnl=closed.reduce(function(s,t){return s+(parseFloat(t.premium_collected)||parseFloat(t.pnl)||0);},0);
+      }
+      var equity=svc.cap+totalPnl;
+      var pnlPct=(totalPnl/svc.cap)*100;
+      var wins=closed.filter(function(t){return (parseFloat(t.pnl)||parseFloat(t.premium_collected)||0)>0;}).length;
+      var winRate=closed.length?(wins/closed.length*100):0;
+      // Equity mensile cumulativa
+      var monthly=buildFRMonthly(closed,svc.cap,svc.code);
+      var peak=svc.cap;var maxDD=0;
+      monthly.values.forEach(function(v){if(v>peak)peak=v;var dd=(peak-v)/peak;if(dd>maxDD)maxDD=dd;});
+      svc.stats={totalPnl:totalPnl,equity:equity,pnlPct:pnlPct,
+                 tradeCount:closed.length,winRate:winRate,monthly:monthly,maxDD:maxDD};
+    });
+
+    // Allinea timeline
+    var masterLabels=[];
+    SVCS_CFG.forEach(function(s){
+      s.stats.monthly.labels.forEach(function(l){if(masterLabels.indexOf(l)<0)masterLabels.push(l);});
+    });
+    SVCS_CFG.forEach(function(s){
+      var aligned=masterLabels.map(function(lbl){
+        var idx=s.stats.monthly.labels.indexOf(lbl);
+        if(idx>=0)return s.stats.monthly.values[idx];
+        var mIdx=masterLabels.indexOf(lbl);
+        var firstIdx=masterLabels.indexOf(s.stats.monthly.labels[0]);
+        return mIdx<firstIdx?s.cap:s.stats.monthly.values[s.stats.monthly.values.length-1]||s.cap;
+      });
+      s.stats.monthly.aligned=aligned;
+    });
+
+    // Totali aggregati
+    var totalEq=SVCS_CFG.reduce(function(a,s){return a+s.stats.equity;},0);
+    var totalPnl=totalEq-TOTAL_CAP;
+    var totalPct=(totalPnl/TOTAL_CAP)*100;
+    var totalOps=SVCS_CFG.reduce(function(a,s){return a+s.stats.tradeCount;},0);
+    var best=SVCS_CFG.slice().sort(function(a,b){return b.stats.pnlPct-a.stats.pnlPct;})[0];
+
+    function fmt(n){return n.toLocaleString('it-IT',{minimumFractionDigits:0,maximumFractionDigits:0});}
+    function fmtD(n){return n.toLocaleString('it-IT',{minimumFractionDigits:2,maximumFractionDigits:2});}
+    function sign(n){return n>=0?'+':'';}
+    function clr(n){return n>=0?'var(--green)':'var(--red)';}
+
+    var html='';
+
+    // ── INFO BANNER ──
+    html+='<div style="background:rgba(201,168,76,0.06);border:1px solid rgba(201,168,76,0.2);border-radius:10px;padding:10px 14px;margin-bottom:1.2rem;font-size:12px;color:var(--muted);">'+
+      '📊 Benchmark consolidato di tutti i servizi FinanzaLive. Equity aggregata calcolata in tempo reale dal DB IUPPITER. Capitale base totale: <strong style="color:var(--gold)">€ 34.000</strong>.'+
+    '</div>';
+
+    // ── KPI ROW ──
+    html+='<div class="kpi-row" style="grid-template-columns:repeat(5,1fr)">'+
+      '<div class="kpi gold"><div class="kl">Capitale iniziale</div><div class="kv gold">€ '+fmt(TOTAL_CAP)+'</div><div class="ks">4 servizi attivi</div></div>'+
+      '<div class="kpi"><div class="kl">Equity Attuale</div><div class="kv '+(totalPnl>=0?'g':'r')+'">€ '+fmt(totalEq)+'</div><div class="ks">'+(totalPnl>=0?'▲ +':'▼ ')+'€'+fmt(Math.abs(totalPnl))+' dal lancio</div></div>'+
+      '<div class="kpi"><div class="kl">Rendimento %</div><div class="kv '+(totalPct>=0?'g':'r')+'">'+sign(totalPct)+fmtD(totalPct)+'%</div><div class="ks">'+(totalPct>=0?'In profitto':'In perdita')+'</div></div>'+
+      '<div class="kpi"><div class="kl">Best Performer</div><div class="kv gold" style="font-size:16px">'+best.short+'</div><div class="ks">'+sign(best.stats.pnlPct)+fmtD(best.stats.pnlPct)+'% rendimento</div></div>'+
+      '<div class="kpi"><div class="kl">Operazioni chiuse</div><div class="kv">'+totalOps+'</div><div class="ks">Tutti i servizi</div></div>'+
+    '</div>';
+
+    // ── EQUITY CURVE + PIE ──
+    html+='<div style="display:grid;grid-template-columns:1fr 300px;gap:12px;margin-bottom:1.2rem">'+
+      '<div class="card gold-border" style="margin:0"><div class="card-title">📈 Equity Curve — Rendimento % per Servizio</div>'+
+        '<div class="chart-wrap" style="height:240px"><canvas id="fr-chart-equity"></canvas></div>'+
+        '<div id="fr-legend" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:10px"></div>'+
+      '</div>'+
+      '<div class="card" style="margin:0"><div class="card-title">🥧 Pesi Portafoglio</div>'+
+        '<div class="chart-wrap" style="height:180px"><canvas id="fr-chart-pie"></canvas></div>'+
+        '<div id="fr-pie-legend" style="margin-top:10px"></div>'+
+      '</div>'+
+    '</div>';
+
+    // ── CARD SERVIZI ATTIVI ──
+    html+='<div style="font-size:10px;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px">Servizi Attivi</div>';
+    html+='<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:1.2rem">';
+    SVCS_CFG.forEach(function(svc){
+      var st=svc.stats;
+      var pc=st.totalPnl>=0?'g':'r';
+      html+='<div class="card" style="margin:0;border-left:3px solid '+svc.color+';position:relative;overflow:hidden">'+
+        '<div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px">'+
+          '<div><div style="font-size:13px;font-weight:700">'+svc.name+'</div>'+
+          '<div style="font-size:10px;color:var(--muted);margin-top:2px">Cap. base: €'+fmt(svc.cap)+'</div></div>'+
+          '<span class="tag tg" style="font-size:9px">ATTIVO</span>'+
+        '</div>'+
+        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">'+
+          '<div><div class="kl">Equity</div><div style="font-size:14px;font-weight:700;color:'+clr(st.totalPnl)+'">€'+fmt(st.equity)+'</div></div>'+
+          '<div><div class="kl">P&L %</div><div style="font-size:14px;font-weight:700;color:'+clr(st.totalPnl)+'">'+sign(st.pnlPct)+fmtD(st.pnlPct)+'%</div></div>'+
+          '<div><div class="kl">P&L €</div><div style="font-size:12px;font-weight:600;color:'+clr(st.totalPnl)+'">'+sign(st.totalPnl)+'€'+fmt(Math.abs(st.totalPnl))+'</div></div>'+
+          '<div><div class="kl">Win Rate</div><div style="font-size:12px;font-weight:600">'+fmtD(st.winRate)+'%</div></div>'+
+          '<div><div class="kl">Operaz.</div><div style="font-size:12px;font-weight:600">'+st.tradeCount+'</div></div>'+
+          '<div><div class="kl">Peso</div><div style="font-size:12px;font-weight:600">'+(svc.cap/TOTAL_CAP*100).toFixed(1)+'%</div></div>'+
+        '</div>'+
+        '<div style="height:36px;margin-top:10px"><canvas id="fr-mini-'+svc.code+'"></canvas></div>'+
+      '</div>';
+    });
+    html+='</div>';
+
+    // ── COMING SOON ──
+    html+='<div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px">In Arrivo</div>';
+    html+='<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:1.2rem">';
+    SVCS_COMING.forEach(function(svc){
+      html+='<div class="card" style="margin:0;border-left:3px solid '+svc.color+';opacity:.5;border-style:dashed">'+
+        '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">'+
+          '<div style="font-size:13px;font-weight:700">'+svc.name+'</div>'+
+          '<span class="tag tb" style="font-size:9px">PRESTO</span>'+
+        '</div>'+
+        '<div style="font-size:12px;color:var(--muted)">🔒 '+svc.note+'</div>'+
+        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px;opacity:.5">'+
+          '<div><div class="kl">Equity</div><div style="font-size:14px;font-weight:700;color:var(--muted)">—</div></div>'+
+          '<div><div class="kl">P&L %</div><div style="font-size:14px;font-weight:700;color:var(--muted)">—</div></div>'+
+        '</div>'+
+      '</div>';
+    });
+    html+='</div>';
+
+    // ── TABELLA + BAR MENSILE ──
+    html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">'+
+      '<div class="card gold-border" style="margin:0"><div class="card-title">Riepilogo P&L per Servizio</div>'+
+        '<table><thead><tr><th>Servizio</th><th>Cap.</th><th>Equity</th><th>P&L €</th><th>P&L %</th><th>Op.</th></tr></thead><tbody id="fr-tbody"></tbody>'+
+        '<tfoot id="fr-tfoot"></tfoot></table>'+
+      '</div>'+
+      '<div class="card" style="margin:0"><div class="card-title">Rendimento Mensile Aggregato</div>'+
+        '<div class="chart-wrap" style="height:220px"><canvas id="fr-chart-monthly"></canvas></div>'+
+      '</div>'+
+    '</div>';
+
+    document.getElementById('svc-pg-content').innerHTML=html;
+
+    // ── POPOLA TABELLA ──
+    var sortedSvcs=SVCS_CFG.slice().sort(function(a,b){return b.stats.pnlPct-a.stats.pnlPct;});
+    document.getElementById('fr-tbody').innerHTML=sortedSvcs.map(function(s){
+      var st=s.stats;var pc=st.totalPnl>=0?'g':'r';
+      return '<tr>'+
+        '<td style="display:flex;align-items:center;gap:6px"><span style="display:inline-block;width:8px;height:8px;background:'+s.color+';border-radius:2px"></span>'+s.short+'</td>'+
+        '<td>€'+fmt(s.cap)+'</td>'+
+        '<td style="color:'+clr(st.totalPnl)+'">€'+fmt(st.equity)+'</td>'+
+        '<td style="color:'+clr(st.totalPnl)+';font-weight:600">'+sign(st.totalPnl)+'€'+fmt(Math.abs(st.totalPnl))+'</td>'+
+        '<td style="color:'+clr(st.totalPnl)+';font-weight:600">'+sign(st.pnlPct)+fmtD(st.pnlPct)+'%</td>'+
+        '<td style="color:var(--muted)">'+st.tradeCount+'</td>'+
+      '</tr>';
+    }).join('');
+    document.getElementById('fr-tfoot').innerHTML=
+      '<tr style="border-top:1px solid var(--border)">'+
+        '<td style="font-weight:700;padding-top:10px">TOTALE</td>'+
+        '<td style="padding-top:10px">€'+fmt(TOTAL_CAP)+'</td>'+
+        '<td style="padding-top:10px;color:'+clr(totalPnl)+';font-weight:700">€'+fmt(totalEq)+'</td>'+
+        '<td style="padding-top:10px;color:'+clr(totalPnl)+';font-weight:700">'+sign(totalPnl)+'€'+fmt(Math.abs(totalPnl))+'</td>'+
+        '<td style="padding-top:10px;color:'+clr(totalPnl)+';font-weight:700">'+sign(totalPct)+fmtD(totalPct)+'%</td>'+
+        '<td style="padding-top:10px;color:var(--muted)">'+totalOps+'</td>'+
+      '</tr>';
+
+    // ── DISTRUGGI VECCHI CHART ──
+    Object.keys(chartInstances).forEach(function(k){try{chartInstances[k].destroy();}catch(e){}});
+    chartInstances={};
+
+    // ── EQUITY CURVE CHART ──
+    var eqDatasets=SVCS_CFG.map(function(s){
+      return {
+        label:s.short,
+        data:masterLabels.map(function(lbl,i){
+          var v=s.stats.monthly.aligned[i]||s.cap;
+          return parseFloat(((v-s.cap)/s.cap*100).toFixed(2));
+        }),
+        borderColor:s.color,backgroundColor:s.color+'18',
+        borderWidth:2,pointRadius:0,pointHoverRadius:4,tension:0.4,fill:false
+      };
+    });
+    if(document.getElementById('fr-chart-equity')){
+      chartInstances['fr-eq']=new Chart(document.getElementById('fr-chart-equity'),{
+        type:'line',
+        data:{labels:masterLabels,datasets:eqDatasets},
+        options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
+          plugins:{legend:{display:false},tooltip:{backgroundColor:'#1a1d27',callbacks:{label:function(c){return ' '+c.dataset.label+': '+(c.parsed.y>=0?'+':'')+c.parsed.y.toFixed(2)+'%';}}}},
+          scales:{x:{ticks:{color:'#7a7870',font:{size:9},maxTicksLimit:12,maxRotation:45},grid:{color:'rgba(255,255,255,0.03)'}},
+                  y:{ticks:{color:'#7a7870',font:{size:10},callback:function(v){return (v>=0?'+':'')+v+'%';}},grid:{color:'rgba(255,255,255,0.04)'}}}}
+      });
+    }
+
+    // ── LEGENDA EQUITY ──
+    var legEl=document.getElementById('fr-legend');
+    if(legEl){
+      SVCS_CFG.forEach(function(s){
+        var item=document.createElement('div');
+        item.style.cssText='display:flex;align-items:center;gap:5px;cursor:pointer';
+        item.innerHTML='<span style="display:inline-block;width:8px;height:8px;background:'+s.color+';border-radius:2px"></span>'+
+          '<span style="font-size:11px;color:var(--muted)">'+s.short+'</span>';
+        legEl.appendChild(item);
+      });
+    }
+
+    // ── PIE CHART ──
+    if(document.getElementById('fr-chart-pie')){
+      chartInstances['fr-pie']=new Chart(document.getElementById('fr-chart-pie'),{
+        type:'doughnut',
+        data:{
+          labels:SVCS_CFG.map(function(s){return s.short;}),
+          datasets:[{data:SVCS_CFG.map(function(s){return s.stats.equity;}),
+            backgroundColor:SVCS_CFG.map(function(s){return s.color+'bb';}),
+            borderColor:SVCS_CFG.map(function(s){return s.color;}),
+            borderWidth:1.5,hoverOffset:6}]
+        },
+        options:{responsive:true,maintainAspectRatio:false,cutout:'62%',
+          plugins:{legend:{display:false},tooltip:{backgroundColor:'#1a1d27',callbacks:{label:function(c){
+            return ' '+c.label+': '+(c.parsed/totalEq*100).toFixed(1)+'% (€'+fmt(c.parsed)+')';}}}}}
+      });
+      // Pie legend
+      var pieleg=document.getElementById('fr-pie-legend');
+      if(pieleg){
+        SVCS_CFG.forEach(function(s){
+          var pct=(s.stats.equity/totalEq*100).toFixed(1);
+          var row=document.createElement('div');
+          row.style.cssText='display:flex;align-items:center;justify-content:space-between;padding:4px 8px;border-radius:6px;margin-bottom:3px;background:var(--bg3)';
+          row.innerHTML='<div style="display:flex;align-items:center;gap:7px">'+
+            '<span style="display:inline-block;width:9px;height:9px;background:'+s.color+';border-radius:2px"></span>'+
+            '<span style="font-size:11px">'+s.short+'</span></div>'+
+            '<span style="font-size:11px;color:var(--gold);font-weight:700">'+pct+'%</span>';
+          pieleg.appendChild(row);
+        });
+      }
+    }
+
+    // ── MINI CHARTS ──
+    SVCS_CFG.forEach(function(s){
+      var el=document.getElementById('fr-mini-'+s.code);
+      if(!el||!s.stats.monthly.aligned.length)return;
+      chartInstances['fr-mini-'+s.code]=new Chart(el,{
+        type:'line',
+        data:{labels:masterLabels,datasets:[{data:s.stats.monthly.aligned,borderColor:s.color,
+          backgroundColor:s.color+'20',borderWidth:1.5,pointRadius:0,tension:0.4,fill:true}]},
+        options:{responsive:true,maintainAspectRatio:false,animation:false,
+          plugins:{legend:{display:false},tooltip:{enabled:false}},
+          scales:{x:{display:false},y:{display:false}}}
+      });
+    });
+
+    // ── MONTHLY BAR ──
+    if(document.getElementById('fr-chart-monthly')&&masterLabels.length>1){
+      var monthlyRets=masterLabels.slice(1).map(function(lbl,i){
+        var prev=0,curr=0;
+        SVCS_CFG.forEach(function(s){
+          var al=s.stats.monthly.aligned;
+          prev+=al[i]||s.cap;curr+=al[i+1]||s.cap;
+        });
+        return prev>0?parseFloat(((curr-prev)/prev*100).toFixed(2)):0;
+      });
+      chartInstances['fr-monthly']=new Chart(document.getElementById('fr-chart-monthly'),{
+        type:'bar',
+        data:{labels:masterLabels.slice(1),datasets:[{data:monthlyRets,
+          backgroundColor:monthlyRets.map(function(v){return v>=0?'rgba(29,185,122,0.65)':'rgba(232,75,74,0.65)';}),
+          borderColor:monthlyRets.map(function(v){return v>=0?'var(--green)':'var(--red)';}),
+          borderWidth:1,borderRadius:4}]},
+        options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},
+          tooltip:{backgroundColor:'#1a1d27',callbacks:{label:function(c){return ' '+(c.parsed.y>=0?'+':'')+c.parsed.y.toFixed(2)+'%';}}}},
+          scales:{x:{ticks:{color:'#7a7870',font:{size:9},maxTicksLimit:12,maxRotation:45},grid:{display:false}},
+                  y:{ticks:{color:'#7a7870',font:{size:10},callback:function(v){return (v>=0?'+':'')+v.toFixed(1)+'%';}},grid:{color:'rgba(255,255,255,0.04)'}}}}
+      });
+    }
+  });
+}
+
+// Helper: costruisce timeline mensile equity cumulativa per fondo rotativo
+function buildFRMonthly(closed,capitalInitial,code){
+  if(!closed.length)return{labels:[],values:[]};
+  var byMonth={};
+  closed.forEach(function(t){
+    var dateStr=t.closed_at||t.opened_at;
+    if(!dateStr)return;
+    var d=new Date(dateStr);
+    var key=d.getFullYear()+'-'+(('0'+(d.getMonth()+1)).slice(-2));
+    var val=parseFloat(code==='vanilla_monthly'?(t.premium_collected||t.pnl||0):(t.pnl||0))||0;
+    byMonth[key]=(byMonth[key]||0)+val;
+  });
+  var keys=Object.keys(byMonth).sort();
+  var labels=keys.map(function(k){
+    var parts=k.split('-');
+    return new Date(parts[0],parts[1]-1,1).toLocaleDateString('it-IT',{month:'short',year:'2-digit'});
+  });
+  var running=capitalInitial;
+  var values=keys.map(function(k){running+=byMonth[k];return Math.round(running*100)/100;});
+  return{labels:labels,values:values};
 }
 
 // Avvio
