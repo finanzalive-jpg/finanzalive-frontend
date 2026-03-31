@@ -716,7 +716,7 @@ function showService(code){
   document.getElementById('svc-pg-title').innerHTML=logoHtml+'<span>'+info.name+'</span>';
   document.getElementById('svc-pg-sub').textContent=info.desc;
   // Servizi sempre accessibili senza abbonamento
-  if(code==='fund_pamm'){loadGenericService(code);return;}
+  if(code==='fund_pamm'){loadPammService();return;}
   if(code==='fondo_rotativo'){loadFondoRotativo();return;}
   // Check abbonamento per tutti gli altri
   var activeCodes=myServices.filter(function(s){return s.active;}).map(function(s){return s.services.code;});
@@ -1650,19 +1650,172 @@ function renderSig(s){
   return '<div class="sig"><div class="sig-head"><span class="sig-svc">'+(info.icon||'')+' '+(s.services&&s.services.name?s.services.name:'')+'</span><span class="sig-time">'+ts+'</span></div><div class="sig-text">'+s.message_text+'</div><div class="sig-tags"><span class="tag '+tc+'">'+(s.signal_type||'INFO')+'</span>'+(s.strike?'<span class="tag tm">Strike '+parseFloat(s.strike).toLocaleString('it-IT')+'</span>':'')+(s.strike_pct?'<span class="tag tm">'+s.strike_pct+'% OTM</span>':'')+(s.premium?'<span class="tag tg">€ '+s.premium+'</span>':'')+'</div></div>';
 }
 
-// ── FONDO ROTATIVO MULTI-PRODOTTO ──
+// ── FONDO PAMM ──
+function loadPammService(){
+  document.getElementById('svc-pg-content').innerHTML='<div class="spinner">Caricamento PAMM...</div>';
+  Promise.all([
+    api('/api/trades?service_code=fund_pamm'),
+    api('/api/fund_movements?service_code=fund_pamm'),
+    api('/api/signals?service_code=fund_pamm&limit=20')
+  ]).then(function(res){
+    var trades    = (res[0]||[]).filter(function(t){return t.status==='CLOSED';})
+                                .sort(function(a,b){return new Date(a.opened_at)-new Date(b.opened_at);});
+    var movements = (res[1]||[]).sort(function(a,b){return new Date(a.moved_at)-new Date(b.moved_at);});
+    var sigs      = res[2]||[];
+
+    // KPI movimenti
+    var totalDeposits    = movements.filter(function(m){return m.type==='deposit';}).reduce(function(a,m){return a+m.amount;},0);
+    var totalWithdrawals = movements.filter(function(m){return m.type==='withdrawal';}).reduce(function(a,m){return a+m.amount;},0);
+    var netCapital       = totalDeposits + totalWithdrawals; // withdrawals già negativi
+    var totalPnl         = trades.reduce(function(a,t){return a+(parseFloat(t.pnl)||0);},0);
+    var equity           = netCapital + totalPnl;
+    var pnlPct           = netCapital > 0 ? (totalPnl/netCapital*100) : 0;
+    var wins             = trades.filter(function(t){return (parseFloat(t.pnl)||0)>0;}).length;
+    var winRate          = trades.length ? (wins/trades.length*100) : 0;
+
+    function fmt(n){return n.toLocaleString('it-IT',{minimumFractionDigits:2,maximumFractionDigits:2});}
+    function sign(n){return n>=0?'+':'';}
+    function clr(n){return n>=0?'var(--green)':'var(--red)';}
+
+    var html = '';
+
+    // ── KPI ──
+    html += '<div class="kpi-row" style="grid-template-columns:repeat(5,1fr)">';
+    html += '<div class="kpi gold"><div class="kl">Capitale versato</div><div class="kv gold">€ '+fmt(totalDeposits)+'</div><div class="ks">Depositi totali</div></div>';
+    html += '<div class="kpi gold"><div class="kl">Capitale netto</div><div class="kv gold">€ '+fmt(netCapital)+'</div><div class="ks">Dep. - Prel.</div></div>';
+    html += '<div class="kpi"><div class="kl">Equity Attuale</div><div class="kv '+(totalPnl>=0?'g':'r')+'">€ '+fmt(equity)+'</div><div class="ks">'+sign(totalPnl)+'€'+fmt(Math.abs(totalPnl))+' PnL netto</div></div>';
+    html += '<div class="kpi"><div class="kl">Rendimento %</div><div class="kv '+(pnlPct>=0?'g':'r')+'">'+sign(pnlPct)+fmt(pnlPct)+'%</div><div class="ks">Sul capitale netto</div></div>';
+    html += '<div class="kpi"><div class="kl">Win Rate</div><div class="kv gold">'+fmt(winRate)+'%</div><div class="ks">'+wins+' gain / '+(trades.length-wins)+' loss su '+trades.length+'</div></div>';
+    html += '</div>';
+
+    // ── EQUITY CURVE + MOVIMENTI ──
+    html += '<div style="display:grid;grid-template-columns:1fr 300px;gap:12px;margin-bottom:1.2rem">';
+
+    // Equity chart
+    html += '<div class="card gold-border" style="margin:0">';
+    html += '<div class="card-title">📈 Equity Curve — Capitale + PnL cumulativo (€)</div>';
+    html += '<div class="chart-wrap" style="height:260px"><canvas id="pamm-chart-eq"></canvas></div>';
+    html += '</div>';
+
+    // Movimenti capitali
+    html += '<div class="card" style="margin:0">';
+    html += '<div class="card-title">💰 Movimenti di Capitale</div>';
+    movements.forEach(function(m){
+      var isDeposit = m.type==='deposit';
+      var isWithdrawal = m.type==='withdrawal';
+      var color = isDeposit?'var(--green)':isWithdrawal?'var(--red)':'var(--muted)';
+      var icon  = isDeposit?'▲':isWithdrawal?'▼':'○';
+      var d = new Date(m.moved_at);
+      var ds = d.toLocaleDateString('it-IT',{day:'2-digit',month:'short',year:'numeric'});
+      html += '<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)">';
+      html += '<div><div style="font-size:12px;font-weight:600">'+ds+'</div>';
+      html += '<div style="font-size:10px;color:var(--muted)">'+m.notes+'</div></div>';
+      html += '<div style="font-size:14px;font-weight:700;color:'+color+'">'+icon+' €'+fmt(Math.abs(m.amount))+'</div>';
+      html += '</div>';
+    });
+    html += '<div style="padding:10px 0;border-top:1px solid var(--border);display:flex;justify-content:space-between">';
+    html += '<span style="font-size:12px;font-weight:700">Capitale netto</span>';
+    html += '<span style="font-size:14px;font-weight:700;color:var(--gold)">€'+fmt(netCapital)+'</span>';
+    html += '</div>';
+    html += '</div>';
+    html += '</div>'; // grid
+
+    // ── STORICO TRADE ──
+    html += '<div class="card"><div class="card-title">Storico operazioni ('+trades.length+')</div>';
+    html += '<div class="tbl-wrap"><table><thead><tr>';
+    html += '<th>Strumento</th><th>Direzione</th><th>Apertura</th><th>Ingresso</th><th>Chiusura</th><th>PnL €</th><th>Esito</th>';
+    html += '</tr></thead><tbody>';
+    trades.slice().reverse().forEach(function(t){
+      var pnl = parseFloat(t.pnl)||0;
+      var sym = (t.notes||'').replace(/MT4-\d+ /,'');
+      var dIn  = t.opened_at ? new Date(t.opened_at).toLocaleDateString('it-IT',{day:'2-digit',month:'short',year:'2-digit'}) : '—';
+      var dOut = t.closed_at ? new Date(t.closed_at).toLocaleDateString('it-IT',{day:'2-digit',month:'short',year:'2-digit'}) : '—';
+      html += '<tr>';
+      html += '<td style="font-weight:600">'+sym+'</td>';
+      html += '<td><span class="tag '+(t.direction==='BUY'?'tg':'tr')+'">'+t.direction+'</span></td>';
+      html += '<td style="color:var(--muted)">'+dIn+'</td>';
+      html += '<td>'+( t.strike ? parseFloat(t.strike).toLocaleString('it-IT',{minimumFractionDigits:2}) : '—' )+'</td>';
+      html += '<td style="color:var(--muted)">'+dOut+'</td>';
+      html += '<td style="color:'+(pnl>=0?'var(--green)':'var(--red)')+';font-weight:600">'+(pnl>=0?'+':'')+fmt(pnl)+'</td>';
+      html += '<td><span class="tag '+(pnl>=0?'tg':'tr')+'">'+(pnl>=0?'GAIN':'LOSS')+'</span></td>';
+      html += '</tr>';
+    });
+    html += '</tbody></table></div></div>';
+
+    // ── SEGNALI ──
+    html += '<div class="card"><div class="card-title">Segnali recenti <span class="card-title-live">● live</span></div>';
+    html += sigs.length ? sigs.map(renderSig).join('') : '<p style="color:var(--muted);font-size:13px">Nessun segnale</p>';
+    html += '</div>';
+
+    document.getElementById('svc-pg-content').innerHTML = html;
+
+    // Distruggi vecchi chart
+    Object.keys(chartInstances).forEach(function(k){try{chartInstances[k].destroy();}catch(e){}});
+    chartInstances = {};
+
+    // ── EQUITY CURVE — combina movimenti + PnL trade ──
+    if(document.getElementById('pamm-chart-eq')){
+      // Costruisce timeline: ogni evento è un movimento o un trade chiuso
+      var events = [];
+      movements.forEach(function(m){
+        events.push({date: new Date(m.moved_at), delta: m.amount, label: m.type});
+      });
+      trades.forEach(function(t){
+        if(t.closed_at) events.push({date: new Date(t.closed_at), delta: parseFloat(t.pnl)||0, label:'trade'});
+      });
+      events.sort(function(a,b){return a.date-b.date;});
+
+      var eqLabels = [];
+      var eqValues = [];
+      var running  = 0;
+      events.forEach(function(e){
+        running += e.delta;
+        var ds = e.date.toLocaleDateString('it-IT',{day:'2-digit',month:'short',year:'2-digit'});
+        eqLabels.push(ds);
+        eqValues.push(Math.round(running*100)/100);
+      });
+
+      chartInstances['pamm-eq'] = new Chart(document.getElementById('pamm-chart-eq'),{
+        type:'line',
+        data:{labels:eqLabels,datasets:[{
+          data:eqValues,
+          borderColor:'#c9a84c',
+          backgroundColor:'rgba(201,168,76,0.08)',
+          fill:true, tension:0.3,
+          pointRadius:0, pointHoverRadius:5, borderWidth:2.5
+        }]},
+        options:{responsive:true,maintainAspectRatio:false,
+          interaction:{mode:'index',intersect:false},
+          plugins:{legend:{display:false},
+            tooltip:{backgroundColor:'#1a1d27',callbacks:{
+              label:function(c){
+                var v=c.parsed.y;
+                var pct=netCapital>0?((v-netCapital)/netCapital*100):0;
+                return ' €'+fmt(v)+' ('+sign(pct)+fmt(pct)+'%)';
+              }
+            }}},
+          scales:{
+            x:{ticks:{color:'#7a7870',font:{size:9},maxTicksLimit:12,maxRotation:45},grid:{color:'rgba(255,255,255,0.03)'}},
+            y:{ticks:{color:'#7a7870',font:{size:10},callback:function(v){return '€'+fmt(v);}},grid:{color:'rgba(255,255,255,0.04)'}}
+          }}
+      });
+    }
+  });
+}
+
+
 function loadFondoRotativo(){
   var SVCS_CFG=[
     {code:'indices',         name:'Indici World',    short:'Indici',   color:'#f0a030', cap:10000},
     {code:'vanilla_monthly', name:'Vanilla Mensile', short:'Vanilla M',color:'#c9a84c', cap:20000},
     {code:'forex',           name:'Sala Forex',       short:'Forex',    color:'#1db97a', cap:3000 },
     {code:'gold',            name:'Sala Gold',        short:'Gold',     color:'#e8c96a', cap:1000 },
+    {code:'fund_pamm',       name:'Fondo PAMM',       short:'PAMM',     color:'#b06ef3', cap:13729},
   ];
   var SVCS_COMING=[
-    {code:'fund_pamm',     name:'Fondo PAMM',     short:'PAMM',     color:'#b06ef3', note:'Lancio imminente'},
     {code:'vanilla_weekly',name:'Vanilla Weekly', short:'Vanilla W',color:'#8b90a0', note:'Storico in caricamento'},
   ];
-  var TOTAL_CAP=34000;
+  var TOTAL_CAP=47729;
 
   document.getElementById('svc-pg-content').innerHTML='<div class="spinner">Caricamento benchmark...</div>';
 
