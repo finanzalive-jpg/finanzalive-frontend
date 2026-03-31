@@ -1663,12 +1663,13 @@ function loadPammService(){
     var movements = (res[1]||[]).sort(function(a,b){return new Date(a.moved_at)-new Date(b.moved_at);});
     var sigs      = res[2]||[];
 
-    var CAPITAL_BASE      = 14000;
-    var totalDeposits     = 19000; // fisso: 5k + 9k + 5k
-    var totalWithdrawals  = 5000;  // fisso: prelievo
+    // KPI movimenti
+    var totalDeposits    = movements.filter(function(m){return m.type==='deposit';}).reduce(function(a,m){return a+m.amount;},0);
+    var totalWithdrawals = movements.filter(function(m){return m.type==='withdrawal';}).reduce(function(a,m){return a+m.amount;},0);
+    var netCapital       = totalDeposits + totalWithdrawals; // withdrawals già negativi
     var totalPnl         = trades.reduce(function(a,t){return a+(parseFloat(t.pnl)||0);},0);
-    var equity           = CAPITAL_BASE + totalPnl;
-    var pnlPct           = (totalPnl/CAPITAL_BASE*100);
+    var equity           = netCapital + totalPnl;
+    var pnlPct           = netCapital > 0 ? (totalPnl/netCapital*100) : 0;
     var wins             = trades.filter(function(t){return (parseFloat(t.pnl)||0)>0;}).length;
     var winRate          = trades.length ? (wins/trades.length*100) : 0;
 
@@ -1678,12 +1679,13 @@ function loadPammService(){
 
     var html = '';
 
+    // ── KPI ──
     html += '<div class="kpi-row" style="grid-template-columns:repeat(5,1fr)">';
-    html += '<div class="kpi gold"><div class="kl">Capitale base</div><div class="kv gold">€ '+fmt(CAPITAL_BASE)+'</div><div class="ks">Dep. €'+fmt(totalDeposits)+' — Prel. €'+fmt(totalWithdrawals)+'</div></div>';
-    html += '<div class="kpi"><div class="kl">Equity Attuale</div><div class="kv '+(totalPnl>=0?'g':'r')+'">€ '+fmt(equity)+'</div><div class="ks">'+(totalPnl>=0?'▲ +':'▼ ')+'€'+fmt(Math.abs(totalPnl))+' PnL netto</div></div>';
-    html += '<div class="kpi"><div class="kl">Rendimento %</div><div class="kv '+(pnlPct>=0?'g':'r')+'">'+sign(pnlPct)+fmt(pnlPct)+'%</div><div class="ks">Sul capitale base €14.000</div></div>';
+    html += '<div class="kpi gold"><div class="kl">Capitale versato</div><div class="kv gold">€ '+fmt(totalDeposits)+'</div><div class="ks">Depositi totali</div></div>';
+    html += '<div class="kpi gold"><div class="kl">Capitale netto</div><div class="kv gold">€ '+fmt(netCapital)+'</div><div class="ks">Dep. - Prel.</div></div>';
+    html += '<div class="kpi"><div class="kl">Equity Attuale</div><div class="kv '+(totalPnl>=0?'g':'r')+'">€ '+fmt(equity)+'</div><div class="ks">'+sign(totalPnl)+'€'+fmt(Math.abs(totalPnl))+' PnL netto</div></div>';
+    html += '<div class="kpi"><div class="kl">Rendimento %</div><div class="kv '+(pnlPct>=0?'g':'r')+'">'+sign(pnlPct)+fmt(pnlPct)+'%</div><div class="ks">Sul capitale netto</div></div>';
     html += '<div class="kpi"><div class="kl">Win Rate</div><div class="kv gold">'+fmt(winRate)+'%</div><div class="ks">'+wins+' gain / '+(trades.length-wins)+' loss su '+trades.length+'</div></div>';
-    html += '<div class="kpi"><div class="kl">Operazioni</div><div class="kv">'+trades.length+'</div><div class="ks">Dal set 2025</div></div>';
     html += '</div>';
 
     // ── EQUITY CURVE + MOVIMENTI ──
@@ -1713,7 +1715,7 @@ function loadPammService(){
     });
     html += '<div style="padding:10px 0;border-top:1px solid var(--border);display:flex;justify-content:space-between">';
     html += '<span style="font-size:12px;font-weight:700">Capitale netto</span>';
-    html += '<span style="font-size:14px;font-weight:700;color:var(--gold)">€'+fmt(CAPITAL_BASE)+'</span>';
+    html += '<span style="font-size:14px;font-weight:700;color:var(--gold)">€'+fmt(netCapital)+'</span>';
     html += '</div>';
     html += '</div>';
     html += '</div>'; // grid
@@ -1763,11 +1765,11 @@ function loadPammService(){
       });
       events.sort(function(a,b){return a.date-b.date;});
 
-      var running  = CAPITAL_BASE;
+      var eqLabels = [];
+      var eqValues = [];
+      var running  = 0;
       events.forEach(function(e){
-        // Per i movimenti somma solo deposit/withdrawal (non fee — già incluse nel saldo)
-        if(e.label === 'trade') running += e.delta;
-        else if(e.label === 'deposit' || e.label === 'withdrawal') running += e.delta;
+        running += e.delta;
         var ds = e.date.toLocaleDateString('it-IT',{day:'2-digit',month:'short',year:'2-digit'});
         eqLabels.push(ds);
         eqValues.push(Math.round(running*100)/100);
@@ -1788,7 +1790,7 @@ function loadPammService(){
             tooltip:{backgroundColor:'#1a1d27',callbacks:{
               label:function(c){
                 var v=c.parsed.y;
-                var pct=CAPITAL_BASE>0?((v-CAPITAL_BASE)/CAPITAL_BASE*100):0;
+                var pct=netCapital>0?((v-netCapital)/netCapital*100):0;
                 return ' €'+fmt(v)+' ('+sign(pct)+fmt(pct)+'%)';
               }
             }}},
@@ -1808,12 +1810,12 @@ function loadFondoRotativo(){
     {code:'vanilla_monthly', name:'Vanilla Mensile', short:'Vanilla M',color:'#c9a84c', cap:20000},
     {code:'forex',           name:'Sala Forex',       short:'Forex',    color:'#1db97a', cap:3000 },
     {code:'gold',            name:'Sala Gold',        short:'Gold',     color:'#e8c96a', cap:1000 },
-    {code:'fund_pamm',       name:'Fondo PAMM',       short:'PAMM',     color:'#b06ef3', cap:14000},
+    {code:'fund_pamm',       name:'Fondo PAMM',       short:'PAMM',     color:'#b06ef3', cap:13729},
   ];
   var SVCS_COMING=[
     {code:'vanilla_weekly',name:'Vanilla Weekly', short:'Vanilla W',color:'#8b90a0', note:'Storico in caricamento'},
   ];
-  var TOTAL_CAP=48000;
+  var TOTAL_CAP=47729;
 
   document.getElementById('svc-pg-content').innerHTML='<div class="spinner">Caricamento benchmark...</div>';
 
