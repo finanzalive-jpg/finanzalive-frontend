@@ -254,7 +254,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
       <div class="nav-item" id="nav-vanilla_weekly" onclick="showService('vanilla_weekly')"><img src="https://raw.githubusercontent.com/finanzalive-jpg/finanzalive-frontend/main/Opzioni%20settimanali%20S%26P500%20con%20bandiera%20USA.jpg" style="width:18px;height:18px;border-radius:4px;object-fit:contain;background:#f5f0e8;flex-shrink:0;vertical-align:-3px"> Vanilla Weekly</div>
       <div class="nav-item" id="nav-forex" onclick="showService('forex')"><img src="https://raw.githubusercontent.com/finanzalive-jpg/finanzalive-frontend/main/forex%20logo.jpg" style="width:18px;height:18px;border-radius:4px;object-fit:contain;background:#f5f0e8;flex-shrink:0;vertical-align:-3px"> Sala Forex</div>
       <div class="nav-item" id="nav-gold" onclick="showService('gold')"><img src="https://raw.githubusercontent.com/finanzalive-jpg/finanzalive-frontend/main/gold%20logo.jpg" style="width:18px;height:18px;border-radius:4px;object-fit:contain;background:#f5f0e8;flex-shrink:0;vertical-align:-3px"> Sala Gold</div>
-      <div class="nav-item" id="nav-fund_paam" onclick="showService('fund_paam')"><img src="https://raw.githubusercontent.com/finanzalive-jpg/finanzalive-frontend/main/fondo%20paam.jpg" style="width:18px;height:18px;border-radius:4px;object-fit:contain;background:#f5f0e8;flex-shrink:0;vertical-align:-3px"> Fondo PAAM</div>
+      <div class="nav-item" id="nav-fund_pamm" onclick="showService('fund_pamm')"><img src="https://raw.githubusercontent.com/finanzalive-jpg/finanzalive-frontend/main/fondo%20paam.jpg" style="width:18px;height:18px;border-radius:4px;object-fit:contain;background:#f5f0e8;flex-shrink:0;vertical-align:-3px"> Fondo PAAM</div>
       <div class="nav-item" id="nav-fondo_rotativo" onclick="showService('fondo_rotativo')" style="color:var(--gold);border-left:2px solid transparent;"><img src="https://raw.githubusercontent.com/finanzalive-jpg/finanzalive-frontend/main/fondo%20rotativo.jpg" style="width:18px;height:18px;border-radius:4px;object-fit:contain;background:#f5f0e8;flex-shrink:0;vertical-align:-3px"> Fondo Rotativo</div>
       <div class="nav-sec">Account</div>
       <div class="nav-item" onclick="showPage('profile')"><span style="font-size:15px">◈</span> Profilo</div>
@@ -339,7 +339,7 @@ var SVC={
   vanilla_weekly:{name:'Opzioni Vanilla Weekly',icon:'📆',desc:'Segnali opzioni vanilla scadenza settimanale'},
   forex:{name:'Sala Forex',icon:'💱',desc:'Segnali Forex in tempo reale'},
   gold:{name:'Sala Gold',icon:'🥇',desc:'Segnali su Oro in tempo reale'},
-  fund_paam:{name:'Fondo PAAM',icon:'💼',desc:'Andamento e aggiornamenti fondo PAAM'},
+  fund_pamm:{name:'Fondo PAAM',icon:'💼',desc:'Andamento e aggiornamenti fondo PAAM'},
   fondo_rotativo:{name:'Fondo Rotativo Multi-Prodotto',icon:'🔄',desc:'Benchmark consolidato — equity aggregata di tutti i servizi IUPPITER'}
 };
 var token=localStorage.getItem('iup_tok');
@@ -434,7 +434,7 @@ function initApp(user){
         if(!nav)return;
         nav.querySelectorAll('.nav-badge').forEach(function(b){b.remove();});
         var b=document.createElement('span');
-        if(code==='fund_paam'||code==='fondo_rotativo'){b.className='nav-badge nb-on';b.textContent='●';}
+        if(code==='fund_pamm'||code==='fondo_rotativo'){b.className='nav-badge nb-on';b.textContent='●';}
         else if(activeCodes.indexOf(code)>=0||code==='gold'){b.className='nav-badge nb-on';b.textContent='●';}
         else{b.className='nav-badge nb-off';b.textContent='🔒';}
         nav.appendChild(b);
@@ -536,7 +536,7 @@ function loadDashboard(activeCodes){
       var badge=soon?'<span class="tag tb">Prossimamente</span>':'<span class="tag '+(on?'tg':'tm')+'">'+(on?'Attivo':'Non abbonato')+'</span>';
       var lastSig=lastBySvc[code];
       var lastStr=lastSig?('<span class="svc-last">Ultimo: '+new Date(lastSig.created_at).toLocaleDateString('it-IT',{day:'2-digit',month:'short'})+' '+new Date(lastSig.created_at).toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'})+'</span>'):'';
-      var imgs={indices:'https://raw.githubusercontent.com/finanzalive-jpg/finanzalive-frontend/main/indici_world_logo.jpg',vanilla_monthly:'https://raw.githubusercontent.com/finanzalive-jpg/finanzalive-frontend/main/Logo%20S%26P500%20con%20bandiera%20americana.jpg',vanilla_weekly:'https://raw.githubusercontent.com/finanzalive-jpg/finanzalive-frontend/main/Opzioni%20settimanali%20S%26P500%20con%20bandiera%20USA.jpg',forex:'https://raw.githubusercontent.com/finanzalive-jpg/finanzalive-frontend/main/forex%20logo.jpg',gold:'https://raw.githubusercontent.com/finanzalive-jpg/finanzalive-frontend/main/gold%20logo.jpg',fund_paam:'https://raw.githubusercontent.com/finanzalive-jpg/finanzalive-frontend/main/fondo%20paam.jpg',fondo_rotativo:'https://raw.githubusercontent.com/finanzalive-jpg/finanzalive-frontend/main/fondo%20rotativo.jpg'};
+      var imgs={indices:'https://raw.githubusercontent.com/finanzalive-jpg/finanzalive-frontend/main/indici_world_logo.jpg',vanilla_monthly:'https://raw.githubusercontent.com/finanzalive-jpg/finanzalive-frontend/main/Logo%20S%26P500%20con%20bandiera%20americana.jpg',vanilla_weekly:'https://raw.githubusercontent.com/finanzalive-jpg/finanzalive-frontend/main/Opzioni%20settimanali%20S%26P500%20con%20bandiera%20USA.jpg',forex:'https://raw.githubusercontent.com/finanzalive-jpg/finanzalive-frontend/main/forex%20logo.jpg',gold:'https://raw.githubusercontent.com/finanzalive-jpg/finanzalive-frontend/main/gold%20logo.jpg',fund_pamm:'https://raw.githubusercontent.com/finanzalive-jpg/finanzalive-frontend/main/fondo%20paam.jpg',fondo_rotativo:'https://raw.githubusercontent.com/finanzalive-jpg/finanzalive-frontend/main/fondo%20rotativo.jpg'};
       var imgSrc=imgs[code]||'';
       var imgH=imgSrc?('<div style="margin:-1.3rem -1.3rem 1rem -1.3rem;width:calc(100% + 2.6rem);height:220px;overflow:hidden;border-radius:10px 10px 0 0"><img src="'+imgSrc+'" style="width:100%;height:220px;object-fit:contain;display:block;background:#f5f0e8"></div>'):'';
       return '<div class="svc-card '+cls+'" '+oc+'>'+
@@ -711,12 +711,12 @@ function showService(code){
   document.getElementById('page-service').classList.add('active');
   clearBadge(code);
   var info=SVC[code];
-  var svcLogos={indices:'https://raw.githubusercontent.com/finanzalive-jpg/finanzalive-frontend/main/indici_world_logo.jpg',vanilla_monthly:'https://raw.githubusercontent.com/finanzalive-jpg/finanzalive-frontend/main/Logo%20S%26P500%20con%20bandiera%20americana.jpg',vanilla_weekly:'https://raw.githubusercontent.com/finanzalive-jpg/finanzalive-frontend/main/Opzioni%20settimanali%20S%26P500%20con%20bandiera%20USA.jpg',forex:'https://raw.githubusercontent.com/finanzalive-jpg/finanzalive-frontend/main/forex%20logo.jpg',gold:'https://raw.githubusercontent.com/finanzalive-jpg/finanzalive-frontend/main/gold%20logo.jpg',fund_paam:'https://raw.githubusercontent.com/finanzalive-jpg/finanzalive-frontend/main/fondo%20paam.jpg',fondo_rotativo:'https://raw.githubusercontent.com/finanzalive-jpg/finanzalive-frontend/main/fondo%20rotativo.jpg'};
+  var svcLogos={indices:'https://raw.githubusercontent.com/finanzalive-jpg/finanzalive-frontend/main/indici_world_logo.jpg',vanilla_monthly:'https://raw.githubusercontent.com/finanzalive-jpg/finanzalive-frontend/main/Logo%20S%26P500%20con%20bandiera%20americana.jpg',vanilla_weekly:'https://raw.githubusercontent.com/finanzalive-jpg/finanzalive-frontend/main/Opzioni%20settimanali%20S%26P500%20con%20bandiera%20USA.jpg',forex:'https://raw.githubusercontent.com/finanzalive-jpg/finanzalive-frontend/main/forex%20logo.jpg',gold:'https://raw.githubusercontent.com/finanzalive-jpg/finanzalive-frontend/main/gold%20logo.jpg',fund_pamm:'https://raw.githubusercontent.com/finanzalive-jpg/finanzalive-frontend/main/fondo%20paam.jpg',fondo_rotativo:'https://raw.githubusercontent.com/finanzalive-jpg/finanzalive-frontend/main/fondo%20rotativo.jpg'};
   var logoHtml=svcLogos[code]?'<img src="'+svcLogos[code]+'" style="width:52px;height:52px;border-radius:10px;object-fit:contain;background:#f5f0e8;flex-shrink:0">':'';
   document.getElementById('svc-pg-title').innerHTML=logoHtml+'<span>'+info.name+'</span>';
   document.getElementById('svc-pg-sub').textContent=info.desc;
   // Servizi sempre accessibili senza abbonamento
-  if(code==='fund_paam'){loadGenericService(code);return;}
+  if(code==='fund_pamm'){loadGenericService(code);return;}
   if(code==='fondo_rotativo'){loadFondoRotativo();return;}
   // Check abbonamento per tutti gli altri
   var activeCodes=myServices.filter(function(s){return s.active;}).map(function(s){return s.services.code;});
@@ -1659,7 +1659,7 @@ function loadFondoRotativo(){
     {code:'gold',            name:'Sala Gold',        short:'Gold',     color:'#e8c96a', cap:1000 },
   ];
   var SVCS_COMING=[
-    {code:'fund_paam',     name:'Fondo PAAM',     short:'PAAM',     color:'#b06ef3', note:'Lancio imminente'},
+    {code:'fund_pamm',     name:'Fondo PAAM',     short:'PAAM',     color:'#b06ef3', note:'Lancio imminente'},
     {code:'vanilla_weekly',name:'Vanilla Weekly', short:'Vanilla W',color:'#8b90a0', note:'Storico in caricamento'},
   ];
   var TOTAL_CAP=34000;
