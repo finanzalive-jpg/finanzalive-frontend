@@ -121,6 +121,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
       <div class="nav-item" onclick="showPage('clients')"><span>&#x1F465;</span> Clienti</div>
       <div class="nav-item" onclick="showPage('add-client')"><span>&#x2795;</span> Nuovo cliente</div>
       <div class="nav-item" onclick="showPage('expiry')"><span>&#x23F0;</span> Scadenze</div>
+      <div class="nav-item" onclick="showPage('pamm-movements')"><span>&#x1F4B0;</span> Movimenti PAMM</div>
       <div class="nav-item" onclick="showPage('news')"><span>&#x1F4AC;</span> Comunicazioni</div>
       <div class="nav-item" onclick="showPage('signals')"><span>&#x1F4E1;</span> Segnali</div>
     </div>
@@ -202,6 +203,50 @@ tr:hover td{background:rgba(255,255,255,0.02);}
           <div id="news-result" style="margin-top:8px;font-size:13px;"></div>
         </div>
         <div class="card" style="margin-top:1rem;"><div class="card-title">Comunicazioni attive</div><div id="news-list"><div class="spinner">Caricamento...</div></div></div>
+      </div>
+
+      <!-- MOVIMENTI PAMM -->
+      <div class="page" id="page-pamm-movements">
+        <div class="pg-title">Movimenti Capitale PAMM</div>
+        <div class="pg-sub">Depositi, prelievi e fee del Fondo PAMM</div>
+
+        <!-- KPI -->
+        <div class="kpi-row" id="pamm-kpi"></div>
+
+        <!-- Aggiungi movimento -->
+        <div class="card">
+          <div class="card-title">Nuovo movimento</div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Tipo</label>
+              <select id="mv-type">
+                <option value="deposit">Deposito</option>
+                <option value="withdrawal">Prelievo</option>
+                <option value="fee">Fee piattaforma</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Importo (€) — positivo per deposito, negativo per prelievo/fee</label>
+              <input type="number" id="mv-amount" step="0.01" placeholder="es. 5000 oppure -1500">
+            </div>
+            <div class="form-group">
+              <label>Data movimento</label>
+              <input type="datetime-local" id="mv-date">
+            </div>
+            <div class="form-group">
+              <label>Note</label>
+              <input type="text" id="mv-notes" placeholder="es. Versamento cliente Rossi">
+            </div>
+          </div>
+          <button class="btn green" onclick="addPammMovement()">&#x2795; Aggiungi</button>
+          <div id="mv-result" style="margin-top:8px;font-size:13px;"></div>
+        </div>
+
+        <!-- Lista movimenti -->
+        <div class="card">
+          <div class="card-title">Tutti i movimenti (incluse fee)</div>
+          <div id="pamm-mv-list"><div class="spinner">Caricamento...</div></div>
+        </div>
       </div>
 
       <!-- SEGNALI -->
@@ -286,13 +331,14 @@ function showPage(name){
   document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');});
   document.querySelectorAll('.nav-item').forEach(function(n){n.classList.remove('active');});
   document.getElementById('page-'+name).classList.add('active');
-  var navs=['overview','clients','add-client','expiry','news','signals'];
+  var navs=['overview','clients','add-client','expiry','pamm-movements','news','signals'];
   var idx=navs.indexOf(name);
   if(idx>=0)document.querySelectorAll('.nav-item')[idx].classList.add('active');
   if(name==='clients')loadClients();
   if(name==='signals')loadSignals();
   if(name==='expiry')loadExpiry();
   if(name==='news')loadNewsList();
+  if(name==='pamm-movements')loadPammMovements();
 }
 function closeModal(){ document.getElementById('client-modal').classList.remove('open'); }
 
@@ -608,7 +654,102 @@ function deleteNews(id){
   });
 }
 
-// ── SEGNALI ──
+// ── MOVIMENTI PAMM ──
+function loadPammMovements(){
+  adminApi('/admin/fund_movements?service_id=5').then(function(mvs){
+    mvs = mvs||[];
+
+    // KPI
+    var deposits    = mvs.filter(function(m){return m.type==='deposit';}).reduce(function(a,m){return a+m.amount;},0);
+    var withdrawals = mvs.filter(function(m){return m.type==='withdrawal';}).reduce(function(a,m){return a+m.amount;},0);
+    var fees        = mvs.filter(function(m){return m.type==='fee';}).reduce(function(a,m){return a+m.amount;},0);
+    var net         = deposits + withdrawals + fees;
+
+    function fmt(n){return n.toLocaleString('it-IT',{minimumFractionDigits:2,maximumFractionDigits:2});}
+
+    document.getElementById('pamm-kpi').innerHTML =
+      '<div class="kpi"><div class="kl">Depositi totali</div><div class="kv g">€ '+fmt(deposits)+'</div></div>'+
+      '<div class="kpi"><div class="kl">Prelievi totali</div><div class="kv r">€ '+fmt(Math.abs(withdrawals))+'</div></div>'+
+      '<div class="kpi"><div class="kl">Fee totali</div><div class="kv a">€ '+fmt(Math.abs(fees))+'</div></div>'+
+      '<div class="kpi"><div class="kl">Capitale netto</div><div class="kv gold">€ '+fmt(net)+'</div></div>';
+
+    if(!mvs.length){
+      document.getElementById('pamm-mv-list').innerHTML='<p style="color:var(--muted);font-size:13px">Nessun movimento</p>';
+      return;
+    }
+
+    var typeLabel = {deposit:'Deposito', withdrawal:'Prelievo', fee:'Fee'};
+    var typeCls   = {deposit:'tg', withdrawal:'tr', fee:'ta'};
+
+    var html = '<div class="tbl-wrap"><table><thead><tr>'+
+      '<th>Data</th><th>Tipo</th><th>Importo</th><th>Note</th><th></th>'+
+      '</tr></thead><tbody>';
+
+    mvs.slice().reverse().forEach(function(m){
+      var d = new Date(m.moved_at);
+      var ds = d.toLocaleDateString('it-IT')+' '+d.toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'});
+      var color = m.amount>=0?'var(--green)':'var(--red)';
+      html += '<tr>'+
+        '<td style="white-space:nowrap;color:var(--muted)">'+ds+'</td>'+
+        '<td><span class="tag '+typeCls[m.type]+'">'+typeLabel[m.type]+'</span></td>'+
+        '<td style="font-weight:600;color:'+color+'">'+(m.amount>=0?'+':'')+'€ '+fmt(Math.abs(m.amount))+'</td>'+
+        '<td style="color:var(--muted)">'+( m.notes||'—' )+'</td>'+
+        '<td><button class="btn sm red" onclick="deletePammMovement('+m.id+')">✕</button></td>'+
+      '</tr>';
+    });
+
+    // Totale
+    html += '<tr style="border-top:1px solid var(--border)">'+
+      '<td colspan="2" style="font-weight:700;padding-top:10px">Capitale netto</td>'+
+      '<td style="font-weight:700;color:var(--gold);padding-top:10px">€ '+fmt(net)+'</td>'+
+      '<td colspan="2"></td></tr>';
+
+    html += '</tbody></table></div>';
+    document.getElementById('pamm-mv-list').innerHTML = html;
+  });
+}
+
+function addPammMovement(){
+  var type   = document.getElementById('mv-type').value;
+  var amount = parseFloat(document.getElementById('mv-amount').value);
+  var date   = document.getElementById('mv-date').value;
+  var notes  = document.getElementById('mv-notes').value.trim();
+  var res    = document.getElementById('mv-result');
+
+  if(!amount || isNaN(amount)){showToast('Inserisci un importo valido',false);return;}
+  if(!date){showToast('Inserisci la data',false);return;}
+
+  res.textContent='Salvataggio...'; res.style.color='var(--muted)';
+
+  adminApi('/admin/fund_movements','POST',{
+    service_id: 5,
+    amount: amount,
+    moved_at: new Date(date).toISOString(),
+    type: type,
+    notes: notes
+  }).then(function(r){
+    if(r&&r.ok){
+      showToast('Movimento aggiunto!');
+      res.textContent='';
+      document.getElementById('mv-amount').value='';
+      document.getElementById('mv-notes').value='';
+      loadPammMovements();
+    }else{
+      res.textContent='Errore'; res.style.color='var(--red)';
+      showToast('Errore',false);
+    }
+  });
+}
+
+function deletePammMovement(id){
+  if(!confirm('Eliminare questo movimento?'))return;
+  adminApi('/admin/fund_movements/'+id,'DELETE').then(function(r){
+    if(r&&r.ok){showToast('Eliminato!');loadPammMovements();}
+    else showToast('Errore',false);
+  });
+}
+
+
 function loadSignals(){
   document.getElementById('signals-list').innerHTML='<div class="spinner">Caricamento...</div>';
   adminApi('/admin/signals?limit=100').then(function(sigs){
