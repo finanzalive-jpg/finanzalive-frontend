@@ -1713,7 +1713,7 @@ function loadPammService(){
     });
     html += '<div style="padding:10px 0;border-top:1px solid var(--border);display:flex;justify-content:space-between">';
     html += '<span style="font-size:12px;font-weight:700">Capitale netto</span>';
-    html += '<span style="font-size:14px;font-weight:700;color:var(--gold)">€'+fmt(netCapital)+'</span>';
+    html += '<span style="font-size:14px;font-weight:700;color:var(--gold)">€'+fmt(CAPITAL_BASE)+'</span>';
     html += '</div>';
     html += '</div>';
     html += '</div>'; // grid
@@ -1788,7 +1788,7 @@ function loadPammService(){
             tooltip:{backgroundColor:'#1a1d27',callbacks:{
               label:function(c){
                 var v=c.parsed.y;
-                var pct=netCapital>0?((v-netCapital)/netCapital*100):0;
+                var pct=CAPITAL_BASE>0?((v-CAPITAL_BASE)/CAPITAL_BASE*100):0;
                 return ' €'+fmt(v)+' ('+sign(pct)+fmt(pct)+'%)';
               }
             }}},
