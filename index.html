@@ -640,11 +640,14 @@ function checkNewSignals(){
         var newS=all.filter(function(s){return s.id>lastSignalId;});
         lastSignalId=all[0].id;
         newS.forEach(function(s){
-          showToast(s);
           var code=s.services&&s.services.code?s.services.code:'';
+          showToast(s);
           if(code){unreadCounts[code]=(unreadCounts[code]||0)+1;updateNavBadge(code);}
-          unreadCounts['signals']=(unreadCounts['signals']||0)+1;
-          updateNavBadge('signals');
+          // I segnali PAMM non incrementano il badge di "Segnali Live"
+          if(code!=='fund_pamm'){
+            unreadCounts['signals']=(unreadCounts['signals']||0)+1;
+            updateNavBadge('signals');
+          }
         });
         var ap=document.querySelector('.page.active');
         if(ap){
@@ -1629,7 +1632,10 @@ function loadGenericService(code){
 
 function loadSignals(){
   api('/api/signals?limit=50').then(function(sigs){
-    sigs=sigs||[];
+    sigs=(sigs||[]).filter(function(s){
+      var code=s.services&&s.services.code?s.services.code:'';
+      return code!=='fund_pamm';
+    });
     if(sigs.length&&lastSignalId===0)lastSignalId=sigs[0].id;
     document.getElementById('signals-feed').innerHTML=sigs.length?sigs.map(renderSig).join(''):'<p style="color:var(--muted)">Nessun segnale disponibile</p>';
   });
