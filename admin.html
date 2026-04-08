@@ -124,6 +124,8 @@ tr:hover td{background:rgba(255,255,255,0.02);}
       <div class="nav-item" onclick="showPage('pamm-movements')"><span>&#x1F4B0;</span> Movimenti PAMM</div>
       <div class="nav-item" onclick="showPage('news')"><span>&#x1F4AC;</span> Comunicazioni</div>
       <div class="nav-item" onclick="showPage('signals')"><span>&#x1F4E1;</span> Segnali</div>
+      <div style="border-top:1px solid var(--border);margin:8px 0;"></div>
+      <div class="nav-item" onclick="showPage('superadmin')"><span>&#x1F512;</span> Audit Log</div>
     </div>
     <div class="main">
 
@@ -256,6 +258,51 @@ tr:hover td{background:rgba(255,255,255,0.02);}
         <div class="card"><div id="signals-list"><div class="spinner">Caricamento...</div></div></div>
       </div>
 
+      <!-- SUPERADMIN — AUDIT LOG -->
+      <div class="page" id="page-superadmin">
+        <div class="pg-title">&#x1F512; Audit Log — Superadmin</div>
+        <div class="pg-sub">Registro completo di tutte le operazioni admin su clienti e abbonamenti</div>
+
+        <!-- password gate -->
+        <div id="superadmin-gate" class="card" style="max-width:400px;">
+          <div class="card-title">Accesso riservato</div>
+          <div class="form-group">
+            <label>Password Superadmin</label>
+            <input type="password" id="superadmin-pass" placeholder="Inserisci la password superadmin"
+                   onkeydown="if(event.key==='Enter')doSuperadminLogin()">
+          </div>
+          <button class="btn" onclick="doSuperadminLogin()">Accedi</button>
+          <div id="superadmin-error" style="color:var(--red);font-size:12px;margin-top:10px;min-height:16px;"></div>
+        </div>
+
+        <!-- log viewer (hidden until authenticated) -->
+        <div id="superadmin-content" style="display:none;">
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:1rem;">
+            <input type="text" id="log-filter" placeholder="Filtra per azione, email, descrizione…"
+                   style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:8px 12px;color:var(--text);font-size:13px;outline:none;flex:1;max-width:400px;"
+                   oninput="renderLogs()">
+            <button class="btn sm gray" onclick="loadAuditLogs()">&#x21BB; Aggiorna</button>
+            <span id="log-count" style="font-size:12px;color:var(--muted);"></span>
+          </div>
+          <div class="card" style="padding:0;overflow:hidden;">
+            <div class="tbl-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th style="width:150px;">Data / ora</th>
+                    <th style="width:160px;">Azione</th>
+                    <th>Descrizione</th>
+                    <th style="width:180px;">Email target</th>
+                    <th style="width:80px;">Dettagli</th>
+                  </tr>
+                </thead>
+                <tbody id="audit-log-body"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
     </div>
   </div>
 </div>
@@ -331,7 +378,7 @@ function showPage(name){
   document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');});
   document.querySelectorAll('.nav-item').forEach(function(n){n.classList.remove('active');});
   document.getElementById('page-'+name).classList.add('active');
-  var navs=['overview','clients','add-client','expiry','pamm-movements','news','signals'];
+  var navs=['overview','clients','add-client','expiry','pamm-movements','news','signals','superadmin'];
   var idx=navs.indexOf(name);
   if(idx>=0)document.querySelectorAll('.nav-item')[idx].classList.add('active');
   if(name==='clients')loadClients();
@@ -761,6 +808,117 @@ function loadSignals(){
     document.getElementById('signals-list').innerHTML=html;
   });
 }
+
+// ── SUPERADMIN — AUDIT LOG ──────────────────────────────────────────
+var _superadminAuthed = false;
+var _auditLogs = [];
+
+var ACTION_LABELS = {
+  'CREATE_CLIENT':        { label: 'Nuovo cliente',      cls: 'tg' },
+  'TOGGLE_SUBSCRIPTION':  { label: 'Abbonamento toggle', cls: 'ta' },
+  'RENEW_SUBSCRIPTION':   { label: 'Rinnovo',            cls: 'tb' },
+  'CREATE_NEWS':          { label: 'News creata',        cls: 'tm' },
+  'DELETE_NEWS':          { label: 'News eliminata',     cls: 'tr' },
+  'CREATE_FUND_MOVEMENT': { label: 'Movimento fondo',    cls: 'tg' },
+  'DELETE_FUND_MOVEMENT': { label: 'Movimento eliminato',cls: 'tr' },
+};
+
+function doSuperadminLogin(){
+  var p = document.getElementById('superadmin-pass').value.trim();
+  if(!p){ document.getElementById('superadmin-error').textContent='Inserisci la password'; return; }
+  // Chiama l'endpoint per validare (se la chiamata va a buon fine l'autenticazione è corretta)
+  fetch(API+'/superadmin/logs?limit=1', {
+    headers:{'x-superadmin-secret':p}
+  }).then(function(r){
+    if(r.ok){
+      _superadminAuthed = true;
+      sessionStorage.setItem('fl_superadmin', p);
+      document.getElementById('superadmin-gate').style.display='none';
+      document.getElementById('superadmin-content').style.display='block';
+      loadAuditLogs();
+    } else {
+      document.getElementById('superadmin-error').textContent='Password non corretta';
+    }
+  }).catch(function(){
+    document.getElementById('superadmin-error').textContent='Errore di rete';
+  });
+}
+
+function superadminApi(path){
+  var secret = sessionStorage.getItem('fl_superadmin') || '';
+  return fetch(API+path, { headers:{'x-superadmin-secret':secret} })
+    .then(function(r){ return r.ok ? r.json() : []; })
+    .catch(function(){ return []; });
+}
+
+function loadAuditLogs(){
+  document.getElementById('log-count').textContent = 'Caricamento…';
+  document.getElementById('audit-log-body').innerHTML =
+    '<tr><td colspan="5" style="padding:20px;color:var(--muted);text-align:center;">Caricamento…</td></tr>';
+  superadminApi('/superadmin/logs?limit=500').then(function(data){
+    _auditLogs = Array.isArray(data) ? data : [];
+    renderLogs();
+  });
+}
+
+function renderLogs(){
+  var filter = (document.getElementById('log-filter').value || '').toLowerCase();
+  var rows = _auditLogs.filter(function(l){
+    if(!filter) return true;
+    return (l.action||'').toLowerCase().includes(filter) ||
+           (l.description||'').toLowerCase().includes(filter) ||
+           (l.target_email||'').toLowerCase().includes(filter);
+  });
+  document.getElementById('log-count').textContent = rows.length + ' record';
+  if(!rows.length){
+    document.getElementById('audit-log-body').innerHTML =
+      '<tr><td colspan="5" style="padding:20px;color:var(--muted);text-align:center;">Nessun risultato</td></tr>';
+    return;
+  }
+  var html='';
+  rows.forEach(function(l){
+    var d = new Date(l.created_at);
+    var ts = d.toLocaleDateString('it-IT',{day:'2-digit',month:'2-digit',year:'2-digit'})
+           + ' ' + d.toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+    var al = ACTION_LABELS[l.action] || {label:l.action, cls:'tm'};
+    var detJson = l.details ? JSON.stringify(l.details,null,2) : '';
+    var detCell = detJson && detJson!=='{}' ?
+      '<button class="btn sm gray" onclick="toggleDetail(this)" data-det="'+escHtml(detJson)+'">JSON</button>' : '—';
+    html += '<tr>';
+    html += '<td style="white-space:nowrap;color:var(--muted);font-size:12px;">'+ts+'</td>';
+    html += '<td><span class="tag '+al.cls+'">'+al.label+'</span></td>';
+    html += '<td style="font-size:13px;">'+escHtml(l.description||'')+'</td>';
+    html += '<td style="font-size:12px;color:var(--muted);">'+escHtml(l.target_email||l.target_client_id||'—')+'</td>';
+    html += '<td>'+detCell+'</td>';
+    html += '</tr>';
+    if(detJson && detJson!=='{}'){
+      html += '<tr class="detail-row" style="display:none;"><td colspan="5" style="padding:0;">'
+            + '<pre style="background:var(--bg3);padding:12px 16px;font-size:11px;color:var(--muted);overflow-x:auto;margin:0;">'+escHtml(detJson)+'</pre>'
+            + '</td></tr>';
+    }
+  });
+  document.getElementById('audit-log-body').innerHTML = html;
+}
+
+function toggleDetail(btn){
+  var row = btn.closest('tr').nextElementSibling;
+  if(!row || !row.classList.contains('detail-row')) return;
+  var hidden = row.style.display==='none';
+  row.style.display = hidden ? 'table-row' : 'none';
+  btn.textContent = hidden ? 'Chiudi' : 'JSON';
+}
+
+function escHtml(s){
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// Ripristina sessione superadmin se già autenticata
+(function(){
+  var saved = sessionStorage.getItem('fl_superadmin');
+  if(saved){
+    document.getElementById('superadmin-pass').value = saved;
+  }
+})();
 
 // ── BOOT ──
 if(authed){
