@@ -519,7 +519,10 @@ function loadCalendar(){
 function loadDashboard(activeCodes){
   // Carica ultimo segnale per ogni servizio
   api('/api/signals?limit=20').then(function(sigs){
-    sigs=sigs||[];
+    sigs=(sigs||[]).filter(function(s){
+      var code=s.services&&s.services.code?s.services.code:'';
+      return code!=='fund_pamm';
+    });
     if(sigs.length&&lastSignalId===0)lastSignalId=sigs[0].id;
     var lastBySvc={};
     sigs.forEach(function(s){
