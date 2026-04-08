@@ -104,7 +104,8 @@ tr:hover td{background:rgba(255,255,255,0.02);}
   <div class="auth-box">
     <div class="auth-logo">&#x2699;&#xFE0F; Iuppiter Admin</div>
     <div class="auth-sub">Accesso riservato agli amministratori</div>
-    <div class="field"><label>Password Admin</label><input type="password" id="admin-pass" placeholder="&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;" onkeydown="if(event.key==='Enter')doAdminLogin()"></div>
+    <div class="field"><label>Username</label><input type="text" id="admin-user" placeholder="username" autocomplete="username" onkeydown="if(event.key==='Enter')document.getElementById('admin-pass').focus()"></div>
+    <div class="field"><label>Password</label><input type="password" id="admin-pass" placeholder="&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;" autocomplete="current-password" onkeydown="if(event.key==='Enter')doAdminLogin()"></div>
     <button class="btn btn-full" onclick="doAdminLogin()">Accedi</button>
     <div id="auth-error"></div>
   </div>
@@ -113,7 +114,10 @@ tr:hover td{background:rgba(255,255,255,0.02);}
 <div id="app">
   <div class="topbar">
     <div class="topbar-logo">&#x2699;&#xFE0F; Iuppiter Admin</div>
-    <button class="logout-btn" onclick="doLogout()">Esci</button>
+    <div style="display:flex;align-items:center;gap:10px;">
+      <span id="topbar-user" style="font-size:12px;color:var(--muted);"></span>
+      <button class="logout-btn" onclick="doLogout()">Esci</button>
+    </div>
   </div>
   <div class="layout">
     <div class="sidebar">
@@ -284,16 +288,51 @@ tr:hover td{background:rgba(255,255,255,0.02);}
             <button class="btn sm gray" onclick="loadAuditLogs()">&#x21BB; Aggiorna</button>
             <span id="log-count" style="font-size:12px;color:var(--muted);"></span>
           </div>
+          <!-- UTENTI ADMIN -->
+          <div class="card" style="margin-bottom:1.5rem;">
+            <div class="card-title">Utenti Admin</div>
+            <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:1rem;align-items:flex-end;">
+              <div>
+                <label style="font-size:11px;color:var(--muted);display:block;margin-bottom:4px;">Username</label>
+                <input type="text" id="new-admin-username" placeholder="mario.rossi" style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:8px 10px;color:var(--text);font-size:13px;outline:none;width:160px;">
+              </div>
+              <div>
+                <label style="font-size:11px;color:var(--muted);display:block;margin-bottom:4px;">Nome completo</label>
+                <input type="text" id="new-admin-fullname" placeholder="Mario Rossi" style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:8px 10px;color:var(--text);font-size:13px;outline:none;width:160px;">
+              </div>
+              <div>
+                <label style="font-size:11px;color:var(--muted);display:block;margin-bottom:4px;">Password</label>
+                <input type="password" id="new-admin-password" placeholder="Password sicura" style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:8px 10px;color:var(--text);font-size:13px;outline:none;width:160px;">
+              </div>
+              <button class="btn sm green" onclick="createAdminUser()">+ Aggiungi admin</button>
+            </div>
+            <div class="tbl-wrap">
+              <table>
+                <thead><tr><th>Username</th><th>Nome</th><th>Creato il</th><th>Stato</th><th>Azioni</th></tr></thead>
+                <tbody id="admin-users-body"><tr><td colspan="5" style="color:var(--muted);padding:12px;">Caricamento…</td></tr></tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- AUDIT LOG -->
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:1rem;">
+            <input type="text" id="log-filter" placeholder="Filtra per azione, email, descrizione…"
+                   style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:8px 12px;color:var(--text);font-size:13px;outline:none;flex:1;max-width:400px;"
+                   oninput="renderLogs()">
+            <button class="btn sm gray" onclick="loadAuditLogs()">&#x21BB; Aggiorna</button>
+            <span id="log-count" style="font-size:12px;color:var(--muted);"></span>
+          </div>
           <div class="card" style="padding:0;overflow:hidden;">
             <div class="tbl-wrap">
               <table>
                 <thead>
                   <tr>
                     <th style="width:150px;">Data / ora</th>
-                    <th style="width:160px;">Azione</th>
+                    <th style="width:120px;">Admin</th>
+                    <th style="width:150px;">Azione</th>
                     <th>Descrizione</th>
-                    <th style="width:180px;">Email target</th>
-                    <th style="width:80px;">Dettagli</th>
+                    <th style="width:170px;">Email target</th>
+                    <th style="width:70px;">Dettagli</th>
                   </tr>
                 </thead>
                 <tbody id="audit-log-body"></tbody>
@@ -345,26 +384,58 @@ var SVC_ICONS = {
 };
 // ─────────────────────────────────────────────────────────────────
 
-var authed = sessionStorage.getItem('fl_admin');
+var _adminToken    = sessionStorage.getItem('fl_admin_token') || '';
+var _adminUsername = sessionStorage.getItem('fl_admin_user')  || '';
+var _adminFullName = sessionStorage.getItem('fl_admin_name')  || '';
+var authed = !!_adminToken;
 var _clientsCache = [];
 
 function svcLabel(code){ return (SVC_ICONS[code]||'')+' '+(SVC_NAMES[code]||code); }
 
 function doAdminLogin(){
-  var p=document.getElementById('admin-pass').value;
-  if(p===SECRET){
-    sessionStorage.setItem('fl_admin','1'); authed='1';
+  var u = (document.getElementById('admin-user').value||'').trim();
+  var p = document.getElementById('admin-pass').value;
+  var errEl = document.getElementById('auth-error');
+  if(!u||!p){ errEl.textContent='Inserisci username e password'; return; }
+  errEl.textContent='';
+  fetch(API+'/admin/login',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({username:u,password:p})
+  }).then(function(r){
+    if(r.ok) return r.json();
+    return r.json().then(function(d){throw new Error(d.detail||'Errore');});
+  }).then(function(d){
+    _adminToken    = d.token;
+    _adminUsername = d.username;
+    _adminFullName = d.full_name || d.username;
+    sessionStorage.setItem('fl_admin_token', _adminToken);
+    sessionStorage.setItem('fl_admin_user',  _adminUsername);
+    sessionStorage.setItem('fl_admin_name',  _adminFullName);
+    authed = true;
     document.getElementById('auth-screen').style.display='none';
     document.getElementById('app').style.display='block';
+    document.getElementById('topbar-user').textContent = _adminFullName || _adminUsername;
     loadOverview();
-  }else{ document.getElementById('auth-error').textContent='Password non corretta'; }
+  }).catch(function(e){
+    errEl.textContent = e.message || 'Credenziali non valide';
+  });
 }
-function doLogout(){ sessionStorage.removeItem('fl_admin'); location.reload(); }
+
+function doLogout(){
+  sessionStorage.removeItem('fl_admin_token');
+  sessionStorage.removeItem('fl_admin_user');
+  sessionStorage.removeItem('fl_admin_name');
+  location.reload();
+}
 
 function adminApi(path,method,body){
-  var opts={method:method||'GET',headers:{'x-admin-secret':SECRET,'Content-Type':'application/json'}};
+  var opts={method:method||'GET',headers:{'x-admin-token':_adminToken,'Content-Type':'application/json'}};
   if(body)opts.body=JSON.stringify(body);
-  return fetch(API+path,opts).then(function(r){return r.json();}).catch(function(){return null;});
+  return fetch(API+path,opts).then(function(r){
+    if(r.status===401||r.status===403){ doLogout(); return null; }
+    return r.json();
+  }).catch(function(){return null;});
 }
 
 function showToast(msg,ok){
@@ -826,7 +897,6 @@ var ACTION_LABELS = {
 function doSuperadminLogin(){
   var p = document.getElementById('superadmin-pass').value.trim();
   if(!p){ document.getElementById('superadmin-error').textContent='Inserisci la password'; return; }
-  // Chiama l'endpoint per validare (se la chiamata va a buon fine l'autenticazione è corretta)
   fetch(API+'/superadmin/logs?limit=1', {
     headers:{'x-superadmin-secret':p}
   }).then(function(r){
@@ -835,6 +905,7 @@ function doSuperadminLogin(){
       sessionStorage.setItem('fl_superadmin', p);
       document.getElementById('superadmin-gate').style.display='none';
       document.getElementById('superadmin-content').style.display='block';
+      loadAdminUsers();
       loadAuditLogs();
     } else {
       document.getElementById('superadmin-error').textContent='Password non corretta';
@@ -844,11 +915,75 @@ function doSuperadminLogin(){
   });
 }
 
-function superadminApi(path){
+function superadminApi(path, method, body){
   var secret = sessionStorage.getItem('fl_superadmin') || '';
-  return fetch(API+path, { headers:{'x-superadmin-secret':secret} })
-    .then(function(r){ return r.ok ? r.json() : []; })
-    .catch(function(){ return []; });
+  var opts = { method: method||'GET', headers:{'x-superadmin-secret':secret,'Content-Type':'application/json'} };
+  if(body) opts.body = JSON.stringify(body);
+  return fetch(API+path, opts)
+    .then(function(r){ return r.ok ? r.json() : r.json().then(function(d){throw new Error(d.detail||'Errore');}); })
+    .catch(function(e){ showToast(e.message||'Errore', false); return null; });
+}
+
+// ── GESTIONE UTENTI ADMIN ──────────────────────────────────────────
+function loadAdminUsers(){
+  superadminApi('/superadmin/admin_users').then(function(data){
+    if(!data) return;
+    var html='';
+    (data||[]).forEach(function(u){
+      var stato = u.active
+        ? '<span class="tag tg">Attivo</span>'
+        : '<span class="tag tr">Disattivato</span>';
+      var toggleLabel = u.active ? 'Disattiva' : 'Attiva';
+      var toggleCls   = u.active ? 'red' : 'green';
+      var d = new Date(u.created_at);
+      var ts = d.toLocaleDateString('it-IT');
+      html += '<tr>';
+      html += '<td style="font-weight:600;">'+escHtml(u.username)+'</td>';
+      html += '<td>'+escHtml(u.full_name||'—')+'</td>';
+      html += '<td style="color:var(--muted);font-size:12px;">'+ts+'</td>';
+      html += '<td>'+stato+'</td>';
+      html += '<td style="display:flex;gap:6px;">'
+            + '<button class="btn sm '+toggleCls+'" onclick="toggleAdminUser(\''+u.id+'\','+(!u.active)+')">'+toggleLabel+'</button>'
+            + '<button class="btn sm gray" onclick="promptResetPassword(\''+u.id+'\',\''+escHtml(u.username)+'\')">Reset pw</button>'
+            + '</td>';
+      html += '</tr>';
+    });
+    document.getElementById('admin-users-body').innerHTML = html ||
+      '<tr><td colspan="5" style="color:var(--muted);padding:12px;">Nessun utente</td></tr>';
+  });
+}
+
+function createAdminUser(){
+  var username  = (document.getElementById('new-admin-username').value||'').trim();
+  var full_name = (document.getElementById('new-admin-fullname').value||'').trim();
+  var password  = document.getElementById('new-admin-password').value;
+  if(!username||!password){ showToast('Username e password obbligatori', false); return; }
+  superadminApi('/superadmin/admin_users','POST',{username:username,full_name:full_name,password:password})
+    .then(function(d){
+      if(!d) return;
+      showToast('Admin '+username+' creato', true);
+      document.getElementById('new-admin-username').value='';
+      document.getElementById('new-admin-fullname').value='';
+      document.getElementById('new-admin-password').value='';
+      loadAdminUsers();
+    });
+}
+
+function toggleAdminUser(id, active){
+  superadminApi('/superadmin/admin_users/'+id,'PATCH',{active:active}).then(function(d){
+    if(!d) return;
+    showToast(active ? 'Utente attivato' : 'Utente disattivato', true);
+    loadAdminUsers();
+  });
+}
+
+function promptResetPassword(id, username){
+  var np = prompt('Nuova password per ' + username + ':');
+  if(!np) return;
+  superadminApi('/superadmin/admin_users/'+id+'/password','PATCH',{password:np}).then(function(d){
+    if(!d) return;
+    showToast('Password aggiornata per '+username, true);
+  });
 }
 
 function loadAuditLogs(){
@@ -867,12 +1002,13 @@ function renderLogs(){
     if(!filter) return true;
     return (l.action||'').toLowerCase().includes(filter) ||
            (l.description||'').toLowerCase().includes(filter) ||
-           (l.target_email||'').toLowerCase().includes(filter);
+           (l.target_email||'').toLowerCase().includes(filter) ||
+           (l.admin_username||'').toLowerCase().includes(filter);
   });
   document.getElementById('log-count').textContent = rows.length + ' record';
   if(!rows.length){
     document.getElementById('audit-log-body').innerHTML =
-      '<tr><td colspan="5" style="padding:20px;color:var(--muted);text-align:center;">Nessun risultato</td></tr>';
+      '<tr><td colspan="6" style="padding:20px;color:var(--muted);text-align:center;">Nessun risultato</td></tr>';
     return;
   }
   var html='';
@@ -883,16 +1019,17 @@ function renderLogs(){
     var al = ACTION_LABELS[l.action] || {label:l.action, cls:'tm'};
     var detJson = l.details ? JSON.stringify(l.details,null,2) : '';
     var detCell = detJson && detJson!=='{}' ?
-      '<button class="btn sm gray" onclick="toggleDetail(this)" data-det="'+escHtml(detJson)+'">JSON</button>' : '—';
+      '<button class="btn sm gray" onclick="toggleDetail(this)">JSON</button>' : '—';
     html += '<tr>';
     html += '<td style="white-space:nowrap;color:var(--muted);font-size:12px;">'+ts+'</td>';
+    html += '<td style="font-size:12px;font-weight:600;">'+escHtml(l.admin_username||'—')+'</td>';
     html += '<td><span class="tag '+al.cls+'">'+al.label+'</span></td>';
     html += '<td style="font-size:13px;">'+escHtml(l.description||'')+'</td>';
     html += '<td style="font-size:12px;color:var(--muted);">'+escHtml(l.target_email||l.target_client_id||'—')+'</td>';
     html += '<td>'+detCell+'</td>';
     html += '</tr>';
     if(detJson && detJson!=='{}'){
-      html += '<tr class="detail-row" style="display:none;"><td colspan="5" style="padding:0;">'
+      html += '<tr class="detail-row" style="display:none;"><td colspan="6" style="padding:0;">'
             + '<pre style="background:var(--bg3);padding:12px 16px;font-size:11px;color:var(--muted);overflow-x:auto;margin:0;">'+escHtml(detJson)+'</pre>'
             + '</td></tr>';
     }
@@ -921,9 +1058,10 @@ function escHtml(s){
 })();
 
 // ── BOOT ──
-if(authed){
+if(authed && _adminToken){
   document.getElementById('auth-screen').style.display='none';
   document.getElementById('app').style.display='block';
+  document.getElementById('topbar-user').textContent = _adminFullName || _adminUsername;
   loadOverview();
 }else{
   document.getElementById('auth-screen').style.display='flex';
