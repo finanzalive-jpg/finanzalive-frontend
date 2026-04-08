@@ -1676,10 +1676,17 @@ function loadPammService(){
     var CAPITAL_BASE      = 14000;
     var totalDeposits     = 19000; // fisso: 5k + 9k + 5k
     var totalWithdrawals  = 5000;  // fisso: prelievo
-    var totalAdjustments  = movements.filter(function(m){return m.type==='adjustment';})
-                                     .reduce(function(a,m){return a+(parseFloat(m.amount)||0);},0);
     var totalPnl         = trades.reduce(function(a,t){return a+(parseFloat(t.pnl)||0);},0);
-    var equity           = CAPITAL_BASE + totalPnl + totalAdjustments;
+
+    // Usa l'ultimo balance_snapshot MT4 come equity reale (include fee, swap, profit-sharing)
+    // Se non disponibile, calcola da capitale base + PnL trade chiusi + adjustment manuali
+    var snapshots = movements.filter(function(m){return m.type==='balance_snapshot';})
+                             .sort(function(a,b){return new Date(b.moved_at)-new Date(a.moved_at);});
+    var totalAdjustments = movements.filter(function(m){return m.type==='adjustment';})
+                                    .reduce(function(a,m){return a+(parseFloat(m.amount)||0);},0);
+    var equity = snapshots.length
+      ? parseFloat(snapshots[0].amount)
+      : CAPITAL_BASE + totalPnl + totalAdjustments;
     var pnlPct           = (totalPnl/CAPITAL_BASE*100);
     var wins             = trades.filter(function(t){return (parseFloat(t.pnl)||0)>0;}).length;
     var winRate          = trades.length ? (wins/trades.length*100) : 0;
