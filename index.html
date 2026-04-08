@@ -1763,23 +1763,15 @@ function loadPammService(){
     // ── EQUITY CURVE — combina movimenti + PnL trade ──
     if(document.getElementById('pamm-chart-eq')){
       // Costruisce timeline: ogni evento è un movimento o un trade chiuso
-      var events = [];
-      movements.forEach(function(m){
-        events.push({date: new Date(m.moved_at), delta: m.amount, label: m.type});
-      });
-      trades.forEach(function(t){
-        if(t.closed_at) events.push({date: new Date(t.closed_at), delta: parseFloat(t.pnl)||0, label:'trade'});
-      });
-      events.sort(function(a,b){return a.date-b.date;});
+      var tradeEvents = trades.filter(function(t){return !!t.closed_at;})
+        .sort(function(a,b){return new Date(a.closed_at)-new Date(b.closed_at);});
 
       var eqLabels = [];
       var eqValues = [];
       var running  = CAPITAL_BASE;
-      events.forEach(function(e){
-        // Per i movimenti somma solo deposit/withdrawal (non fee — già incluse nel saldo)
-        if(e.label === 'trade') running += e.delta;
-        else if(e.label === 'deposit' || e.label === 'withdrawal') running += e.delta;
-        var ds = e.date.toLocaleDateString('it-IT',{day:'2-digit',month:'short',year:'2-digit'});
+      tradeEvents.forEach(function(t){
+        running += parseFloat(t.pnl)||0;
+        var ds = new Date(t.closed_at).toLocaleDateString('it-IT',{day:'2-digit',month:'short',year:'2-digit'});
         eqLabels.push(ds);
         eqValues.push(Math.round(running*100)/100);
       });
