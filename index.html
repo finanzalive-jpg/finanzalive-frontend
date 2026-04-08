@@ -1727,6 +1727,11 @@ function loadPammService(){
     html += '</div>';
     html += '</div>'; // grid
 
+    // ── SEGNALI RECENTI (sopra lo storico) ──
+    html += '<div class="card"><div class="card-title">Segnali recenti <span class="card-title-live">● live</span></div>';
+    html += sigs.length ? sigs.map(renderSig).join('') : '<p style="color:var(--muted);font-size:13px">Nessun segnale</p>';
+    html += '</div>';
+
     // ── STORICO TRADE ──
     html += '<div class="card"><div class="card-title">Storico operazioni ('+trades.length+')</div>';
     html += '<div class="tbl-wrap"><table><thead><tr>';
@@ -1749,11 +1754,6 @@ function loadPammService(){
     });
     html += '</tbody></table></div></div>';
 
-    // ── SEGNALI ──
-    html += '<div class="card"><div class="card-title">Segnali recenti <span class="card-title-live">● live</span></div>';
-    html += sigs.length ? sigs.map(renderSig).join('') : '<p style="color:var(--muted);font-size:13px">Nessun segnale</p>';
-    html += '</div>';
-
     document.getElementById('svc-pg-content').innerHTML = html;
 
     // Distruggi vecchi chart
@@ -1772,6 +1772,8 @@ function loadPammService(){
       });
       events.sort(function(a,b){return a.date-b.date;});
 
+      var eqLabels = [];
+      var eqValues = [];
       var running  = CAPITAL_BASE;
       events.forEach(function(e){
         // Per i movimenti somma solo deposit/withdrawal (non fee — già incluse nel saldo)
