@@ -530,7 +530,7 @@ function loadDashboard(activeCodes){
       if(code&&!lastBySvc[code])lastBySvc[code]=s;
     });
 
-    document.getElementById('dash-svcs').innerHTML=Object.keys(SVC).filter(function(code){return code!=='fund_pamm';}).map(function(code){
+    document.getElementById('dash-svcs').innerHTML=Object.keys(SVC).map(function(code){
       var info=SVC[code];
       var on=activeCodes.indexOf(code)>=0||code==='gold'||code==='fondo_rotativo';
       var soon=false;
