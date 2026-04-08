@@ -657,7 +657,7 @@ function deleteNews(id){
 // ── MOVIMENTI PAMM ──
 function loadPammMovements(){
   adminApi('/admin/fund_movements?service_id=5').then(function(mvs){
-    mvs = mvs||[];
+    mvs = (mvs||[]).filter(function(m){return m.type!=='balance_snapshot';});
 
     // KPI
     var deposits    = mvs.filter(function(m){return m.type==='deposit';}).reduce(function(a,m){return a+m.amount;},0);
