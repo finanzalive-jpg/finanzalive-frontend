@@ -128,8 +128,10 @@ tr:hover td{background:rgba(255,255,255,0.02);}
       <div class="nav-item" onclick="showPage('pamm-movements')"><span>&#x1F4B0;</span> Movimenti PAMM</div>
       <div class="nav-item" onclick="showPage('news')"><span>&#x1F4AC;</span> Comunicazioni</div>
       <div class="nav-item" onclick="showPage('signals')"><span>&#x1F4E1;</span> Segnali</div>
-      <div style="border-top:1px solid var(--border);margin:8px 0;"></div>
-      <div class="nav-item" onclick="showPage('superadmin')"><span>&#x1F512;</span> Audit Log</div>
+      <div id="nav-superadmin" style="display:none;">
+        <div style="border-top:1px solid var(--border);margin:8px 0;"></div>
+        <div class="nav-item" onclick="showPage('superadmin')"><span>&#x1F512;</span> Audit Log</div>
+      </div>
     </div>
     <div class="main">
 
@@ -267,20 +269,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
         <div class="pg-title">&#x1F512; Audit Log — Superadmin</div>
         <div class="pg-sub">Registro completo di tutte le operazioni admin su clienti e abbonamenti</div>
 
-        <!-- password gate -->
-        <div id="superadmin-gate" class="card" style="max-width:400px;">
-          <div class="card-title">Accesso riservato</div>
-          <div class="form-group">
-            <label>Password Superadmin</label>
-            <input type="password" id="superadmin-pass" placeholder="Inserisci la password superadmin"
-                   onkeydown="if(event.key==='Enter')doSuperadminLogin()">
-          </div>
-          <button class="btn" onclick="doSuperadminLogin()">Accedi</button>
-          <div id="superadmin-error" style="color:var(--red);font-size:12px;margin-top:10px;min-height:16px;"></div>
-        </div>
-
-        <!-- log viewer (hidden until authenticated) -->
-        <div id="superadmin-content" style="display:none;">
+        <div id="superadmin-content">
           <div style="display:flex;align-items:center;gap:12px;margin-bottom:1rem;">
             <input type="text" id="log-filter" placeholder="Filtra per azione, email, descrizione…"
                    style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:8px 12px;color:var(--text);font-size:13px;outline:none;flex:1;max-width:400px;"
@@ -384,9 +373,10 @@ var SVC_ICONS = {
 };
 // ─────────────────────────────────────────────────────────────────
 
-var _adminToken    = sessionStorage.getItem('fl_admin_token') || '';
-var _adminUsername = sessionStorage.getItem('fl_admin_user')  || '';
-var _adminFullName = sessionStorage.getItem('fl_admin_name')  || '';
+var _adminToken      = sessionStorage.getItem('fl_admin_token') || '';
+var _adminUsername   = sessionStorage.getItem('fl_admin_user')  || '';
+var _adminFullName   = sessionStorage.getItem('fl_admin_name')  || '';
+var _isSuperadmin    = sessionStorage.getItem('fl_admin_sa') === '1';
 var authed = !!_adminToken;
 var _clientsCache = [];
 
@@ -409,13 +399,16 @@ function doAdminLogin(){
     _adminToken    = d.token;
     _adminUsername = d.username;
     _adminFullName = d.full_name || d.username;
+    _isSuperadmin  = !!d.is_superadmin;
     sessionStorage.setItem('fl_admin_token', _adminToken);
     sessionStorage.setItem('fl_admin_user',  _adminUsername);
     sessionStorage.setItem('fl_admin_name',  _adminFullName);
+    sessionStorage.setItem('fl_admin_sa',    _isSuperadmin ? '1' : '0');
     authed = true;
     document.getElementById('auth-screen').style.display='none';
     document.getElementById('app').style.display='block';
     document.getElementById('topbar-user').textContent = _adminFullName || _adminUsername;
+    document.getElementById('nav-superadmin').style.display = _isSuperadmin ? '' : 'none';
     loadOverview();
   }).catch(function(e){
     errEl.textContent = e.message || 'Credenziali non valide';
@@ -457,6 +450,7 @@ function showPage(name){
   if(name==='expiry')loadExpiry();
   if(name==='news')loadNewsList();
   if(name==='pamm-movements')loadPammMovements();
+  if(name==='superadmin'){ loadAdminUsers(); loadAuditLogs(); }
 }
 function closeModal(){ document.getElementById('client-modal').classList.remove('open'); }
 
@@ -894,30 +888,10 @@ var ACTION_LABELS = {
   'DELETE_FUND_MOVEMENT': { label: 'Movimento eliminato',cls: 'tr' },
 };
 
-function doSuperadminLogin(){
-  var p = document.getElementById('superadmin-pass').value.trim();
-  if(!p){ document.getElementById('superadmin-error').textContent='Inserisci la password'; return; }
-  fetch(API+'/superadmin/logs?limit=1', {
-    headers:{'x-superadmin-secret':p}
-  }).then(function(r){
-    if(r.ok){
-      _superadminAuthed = true;
-      sessionStorage.setItem('fl_superadmin', p);
-      document.getElementById('superadmin-gate').style.display='none';
-      document.getElementById('superadmin-content').style.display='block';
-      loadAdminUsers();
-      loadAuditLogs();
-    } else {
-      document.getElementById('superadmin-error').textContent='Password non corretta';
-    }
-  }).catch(function(){
-    document.getElementById('superadmin-error').textContent='Errore di rete';
-  });
-}
+// (login superadmin ora integrato nel login normale — nessun gate separato)
 
 function superadminApi(path, method, body){
-  var secret = sessionStorage.getItem('fl_superadmin') || '';
-  var opts = { method: method||'GET', headers:{'x-superadmin-secret':secret,'Content-Type':'application/json'} };
+  var opts = { method: method||'GET', headers:{'x-admin-token':_adminToken,'Content-Type':'application/json'} };
   if(body) opts.body = JSON.stringify(body);
   return fetch(API+path, opts)
     .then(function(r){ return r.ok ? r.json() : r.json().then(function(d){throw new Error(d.detail||'Errore');}); })
@@ -1062,6 +1036,7 @@ if(authed && _adminToken){
   document.getElementById('auth-screen').style.display='none';
   document.getElementById('app').style.display='block';
   document.getElementById('topbar-user').textContent = _adminFullName || _adminUsername;
+  document.getElementById('nav-superadmin').style.display = _isSuperadmin ? '' : 'none';
   loadOverview();
 }else{
   document.getElementById('auth-screen').style.display='flex';
