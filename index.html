@@ -1763,28 +1763,55 @@ function loadPammService(){
     html += '</div>';
 
     // ── STORICO TRADE ──
+    var pammSort = {col:'closed_at', dir:-1}; // default: chiusura decrescente
+    function pammSortedTrades(){
+      return trades.slice().sort(function(a,b){
+        var va, vb;
+        if(pammSort.col==='pnl'){ va=parseFloat(a.pnl)||0; vb=parseFloat(b.pnl)||0; }
+        else if(pammSort.col==='sym'){ va=(a.notes||'').replace(/MT4-\d+ /,''); vb=(b.notes||'').replace(/MT4-\d+ /,''); return pammSort.dir*(va>vb?1:va<vb?-1:0); }
+        else { va=new Date(a[pammSort.col]||0); vb=new Date(b[pammSort.col]||0); }
+        return pammSort.dir*(va>vb?1:va<vb?-1:0);
+      });
+    }
+    function pammRenderTable(){
+      var arrow = function(col){ return pammSort.col===col?(pammSort.dir===1?' ▲':' ▼'):''; };
+      var thStyle = 'cursor:pointer;user-select:none;white-space:nowrap';
+      var t_html = '<thead><tr>';
+      t_html += '<th style="'+thStyle+'" onclick="pammSortBy(\'sym\')">Strumento'+arrow('sym')+'</th>';
+      t_html += '<th>Direzione</th>';
+      t_html += '<th style="'+thStyle+'" onclick="pammSortBy(\'opened_at\')">Apertura'+arrow('opened_at')+'</th>';
+      t_html += '<th>Ingresso</th>';
+      t_html += '<th style="'+thStyle+'" onclick="pammSortBy(\'closed_at\')">Chiusura'+arrow('closed_at')+'</th>';
+      t_html += '<th style="'+thStyle+'" onclick="pammSortBy(\'pnl\')">PnL €'+arrow('pnl')+'</th>';
+      t_html += '<th>Esito</th>';
+      t_html += '</tr></thead><tbody>';
+      var fmtDT = function(iso){ if(!iso)return '—'; var d=new Date(iso); return d.toLocaleDateString('it-IT',{day:'2-digit',month:'short',year:'2-digit'})+' '+d.toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'}); };
+      pammSortedTrades().forEach(function(t){
+        var pnl = parseFloat(t.pnl)||0;
+        var sym = (t.notes||'').replace(/MT4-\d+ /,'');
+        t_html += '<tr>';
+        t_html += '<td style="font-weight:600">'+sym+'</td>';
+        t_html += '<td><span class="tag '+(t.direction==='BUY'?'tg':'tr')+'">'+t.direction+'</span></td>';
+        t_html += '<td style="color:var(--muted);white-space:nowrap">'+fmtDT(t.opened_at)+'</td>';
+        t_html += '<td>'+( t.strike ? parseFloat(t.strike).toLocaleString('it-IT',{minimumFractionDigits:2}) : '—' )+'</td>';
+        t_html += '<td style="color:var(--muted);white-space:nowrap">'+fmtDT(t.closed_at)+'</td>';
+        t_html += '<td style="color:'+(pnl>=0?'var(--green)':'var(--red)')+';font-weight:600">'+(pnl>=0?'+':'')+fmt(pnl)+'</td>';
+        t_html += '<td><span class="tag '+(pnl>=0?'tg':'tr')+'">'+(pnl>=0?'GAIN':'LOSS')+'</span></td>';
+        t_html += '</tr>';
+      });
+      t_html += '</tbody>';
+      document.getElementById('pamm-storico-table').innerHTML = t_html;
+    }
+    window.pammSortBy = function(col){
+      if(pammSort.col===col) pammSort.dir*=-1;
+      else { pammSort.col=col; pammSort.dir=-1; }
+      pammRenderTable();
+    };
     html += '<div class="card"><div class="card-title">Storico operazioni ('+trades.length+')</div>';
-    html += '<div class="tbl-wrap"><table><thead><tr>';
-    html += '<th>Strumento</th><th>Direzione</th><th>Apertura</th><th>Ingresso</th><th>Chiusura</th><th>PnL €</th><th>Esito</th>';
-    html += '</tr></thead><tbody>';
-    trades.slice().reverse().forEach(function(t){
-      var pnl = parseFloat(t.pnl)||0;
-      var sym = (t.notes||'').replace(/MT4-\d+ /,'');
-      var dIn  = t.opened_at ? new Date(t.opened_at).toLocaleDateString('it-IT',{day:'2-digit',month:'short',year:'2-digit'}) : '—';
-      var dOut = t.closed_at ? new Date(t.closed_at).toLocaleDateString('it-IT',{day:'2-digit',month:'short',year:'2-digit'}) : '—';
-      html += '<tr>';
-      html += '<td style="font-weight:600">'+sym+'</td>';
-      html += '<td><span class="tag '+(t.direction==='BUY'?'tg':'tr')+'">'+t.direction+'</span></td>';
-      html += '<td style="color:var(--muted)">'+dIn+'</td>';
-      html += '<td>'+( t.strike ? parseFloat(t.strike).toLocaleString('it-IT',{minimumFractionDigits:2}) : '—' )+'</td>';
-      html += '<td style="color:var(--muted)">'+dOut+'</td>';
-      html += '<td style="color:'+(pnl>=0?'var(--green)':'var(--red)')+';font-weight:600">'+(pnl>=0?'+':'')+fmt(pnl)+'</td>';
-      html += '<td><span class="tag '+(pnl>=0?'tg':'tr')+'">'+(pnl>=0?'GAIN':'LOSS')+'</span></td>';
-      html += '</tr>';
-    });
-    html += '</tbody></table></div></div>';
+    html += '<div class="tbl-wrap"><table id="pamm-storico-table"></table></div></div>';
 
     document.getElementById('svc-pg-content').innerHTML = html;
+    pammRenderTable();
 
     // Distruggi vecchi chart
     Object.keys(chartInstances).forEach(function(k){try{chartInstances[k].destroy();}catch(e){}});
