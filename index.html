@@ -1718,7 +1718,7 @@ function loadPammService(){
     // Movimenti capitali
     html += '<div class="card" style="margin:0">';
     html += '<div class="card-title">💰 Movimenti di Capitale</div>';
-    movements.forEach(function(m){
+    movements.filter(function(m){return m.type!=='balance_snapshot';}).forEach(function(m){
       var isDeposit = m.type==='deposit';
       var isWithdrawal = m.type==='withdrawal';
       var color = isDeposit?'var(--green)':isWithdrawal?'var(--red)':'var(--muted)';
@@ -1953,7 +1953,7 @@ function loadFondoRotativo(){
     '</div>';
 
     // ── KPI ──
-    html+='<div class="kpi-row" style="grid-template-columns:repeat(5,1fr)">'+
+    html+='<div class="kpi-row" style="grid-template-columns:repeat(auto-fit,minmax(140px,1fr))">'+
       '<div class="kpi gold"><div class="kl">Capitale iniziale</div><div class="kv gold">€ '+fmt(TOTAL_CAP)+'</div><div class="ks">'+SVCS_CFG.length+' servizi attivi</div></div>'+
       '<div class="kpi"><div class="kl">Equity Attuale</div><div class="kv '+(totalPnl>=0?'g':'r')+'">€ '+fmt(totalEq)+'</div><div class="ks">'+(totalPnl>=0?'▲ +':'▼ ')+'€'+fmt(Math.abs(totalPnl))+' dal lancio</div></div>'+
       '<div class="kpi"><div class="kl">Rendimento %</div><div class="kv '+(totalPct>=0?'g':'r')+'">'+sign(totalPct)+fmtD(totalPct)+'%</div><div class="ks">'+(totalPct>=0?'In profitto':'In perdita')+'</div></div>'+
@@ -1975,7 +1975,7 @@ function loadFondoRotativo(){
 
     // ── SERVIZI ATTIVI ──
     html+='<div style="font-size:10px;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px">Servizi Attivi</div>';
-    html+='<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:1.2rem">';
+    html+='<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:1.2rem">';
     SVCS_CFG.forEach(function(svc){
       var st=svc.stats;
       html+='<div class="card" style="margin:0;border-left:3px solid '+svc.color+';padding:.9rem .9rem .7rem">'+
