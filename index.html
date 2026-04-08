@@ -1850,7 +1850,11 @@ function loadFondoRotativo(){
 
   document.getElementById('svc-pg-content').innerHTML='<div class="spinner">Caricamento benchmark...</div>';
 
-  Promise.all(SVCS_CFG.map(function(s){return api('/api/trades?service_code='+s.code);})).then(function(results){
+  var allRequests=SVCS_CFG.map(function(s){return api('/api/trades?service_code='+s.code);});
+  allRequests.push(api('/api/fund_movements?service_code=fund_pamm'));
+
+  Promise.all(allRequests).then(function(results){
+    var pammMovements=results[SVCS_CFG.length]||[];
 
     // ── 1. Calcola stats e byMonth per ogni servizio ──
     SVCS_CFG.forEach(function(svc,i){
@@ -1872,9 +1876,19 @@ function loadFondoRotativo(){
         var k=d.getFullYear()+'-'+(('0'+(d.getMonth()+1)).slice(-2));
         byMonth[k]=(byMonth[k]||0)+pnlFn(t);
       });
+
+      // PAMM: usa balance_snapshot reale (coerente con pagina Fondo PAMM)
+      var equity=svc.cap+totalPnl;
+      if(svc.code==='fund_pamm'){
+        var snapshots=pammMovements.filter(function(m){return m.type==='balance_snapshot';})
+                                   .sort(function(a,b){return new Date(b.moved_at)-new Date(a.moved_at);});
+        if(snapshots.length) equity=parseFloat(snapshots[0].amount);
+      }
+      var realPnl=equity-svc.cap;
+
       svc.stats={
-        totalPnl:totalPnl, equity:svc.cap+totalPnl,
-        pnlPct:(totalPnl/svc.cap)*100,
+        totalPnl:realPnl, equity:equity,
+        pnlPct:(realPnl/svc.cap)*100,
         tradeCount:closed.length,
         winRate:closed.length?(wins/closed.length*100):0,
         byMonth:byMonth
@@ -1935,12 +1949,12 @@ function loadFondoRotativo(){
 
     // ── BANNER ──
     html+='<div style="background:rgba(201,168,76,0.06);border:1px solid rgba(201,168,76,0.2);border-radius:10px;padding:10px 14px;margin-bottom:1.2rem;font-size:12px;color:var(--muted);">'+
-      '📊 Benchmark consolidato di tutti i servizi IUPPITER. Equity aggregata calcolata in tempo reale dal database. Capitale base totale: <strong style="color:var(--gold)">€ 34.000</strong>.'+
+      '📊 Benchmark consolidato di tutti i servizi IUPPITER. Equity aggregata calcolata in tempo reale dal database. Capitale base totale: <strong style="color:var(--gold)">€ '+fmt(TOTAL_CAP)+'</strong>.'+
     '</div>';
 
     // ── KPI ──
     html+='<div class="kpi-row" style="grid-template-columns:repeat(5,1fr)">'+
-      '<div class="kpi gold"><div class="kl">Capitale iniziale</div><div class="kv gold">€ '+fmt(TOTAL_CAP)+'</div><div class="ks">4 servizi attivi</div></div>'+
+      '<div class="kpi gold"><div class="kl">Capitale iniziale</div><div class="kv gold">€ '+fmt(TOTAL_CAP)+'</div><div class="ks">'+SVCS_CFG.length+' servizi attivi</div></div>'+
       '<div class="kpi"><div class="kl">Equity Attuale</div><div class="kv '+(totalPnl>=0?'g':'r')+'">€ '+fmt(totalEq)+'</div><div class="ks">'+(totalPnl>=0?'▲ +':'▼ ')+'€'+fmt(Math.abs(totalPnl))+' dal lancio</div></div>'+
       '<div class="kpi"><div class="kl">Rendimento %</div><div class="kv '+(totalPct>=0?'g':'r')+'">'+sign(totalPct)+fmtD(totalPct)+'%</div><div class="ks">'+(totalPct>=0?'In profitto':'In perdita')+'</div></div>'+
       '<div class="kpi"><div class="kl">Best Performer</div><div class="kv gold" style="font-size:16px">'+best.short+'</div><div class="ks">'+sign(best.stats.pnlPct)+fmtD(best.stats.pnlPct)+'% rendimento</div></div>'+
