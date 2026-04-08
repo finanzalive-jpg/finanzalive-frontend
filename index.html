@@ -1687,7 +1687,8 @@ function loadPammService(){
     var equity = snapshots.length
       ? parseFloat(snapshots[0].amount)
       : CAPITAL_BASE + totalPnl + totalAdjustments;
-    var pnlPct           = (totalPnl/CAPITAL_BASE*100);
+    var realPnl          = equity - CAPITAL_BASE;
+    var pnlPct           = (realPnl/CAPITAL_BASE*100);
     var wins             = trades.filter(function(t){return (parseFloat(t.pnl)||0)>0;}).length;
     var winRate          = trades.length ? (wins/trades.length*100) : 0;
 
@@ -1699,7 +1700,7 @@ function loadPammService(){
 
     html += '<div class="kpi-row" style="grid-template-columns:repeat(5,1fr)">';
     html += '<div class="kpi gold"><div class="kl">Capitale base</div><div class="kv gold">€ '+fmt(CAPITAL_BASE)+'</div><div class="ks">Dep. €'+fmt(totalDeposits)+' — Prel. €'+fmt(totalWithdrawals)+'</div></div>';
-    html += '<div class="kpi"><div class="kl">Equity Attuale</div><div class="kv '+(totalPnl>=0?'g':'r')+'">€ '+fmt(equity)+'</div><div class="ks">'+(totalPnl>=0?'▲ +':'▼ ')+'€'+fmt(Math.abs(totalPnl))+' PnL netto</div></div>';
+    html += '<div class="kpi"><div class="kl">Equity Attuale</div><div class="kv '+(realPnl>=0?'g':'r')+'">€ '+fmt(equity)+'</div><div class="ks">'+(realPnl>=0?'▲ +':'▼ ')+'€'+fmt(Math.abs(realPnl))+' PnL netto</div></div>';
     html += '<div class="kpi"><div class="kl">Rendimento %</div><div class="kv '+(pnlPct>=0?'g':'r')+'">'+sign(pnlPct)+fmt(pnlPct)+'%</div><div class="ks">Sul capitale base €14.000</div></div>';
     html += '<div class="kpi"><div class="kl">Win Rate</div><div class="kv gold">'+fmt(winRate)+'%</div><div class="ks">'+wins+' gain / '+(trades.length-wins)+' loss su '+trades.length+'</div></div>';
     html += '<div class="kpi"><div class="kl">Operazioni</div><div class="kv">'+trades.length+'</div><div class="ks">Dal set 2025</div></div>';
