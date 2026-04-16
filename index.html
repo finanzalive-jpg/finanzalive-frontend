@@ -304,7 +304,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
       <div class="live-dot"></div>
       <span style="font-size:11px;color:var(--green)">LIVE</span>
       <span style="font-size:13px;color:var(--muted)" id="user-label"></span>
-      <button class="push-bell" id="push-bell-btn" onclick="togglePushNotifications()" aria-label="Notifiche segnali">
+      <button class="push-bell" id="push-bell-btn" onclick="togglePushNotifications()">
         🔔<span class="bell-dot"></span>
       </button>
       <button class="logout-btn" id="theme-btn" onclick="toggleTheme()">&#x2600;&#xFE0F;</button>
@@ -552,7 +552,7 @@ function _enablePush(bell){
   pushEnabled=true;
   localStorage.setItem('iup_push','on');
   if(bell) bell.classList.add('enabled');
-  showToast('🔔 Notifiche attive!','Riceverai ogni segnale in tempo reale','green');
+  showToast('🔔 Attivate!','Riceverai le notifiche push per ogni segnale IUPPITER','green');
   setTimeout(function(){ sendLocalPush('🔔 IUPPITER attivato','Notifiche segnali attive!'); },1000);
 }
 
@@ -567,18 +567,25 @@ function initPushState(){
 
 // Notifica push locale quando arriva nuovo segnale
 function sendLocalPush(title,body,icon){
-  if(!pushEnabled||Notification.permission!=='granted')return;
-  try{
-    new Notification(title,{
-      body:body,
-      icon:icon||'https://raw.githubusercontent.com/finanzalive-jpg/finanzalive-frontend/main/gold%20logo.jpg',
-      badge:'https://raw.githubusercontent.com/finanzalive-jpg/finanzalive-frontend/main/gold%20logo.jpg',
-      tag:'iuppiter-signal',
-      renotify:true,
-      requireInteraction:false,
-      silent:false
+  if(!pushEnabled||!('Notification' in window)||Notification.permission!=='granted')return;
+  var opts={
+    body:body||'',
+    icon:icon||'https://raw.githubusercontent.com/finanzalive-jpg/finanzalive-frontend/main/gold%20logo.jpg',
+    tag:'iuppiter-signal',
+    renotify:true
+  };
+  // Android Chrome: usa Service Worker (new Notification() non funziona)
+  if('serviceWorker' in navigator){
+    navigator.serviceWorker.ready.then(function(reg){
+      reg.showNotification(title,opts);
+    }).catch(function(){
+      // Fallback: prova new Notification()
+      try{ new Notification(title,opts); }catch(e){}
     });
-  } catch(e){}
+  } else {
+    // iOS PWA e altri
+    try{ new Notification(title,opts); }catch(e){}
+  }
 }
 
 function doLogout(){
