@@ -574,13 +574,60 @@ function togglePushNotifications(){
   } catch(e){ showSystemToast('⚠️ Errore notifiche','Browser non supporta le notifiche push','amber'); }
 }
 
+var VAPID_PUBLIC_KEY='BNtuePHDQcXHkdxzYJplRVQArnaRLDkur5T2CjMsVQZfGEIO7b47reg30dd9sCLznzEDq_B7c-dvRt7gtDRadKQ';
+
+function urlBase64ToUint8Array(base64String){
+  var padding='='.repeat((4-base64String.length%4)%4);
+  var base64=(base64String+padding).replace(/-/g,'+').replace(/_/g,'/');
+  var raw=window.atob(base64);
+  var arr=new Uint8Array(raw.length);
+  for(var i=0;i<raw.length;i++) arr[i]=raw.charCodeAt(i);
+  return arr;
+}
+
 function _enablePush(bell){
-  if('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(function(){});
-  pushEnabled=true;
-  localStorage.setItem('iup_push','on');
-  if(bell) bell.classList.add('enabled');
-  showSystemToast('🔔 Notifiche attivate!','Riceverai i segnali IUPPITER in tempo reale','green');
-  setTimeout(function(){ sendLocalPush('🔔 IUPPITER attivato','Notifiche segnali attive!'); },1000);
+  if(!('serviceWorker' in navigator)){
+    pushEnabled=true;
+    localStorage.setItem('iup_push','on');
+    if(bell) bell.classList.add('enabled');
+    showSystemToast('🔔 Notifiche attivate!','Solo con app aperta','amber');
+    return;
+  }
+  navigator.serviceWorker.register('/sw.js').then(function(reg){
+    // Aspetta che il SW sia attivo
+    return reg.ready;
+  }).then(function(reg){
+    // Registra push subscription vera
+    return reg.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
+    });
+  }).then(function(sub){
+    // Salva subscription nel backend
+    var subJson = sub.toJSON();
+    return fetch(API_BASE+'/api/push-subscribe', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({
+        endpoint: subJson.endpoint,
+        p256dh: subJson.keys.p256dh,
+        auth: subJson.keys.auth,
+        userId: localStorage.getItem('iup_user_id') || ''
+      })
+    });
+  }).then(function(){
+    pushEnabled=true;
+    localStorage.setItem('iup_push','on');
+    if(bell) bell.classList.add('enabled');
+    showSystemToast('🔔 Notifiche attivate!','Riceverai i segnali anche con app chiusa 🎯','green');
+  }).catch(function(err){
+    console.error('Push subscribe error:', err);
+    // Fallback: notifiche locali (solo con app aperta)
+    pushEnabled=true;
+    localStorage.setItem('iup_push','on');
+    if(bell) bell.classList.add('enabled');
+    showSystemToast('🔔 Notifiche attivate!','Solo con app aperta (push completo non disponibile)','amber');
+  });
 }
 
 function initPushState(){
