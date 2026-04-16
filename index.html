@@ -517,34 +517,34 @@ function togglePushNotifications(){
     pushEnabled=false;
     localStorage.setItem('iup_push','off');
     bell.classList.remove('enabled');
-    showToast('🔕 Notifiche disabilitate','','amber');
+    showSystemToast('🔕 Notifiche disabilitate','','amber');
     return;
   }
   if(!('Notification' in window)){
     if(isIOS && !isPWA){
-      showToast('📱 Prima installa l\'app su Home','Safari → icona Condividi → "Aggiungi a schermata Home" → poi riapri e clicca 🔔','amber');
+      showSystemToast('📱 Prima installa l\'app','Safari → Condividi → "Aggiungi a schermata Home" → poi riapri e clicca 🔔','amber');
     } else {
-      showToast('⚠️ Notifiche non supportate','Usa Chrome Android o Safari 16.4+ con app installata','amber');
+      showSystemToast('⚠️ Notifiche non supportate','Usa Chrome Android o Safari 16.4+ con app installata','amber');
     }
     return;
   }
   if(Notification.permission==='granted'){ _enablePush(bell); return; }
   if(Notification.permission==='denied'){
-    showToast('🔕 Notifiche bloccate','Impostazioni → Safari/App → Notifiche → Consenti','red');
+    showSystemToast('🔕 Notifiche bloccate','Vai in Impostazioni → Safari/App → Notifiche → Consenti','red');
     return;
   }
   try {
     var res=Notification.requestPermission(function(p){
       if(p==='granted') _enablePush(bell);
-      else showToast('🔕 Permesso negato','Accetta la richiesta per ricevere i segnali','amber');
+      else showSystemToast('🔕 Permesso negato','Accetta la richiesta per ricevere i segnali','amber');
     });
     if(res && typeof res.then==='function'){
       res.then(function(p){
         if(p==='granted') _enablePush(bell);
-        else showToast('🔕 Permesso negato','Accetta la richiesta per ricevere i segnali','amber');
+        else showSystemToast('🔕 Permesso negato','Accetta la richiesta per ricevere i segnali','amber');
       });
     }
-  } catch(e){ showToast('⚠️ Errore','Browser non supporta le notifiche','amber'); }
+  } catch(e){ showSystemToast('⚠️ Errore notifiche','Browser non supporta le notifiche push','amber'); }
 }
 
 function _enablePush(bell){
@@ -552,7 +552,7 @@ function _enablePush(bell){
   pushEnabled=true;
   localStorage.setItem('iup_push','on');
   if(bell) bell.classList.add('enabled');
-  showToast('🔔 Attivate!','Riceverai le notifiche push per ogni segnale IUPPITER','green');
+  showSystemToast('🔔 Notifiche attivate!','Riceverai i segnali IUPPITER in tempo reale','green');
   setTimeout(function(){ sendLocalPush('🔔 IUPPITER attivato','Notifiche segnali attive!'); },1000);
 }
 
@@ -920,6 +920,20 @@ function showToast(sig){
 }
 
 // ── PAGINE ──
+function showSystemToast(title, body, type){
+  // type: 'green', 'amber', 'red'
+  var colors={'green':'#1db97a','amber':'#f0a030','red':'#e84b4a'};
+  var color=colors[type||'amber']||colors.amber;
+  var c=document.getElementById('toast-container');
+  var t=document.createElement('div');
+  t.className='toast-notif';
+  t.style.borderColor=color;
+  t.innerHTML='<div class="toast-head"><span class="toast-svc" style="color:'+color+'">'+title+'</span><button class="toast-close" onclick="this.parentElement.parentElement.remove()">&#x2715;</button></div>'+(body?'<div class="toast-body">'+body+'</div>':'');
+  c.appendChild(t);
+  setTimeout(function(){t.classList.add('show');},50);
+  setTimeout(function(){t.classList.add('hide');setTimeout(function(){if(t.parentElement)t.remove();},400);},7000);
+}
+
 function showPage(name){
   document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');});
   document.querySelectorAll('.nav-item').forEach(function(n){n.classList.remove('active');});
