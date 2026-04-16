@@ -520,11 +520,17 @@ function togglePushNotifications(){
     showSystemToast('🔕 Notifiche disabilitate','','amber');
     return;
   }
+  // Ri-controlla PWA all'interno della funzione (più affidabile)
+  var isStandalone=window.navigator.standalone===true||window.matchMedia('(display-mode: standalone)').matches;
+
   if(!('Notification' in window)){
-    if(isIOS && !isPWA){
-      showSystemToast('📱 Prima installa l\'app','Safari → Condividi → "Aggiungi a schermata Home" → poi riapri e clicca 🔔','amber');
+    if(isIOS && !isStandalone){
+      showSystemToast('📱 Prima installa l\'app','Safari → icona Condividi → "Aggiungi a schermata Home" → poi riapri dall\'icona e clicca 🔔','amber');
+    } else if(isIOS && isStandalone){
+      // Sei già in modalità app ma iOS è < 16.4
+      showSystemToast('⚠️ iOS troppo vecchio','Le notifiche push richiedono iOS 16.4 o superiore. Aggiorna in Impostazioni → Generali → Aggiornamento Software','red');
     } else {
-      showSystemToast('⚠️ Notifiche non supportate','Usa Chrome Android o Safari 16.4+ con app installata','amber');
+      showSystemToast('⚠️ Notifiche non supportate','Usa Chrome Android o Safari 16.4+ con sito installato come app','amber');
     }
     return;
   }
