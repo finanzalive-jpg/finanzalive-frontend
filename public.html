@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IUPPITER — Risultati Live & Download App</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+:root{
+  --bg:#0a0a0c; --bg2:#111318; --bg3:#1a1d27;
+  --border:rgba(255,255,255,0.07);
+  --text:#e8e6df; --muted:#7a7870;
+  --gold:#c9a84c; --gold2:#e8c96a; --gold-dim:rgba(201,168,76,0.10);
+  --green:#1db97a; --red:#e84b4a;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:14px;overflow-x:hidden;}
+
+/* HERO */
+.hero{background:radial-gradient(ellipse at 50% 0%,rgba(201,168,76,0.12) 0%,transparent 65%);padding:3rem 1.5rem 2.5rem;text-align:center;}
+.hero-logo{display:flex;align-items:center;justify-content:center;gap:14px;margin-bottom:2rem;}
+.logo-img{width:56px;height:56px;border-radius:14px;background:linear-gradient(135deg,var(--gold),var(--gold2));display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:900;color:#0a0a0c;flex-shrink:0;}
+.logo-text{font-size:28px;font-weight:900;color:var(--gold);letter-spacing:2px;}
+.hero h1{font-size:clamp(1.6rem,5vw,2.8rem);font-weight:800;line-height:1.15;margin-bottom:1rem;}
+.hero h1 span{color:var(--gold);}
+.hero p{font-size:16px;color:var(--muted);max-width:520px;margin:0 auto 2rem;}
+.live-badge{display:inline-flex;align-items:center;gap:7px;background:rgba(29,185,122,0.1);border:1px solid rgba(29,185,122,0.3);border-radius:20px;padding:6px 14px;font-size:12px;font-weight:700;color:var(--green);margin-bottom:1.5rem;}
+.live-dot{width:7px;height:7px;border-radius:50%;background:var(--green);animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(29,185,122,0.4);}50%{box-shadow:0 0 0 6px rgba(29,185,122,0);}}
+
+/* STATS GLOBAL */
+.stats-section{padding:1.5rem;max-width:900px;margin:0 auto;}
+.section-title{font-size:11px;font-weight:800;color:var(--gold);text-transform:uppercase;letter-spacing:.12em;margin-bottom:1rem;}
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:2rem;}
+.kpi{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:1.1rem 1.2rem;text-align:center;}
+.kpi-val{font-size:22px;font-weight:800;color:var(--gold);margin-bottom:2px;}
+.kpi-lbl{font-size:11px;color:var(--muted);font-weight:600;}
+
+/* SERVICE CARDS */
+.services-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;margin-bottom:2rem;}
+.svc-card{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:1.3rem;transition:border-color .2s;}
+.svc-card:hover{border-color:rgba(201,168,76,0.3);}
+.svc-header{display:flex;align-items:center;gap:10px;margin-bottom:1rem;}
+.svc-icon{width:42px;height:42px;border-radius:10px;object-fit:cover;background:#f5f0e8;flex-shrink:0;}
+.svc-name{font-size:14px;font-weight:700;}
+.svc-desc{font-size:11px;color:var(--muted);}
+.svc-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:1rem;}
+.svc-stat{text-align:center;}
+.svc-stat-val{font-size:16px;font-weight:700;}
+.svc-stat-lbl{font-size:10px;color:var(--muted);}
+.svc-pnl-pos{color:var(--green);}
+.svc-pnl-neg{color:var(--red);}
+.svc-wr{height:4px;background:var(--bg3);border-radius:2px;overflow:hidden;margin-top:.5rem;}
+.svc-wr-fill{height:100%;background:linear-gradient(90deg,var(--green),#2ecc71);border-radius:2px;transition:width 1s ease;}
+
+/* EQUITY CHART */
+.chart-card{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:1.3rem;margin-bottom:2rem;}
+.chart-wrap{height:220px;position:relative;}
+
+/* DOWNLOAD SECTION */
+.download-section{background:linear-gradient(135deg,rgba(201,168,76,0.08),rgba(201,168,76,0.03));border:1px solid rgba(201,168,76,0.2);border-radius:20px;padding:2.5rem 1.5rem;text-align:center;margin:0 1.5rem 2rem;max-width:900px;margin-left:auto;margin-right:auto;}
+.download-section h2{font-size:1.5rem;font-weight:800;margin-bottom:.5rem;}
+.download-section p{color:var(--muted);font-size:14px;margin-bottom:2rem;}
+.download-btns{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;}
+.dl-btn{display:flex;align-items:center;gap:10px;padding:13px 22px;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;text-decoration:none;transition:all .2s;border:none;}
+.dl-btn-ios{background:linear-gradient(135deg,#1a1a2e,#16213e);border:1px solid rgba(255,255,255,0.15);color:#fff;}
+.dl-btn-android{background:linear-gradient(135deg,#0f3460,#533483);border:1px solid rgba(255,255,255,0.15);color:#fff;}
+.dl-btn-pwa{background:linear-gradient(135deg,var(--gold),var(--gold2));color:#0a0a0c;}
+.dl-btn:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,0.4);}
+.dl-icon{font-size:22px;}
+.dl-sub{font-size:10px;font-weight:400;opacity:.8;display:block;}
+.pwa-steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin-top:1.5rem;text-align:left;}
+.pwa-step{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:1rem;}
+.pwa-step-num{font-size:20px;font-weight:900;color:var(--gold);margin-bottom:4px;}
+.pwa-step-text{font-size:12px;color:var(--muted);}
+
+/* LOGIN CTA */
+.cta-section{text-align:center;padding:2rem 1.5rem 3rem;}
+.cta-section p{color:var(--muted);margin-bottom:1rem;font-size:14px;}
+.btn-cta{display:inline-block;background:linear-gradient(135deg,var(--gold),var(--gold2));color:#0a0a0c;font-weight:800;font-size:15px;padding:14px 36px;border-radius:12px;text-decoration:none;transition:opacity .2s;}
+.btn-cta:hover{opacity:.88;}
+
+/* FOOTER */
+footer{background:var(--bg2);border-top:1px solid var(--border);padding:1.5rem;text-align:center;color:var(--muted);font-size:12px;}
+
+/* MOBILE */
+@media(max-width:600px){
+  .hero{padding:2rem 1rem 1.5rem;}
+  .kpi-grid{grid-template-columns:1fr 1fr;}
+  .pwa-steps{grid-template-columns:1fr;}
+  .download-btns{flex-direction:column;align-items:center;}
+  .dl-btn{width:100%;max-width:300px;justify-content:center;}
+}
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-logo">
+    <div class="logo-img">I</div>
+    <span class="logo-text">IUPPITER</span>
+  </div>
+  <div class="live-badge"><span class="live-dot"></span> Risultati aggiornati in tempo reale</div>
+  <h1>Trading <span>automatizzato</span><br>con intelligenza artificiale</h1>
+  <p>Segnali su Gold, Indici e Forex generati da algoritmi proprietari. Risultati reali, trasparenti, verificabili.</p>
+</div>
+
+<!-- KPI GLOBALI -->
+<div class="stats-section">
+  <div class="section-title">Performance globale</div>
+  <div class="kpi-grid" id="kpi-global">
+    <div class="kpi"><div class="kpi-val" id="kpi-tot-pnl">...</div><div class="kpi-lbl">PNL Totale €</div></div>
+    <div class="kpi"><div class="kpi-val" id="kpi-tot-trades">...</div><div class="kpi-lbl">Operazioni chiuse</div></div>
+    <div class="kpi"><div class="kpi-val" id="kpi-wr">...</div><div class="kpi-lbl">Win Rate</div></div>
+    <div class="kpi"><div class="kpi-val" id="kpi-from">dal 2022</div><div class="kpi-lbl">Track record</div></div>
+  </div>
+
+  <!-- EQUITY CHART -->
+  <div class="chart-card">
+    <div class="section-title">Equity curve — Gold (ultimi 60 trade)</div>
+    <div class="chart-wrap"><canvas id="equity-chart"></canvas></div>
+  </div>
+
+  <!-- SERVIZI -->
+  <div class="section-title">Risultati per servizio</div>
+  <div class="services-grid" id="services-grid">
+    <div style="color:var(--muted);font-size:13px;padding:1rem;">Caricamento...</div>
+  </div>
+</div>
+
+<!-- DOWNLOAD APP -->
+<div class="download-section">
+  <h2>📱 Scarica l'app IUPPITER</h2>
+  <p>Ricevi i segnali in tempo reale direttamente sul tuo telefono, anche con lo schermo spento.</p>
+
+  <div class="download-btns">
+    <a class="dl-btn dl-btn-ios" href="https://finanzalive-frontend.vercel.app" id="btn-pwa-ios">
+      <span class="dl-icon">🍎</span>
+      <div><span>iPhone — Aggiungi a Home</span><span class="dl-sub">Safari → Condividi → Aggiungi a schermata Home</span></div>
+    </a>
+    <a class="dl-btn dl-btn-android" href="https://finanzalive-frontend.vercel.app" id="btn-pwa-android">
+      <span class="dl-icon">🤖</span>
+      <div><span>Android — Installa app</span><span class="dl-sub">Chrome → Menu → Aggiungi alla schermata Home</span></div>
+    </a>
+    <a class="dl-btn dl-btn-pwa" href="https://finanzalive-frontend.vercel.app">
+      <span class="dl-icon">🌐</span>
+      <div><span>Apri nel browser</span><span class="dl-sub">Accedi subito senza installare</span></div>
+    </a>
+  </div>
+
+  <!-- Steps iPhone -->
+  <div class="pwa-steps" style="margin-top:1.5rem;">
+    <div class="pwa-step">
+      <div class="pwa-step-num">1</div>
+      <div class="pwa-step-text"><strong>Apri Safari</strong> sul tuo iPhone e vai su finanzalive-frontend.vercel.app</div>
+    </div>
+    <div class="pwa-step">
+      <div class="pwa-step-num">2</div>
+      <div class="pwa-step-text"><strong>Tocca l'icona Condividi</strong> (il quadrato con la freccia in basso alla pagina)</div>
+    </div>
+    <div class="pwa-step">
+      <div class="pwa-step-num">3</div>
+      <div class="pwa-step-text"><strong>Seleziona "Aggiungi a schermata Home"</strong> e conferma con "Aggiungi"</div>
+    </div>
+    <div class="pwa-step">
+      <div class="pwa-step-num">4</div>
+      <div class="pwa-step-text"><strong>Apri l'app</strong> dalla schermata Home e attiva le notifiche 🔔</div>
+    </div>
+  </div>
+</div>
+
+<!-- LOGIN CTA -->
+<div class="cta-section">
+  <p>Sei già cliente IUPPITER?</p>
+  <a href="https://finanzalive-frontend.vercel.app" class="btn-cta">Accedi all'area riservata →</a>
+</div>
+
+<footer>
+  © 2024 IUPPITER · FinanzaLive · Tutti i risultati si riferiscono a trading reale su conto live.<br>
+  Il trading comporta rischi. I risultati passati non garantiscono performance future.
+</footer>
+
+<script>
+var API = 'https://finanzalive-backend.onrender.com';
+
+// ── Carica statistiche pubbliche
+fetch(API + '/api/public/stats').then(function(r){ return r.json(); }).then(renderStats).catch(loadFallback);
+
+function loadFallback(){
+  // Dati statici di fallback se il backend non ha ancora l'endpoint pubblico
+  renderStats({
+    total_pnl: 9989.03,
+    total_trades: 2568,
+    total_gains: 1724,
+    total_losses: 844,
+    services: [
+      { code:'gold', name:'Sala Gold', icon:'gold logo.jpg', pnl: 4196.30, trades: 1888, gains: 1384, losses: 504 },
+      { code:'indices', name:'Indici World', icon:'indici_world_logo.jpg', pnl: 3713.95, trades: 594, gains: 284, losses: 310 },
+      { code:'forex', name:'Sala Forex', icon:'forex logo.jpg', pnl: 2078.78, trades: 86, gains: 56, losses: 30 }
+    ]
+  });
+}
+
+function renderStats(data){
+  var wr = data.total_trades > 0 ? Math.round(data.total_gains / data.total_trades * 100) : 0;
+  document.getElementById('kpi-tot-pnl').textContent = '+' + parseFloat(data.total_pnl).toLocaleString('it-IT', {minimumFractionDigits:0, maximumFractionDigits:0}) + ' €';
+  document.getElementById('kpi-tot-pnl').style.color = 'var(--green)';
+  document.getElementById('kpi-tot-trades').textContent = data.total_trades.toLocaleString('it-IT');
+  document.getElementById('kpi-wr').textContent = wr + '%';
+
+  // Servizi
+  var html = '';
+  (data.services || []).forEach(function(s){
+    var sWr = s.trades > 0 ? Math.round(s.gains / s.trades * 100) : 0;
+    var pnlClass = s.pnl >= 0 ? 'svc-pnl-pos' : 'svc-pnl-neg';
+    var pnlStr = (s.pnl >= 0 ? '+' : '') + parseFloat(s.pnl).toLocaleString('it-IT', {minimumFractionDigits:2, maximumFractionDigits:2}) + ' €';
+    var iconUrl = 'https://raw.githubusercontent.com/finanzalive-jpg/finanzalive-frontend/main/' + encodeURIComponent(s.icon || '');
+    html += '<div class="svc-card">' +
+      '<div class="svc-header">' +
+        '<img class="svc-icon" src="' + iconUrl + '" onerror="this.style.display=\'none\'">' +
+        '<div><div class="svc-name">' + s.name + '</div><div class="svc-desc">' + s.trades + ' operazioni chiuse</div></div>' +
+      '</div>' +
+      '<div class="svc-stats">' +
+        '<div class="svc-stat"><div class="svc-stat-val ' + pnlClass + '">' + pnlStr + '</div><div class="svc-stat-lbl">PNL €</div></div>' +
+        '<div class="svc-stat"><div class="svc-stat-val">' + s.gains + '</div><div class="svc-stat-lbl">Gain</div></div>' +
+        '<div class="svc-stat"><div class="svc-stat-val" style="color:var(--red)">' + s.losses + '</div><div class="svc-stat-lbl">Loss</div></div>' +
+      '</div>' +
+      '<div style="font-size:11px;color:var(--muted);margin-bottom:4px">Win Rate: <strong style="color:var(--text)">' + sWr + '%</strong></div>' +
+      '<div class="svc-wr"><div class="svc-wr-fill" style="width:' + sWr + '%"></div></div>' +
+    '</div>';
+  });
+  document.getElementById('services-grid').innerHTML = html;
+}
+
+// ── Equity chart Gold
+fetch(API + '/api/trades?service_code=gold&limit=60').then(function(r){ return r.json(); }).then(function(trades){
+  if(!trades || !trades.length) return;
+  var closed = trades.filter(function(t){ return t.status === 'CLOSED' && t.pnl != null; });
+  closed.sort(function(a,b){ return new Date(a.closed_at) - new Date(b.closed_at); });
+  var labels = [], data = [], cum = 0;
+  closed.forEach(function(t){
+    cum += parseFloat(t.pnl);
+    labels.push(new Date(t.closed_at).toLocaleDateString('it-IT',{day:'2-digit',month:'short'}));
+    data.push(Math.round(cum * 100) / 100);
+  });
+  var ctx = document.getElementById('equity-chart').getContext('2d');
+  new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: labels,
+      datasets: [{
+        data: data,
+        borderColor: '#c9a84c',
+        backgroundColor: 'rgba(201,168,76,0.08)',
+        borderWidth: 2,
+        pointRadius: 0,
+        fill: true,
+        tension: 0.3
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false }, tooltip: {
+        callbacks: { label: function(ctx){ return (ctx.raw >= 0 ? '+' : '') + ctx.raw.toFixed(2) + ' €'; }}
+      }},
+      scales: {
+        x: { ticks: { color: '#7a7870', font: { size: 10 }, maxRotation: 0, maxTicksLimit: 8 }, grid: { display: false } },
+        y: { ticks: { color: '#7a7870', font: { size: 10 }, callback: function(v){ return v + '€'; } }, grid: { color: 'rgba(255,255,255,0.04)' } }
+      }
+    }
+  });
+}).catch(function(){});
+</script>
+</body>
+</html>
