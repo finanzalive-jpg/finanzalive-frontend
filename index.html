@@ -187,10 +187,58 @@ tr:hover td{background:rgba(255,255,255,0.02);}
 .toast-dot{width:8px;height:8px;border-radius:50%;background:var(--gold);display:inline-block;margin-right:6px;animation:pulse 1s infinite;}
 .spinner{text-align:center;padding:2rem;color:var(--muted);font-size:13px;}
 
+/* ── PUSH NOTIFICATION BELL ── */
+.push-bell{background:none;border:1px solid var(--border);border-radius:8px;width:34px;height:34px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px;position:relative;transition:all .2s;}
+.push-bell:hover{border-color:var(--gold);background:var(--gold-dim);}
+.push-bell.enabled{border-color:var(--green);background:rgba(29,185,122,0.08);}
+.push-bell .bell-dot{position:absolute;top:5px;right:6px;width:7px;height:7px;border-radius:50%;background:var(--red);border:1.5px solid var(--bg2);display:none;}
+.push-bell.has-new .bell-dot{display:block;}
+
+/* ── MOBILE BOTTOM NAV ── */
+.mobile-nav{display:none;position:fixed;bottom:0;left:0;right:0;background:var(--bg2);border-top:1px solid var(--border);z-index:200;padding:6px 0 max(6px,env(safe-area-inset-bottom));backdrop-filter:blur(12px);}
+.mobile-nav-inner{display:flex;justify-content:space-around;align-items:center;}
+.mnav-item{display:flex;flex-direction:column;align-items:center;gap:3px;padding:4px 10px;cursor:pointer;min-width:52px;border-radius:10px;transition:all .15s;}
+.mnav-item .mnav-icon{font-size:20px;line-height:1;}
+.mnav-item .mnav-label{font-size:10px;font-weight:600;color:var(--muted);}
+.mnav-item.active .mnav-label{color:var(--gold);}
+.mnav-item.active .mnav-icon{filter:drop-shadow(0 0 4px var(--gold));}
+.mnav-more-panel{display:none;position:fixed;bottom:60px;left:0;right:0;background:var(--bg2);border-top:1px solid var(--border);z-index:199;padding:1rem;max-height:65vh;overflow-y:auto;}
+.mnav-more-panel.open{display:block;}
+.mnav-more-panel .nav-item{border-left:none;border-radius:10px;padding:11px 14px;font-size:14px;}
+.mnav-more-panel .nav-item.active{background:var(--gold-dim);color:var(--gold);}
+
+/* ── MOBILE RESPONSIVE ── */
 @media(max-width:768px){
-  .sidebar{display:none;}.main{padding:1rem;}
-  #toast-container{right:.5rem;left:.5rem;}.toast-notif{min-width:unset;}
+  .sidebar{display:none;}
+  .main{padding:.9rem .9rem calc(80px + env(safe-area-inset-bottom)) .9rem;}
+  .mobile-nav{display:block;}
+  .layout{min-height:unset;}
+  #toast-container{right:.5rem;left:.5rem;bottom:calc(68px + env(safe-area-inset-bottom));}
+  .toast-notif{min-width:unset;}
   .svc-grid{grid-template-columns:1fr 1fr;}
+  .kpi-row{grid-template-columns:1fr 1fr;gap:8px;}
+  .pg-title{font-size:17px;}
+
+  /* Tabelle responsive → card stacked su mobile */
+  .tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:10px;}
+  .tbl-wrap table{min-width:520px;}
+  
+  /* Card compatte per storico operazioni */
+  .trades-mobile-list{display:flex;flex-direction:column;gap:8px;}
+  .trade-card-m{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:12px 14px;display:grid;grid-template-columns:1fr auto;gap:4px 12px;}
+  .trade-card-m .tc-dir{font-size:11px;font-weight:700;padding:2px 8px;border-radius:5px;width:fit-content;}
+  .tc-buy{background:rgba(29,185,122,0.15);color:var(--green);}
+  .tc-sell{background:rgba(232,75,74,0.15);color:var(--red);}
+  .trade-card-m .tc-price{font-size:13px;font-weight:600;}
+  .trade-card-m .tc-date{font-size:11px;color:var(--muted);}
+  .trade-card-m .tc-pnl{font-size:16px;font-weight:700;text-align:right;}
+  .trade-card-m .tc-esito{font-size:11px;text-align:right;}
+  .tc-gain{color:var(--green);}
+  .tc-loss{color:var(--red);}
+
+  /* Topbar compatta */
+  .topbar{padding:0 .9rem;}
+  .ticker-wrap{display:none;}
 }
 </style>
 </head>
@@ -237,10 +285,48 @@ tr:hover td{background:rgba(255,255,255,0.02);}
       <div class="live-dot"></div>
       <span style="font-size:11px;color:var(--green)">LIVE</span>
       <span style="font-size:13px;color:var(--muted)" id="user-label"></span>
+      <button class="push-bell" id="push-bell-btn" onclick="togglePushNotifications()" title="Notifiche segnali">
+        🔔<span class="bell-dot"></span>
+      </button>
       <button class="logout-btn" id="theme-btn" onclick="toggleTheme()">&#x2600;&#xFE0F;</button>
       <div class="avatar" id="user-av">?</div>
       <button class="logout-btn" onclick="doLogout()">Esci</button>
     </div>
+  </div>
+
+  <!-- MOBILE BOTTOM NAV -->
+  <nav class="mobile-nav">
+    <div class="mobile-nav-inner">
+      <div class="mnav-item active" id="mnav-dashboard" onclick="showPage('dashboard');setMobileNav('dashboard')">
+        <span class="mnav-icon">⊞</span>
+        <span class="mnav-label">Home</span>
+      </div>
+      <div class="mnav-item" id="mnav-signals" onclick="showPage('signals');setMobileNav('signals')">
+        <span class="mnav-icon">⚡</span>
+        <span class="mnav-label">Segnali</span>
+      </div>
+      <div class="mnav-item" id="mnav-gold" onclick="showService('gold');setMobileNav('gold')">
+        <span class="mnav-icon">🥇</span>
+        <span class="mnav-label">Gold</span>
+      </div>
+      <div class="mnav-item" id="mnav-more" onclick="toggleMobileMore()">
+        <span class="mnav-icon">≡</span>
+        <span class="mnav-label">Altro</span>
+      </div>
+    </div>
+  </nav>
+
+  <!-- MOBILE MORE PANEL -->
+  <div class="mnav-more-panel" id="mnav-more-panel">
+    <div style="font-size:11px;font-weight:800;color:var(--gold);text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px;">Servizi</div>
+    <div class="nav-item" onclick="showService('indices');closeMobileMore();setMobileNav('indices')"><img src="https://raw.githubusercontent.com/finanzalive-jpg/finanzalive-frontend/main/indici_world_logo.jpg" style="width:20px;height:20px;border-radius:4px;object-fit:contain;background:#f5f0e8"> Indici World</div>
+    <div class="nav-item" onclick="showService('vanilla_monthly');closeMobileMore();setMobileNav('vanilla_monthly')"><img src="https://raw.githubusercontent.com/finanzalive-jpg/finanzalive-frontend/main/Logo%20S%26P500%20con%20bandiera%20americana.jpg" style="width:20px;height:20px;border-radius:4px;object-fit:contain;background:#f5f0e8"> Vanilla Mensile</div>
+    <div class="nav-item" onclick="showService('vanilla_weekly');closeMobileMore();setMobileNav('vanilla_weekly')"><img src="https://raw.githubusercontent.com/finanzalive-jpg/finanzalive-frontend/main/Opzioni%20settimanali%20S%26P500%20con%20bandiera%20USA.jpg" style="width:20px;height:20px;border-radius:4px;object-fit:contain;background:#f5f0e8"> Vanilla Weekly</div>
+    <div class="nav-item" onclick="showService('forex');closeMobileMore();setMobileNav('forex')"><img src="https://raw.githubusercontent.com/finanzalive-jpg/finanzalive-frontend/main/forex%20logo.jpg" style="width:20px;height:20px;border-radius:4px;object-fit:contain;background:#f5f0e8"> Sala Forex</div>
+    <div class="nav-item" onclick="showService('fund_pamm');closeMobileMore();setMobileNav('fund_pamm')"><img src="https://raw.githubusercontent.com/finanzalive-jpg/finanzalive-frontend/main/fondo%20paam.jpg" style="width:20px;height:20px;border-radius:4px;object-fit:contain;background:#f5f0e8"> Fondo PAMM</div>
+    <div class="nav-item" onclick="showService('fondo_rotativo');closeMobileMore();setMobileNav('fondo_rotativo')"><img src="https://raw.githubusercontent.com/finanzalive-jpg/finanzalive-frontend/main/fondo%20rotativo.jpg" style="width:20px;height:20px;border-radius:4px;object-fit:contain;background:#f5f0e8"> Fondo Rotativo</div>
+    <div style="font-size:11px;font-weight:800;color:var(--gold);text-transform:uppercase;letter-spacing:.1em;margin:12px 0 10px;">Account</div>
+    <div class="nav-item" onclick="showPage('profile');closeMobileMore();setMobileNav('profile')"><span style="font-size:18px">◈</span> Profilo</div>
   </div>
 
   <div class="layout">
@@ -374,6 +460,104 @@ function toggleTheme(){
   if(btn)btn.innerHTML=isLight?'&#x1F319;':'&#x2600;&#xFE0F;';
 }
 
+// ── MOBILE NAV ────────────────────────────────────────────────────────────────
+function setMobileNav(id){
+  document.querySelectorAll('.mnav-item').forEach(function(el){el.classList.remove('active');});
+  var el=document.getElementById('mnav-'+id);
+  if(el)el.classList.add('active');
+}
+function toggleMobileMore(){
+  var panel=document.getElementById('mnav-more-panel');
+  panel.classList.toggle('open');
+  document.getElementById('mnav-more').classList.toggle('active');
+}
+function closeMobileMore(){
+  document.getElementById('mnav-more-panel').classList.remove('open');
+  document.getElementById('mnav-more').classList.remove('active');
+}
+// Chiudi pannello more se click fuori
+document.addEventListener('click',function(e){
+  var panel=document.getElementById('mnav-more-panel');
+  var moreBtn=document.getElementById('mnav-more');
+  if(panel&&panel.classList.contains('open')&&!panel.contains(e.target)&&!moreBtn.contains(e.target)){
+    closeMobileMore();
+  }
+});
+
+// ── PUSH NOTIFICATIONS ────────────────────────────────────────────────────────
+var pushEnabled=false;
+
+async function togglePushNotifications(){
+  var bell=document.getElementById('push-bell-btn');
+  if(pushEnabled){
+    // Disabilita
+    pushEnabled=false;
+    localStorage.setItem('iup_push','off');
+    bell.classList.remove('enabled');
+    bell.title='Attiva notifiche segnali';
+    showToast('🔕 Notifiche disabilitate','','amber');
+    return;
+  }
+  // Chiedi permesso
+  if(!('Notification' in window)){
+    showToast('⚠️ Notifiche non supportate','Usa Chrome o Safari 16.4+','amber');
+    return;
+  }
+  var perm=await Notification.requestPermission();
+  if(perm!=='granted'){
+    showToast('🔕 Permesso negato','Abilita le notifiche nelle impostazioni del browser','red');
+    return;
+  }
+  // Registra service worker
+  if('serviceWorker' in navigator){
+    try{
+      await navigator.serviceWorker.register('/sw.js');
+      var reg=await navigator.serviceWorker.ready;
+      pushEnabled=true;
+      localStorage.setItem('iup_push','on');
+      bell.classList.add('enabled');
+      bell.title='Notifiche attive — clicca per disabilitare';
+      showToast('🔔 Notifiche attive!','Riceverai i segnali IUPPITER in tempo reale','green');
+    } catch(e){
+      // Fallback: notifiche browser senza SW
+      pushEnabled=true;
+      localStorage.setItem('iup_push','on');
+      bell.classList.add('enabled');
+      showToast('🔔 Notifiche attive!','','green');
+    }
+  } else {
+    pushEnabled=true;
+    localStorage.setItem('iup_push','on');
+    bell.classList.add('enabled');
+    showToast('🔔 Notifiche attive!','','green');
+  }
+}
+
+function initPushState(){
+  var saved=localStorage.getItem('iup_push');
+  var bell=document.getElementById('push-bell-btn');
+  if(saved==='on'&&Notification&&Notification.permission==='granted'){
+    pushEnabled=true;
+    if(bell)bell.classList.add('enabled');
+  }
+}
+
+// Notifica push locale quando arriva nuovo segnale
+function sendLocalPush(title,body,icon){
+  if(!pushEnabled||Notification.permission!=='granted')return;
+  try{
+    new Notification(title,{
+      body:body,
+      icon:icon||'https://raw.githubusercontent.com/finanzalive-jpg/finanzalive-frontend/main/gold%20logo.jpg',
+      badge:'https://raw.githubusercontent.com/finanzalive-jpg/finanzalive-frontend/main/gold%20logo.jpg',
+      tag:'iuppiter-signal',
+      renotify:true,
+      requireInteraction:false,
+      silent:false
+    });
+  } catch(e){}
+}
+
 function doLogout(){
   if(pollInterval)clearInterval(pollInterval);
   localStorage.removeItem('iup_tok');token=null;myServices=[];lastSignalId=0;unreadCounts={};
@@ -444,6 +628,7 @@ function initApp(user){
       loadTicker();
       loadCalendar();
       startPolling();
+      initPushState();
     });
   });
 }
@@ -644,7 +829,15 @@ function checkNewSignals(){
         lastSignalId=all[0].id;
         newS.forEach(function(s){
           var code=s.services&&s.services.code?s.services.code:'';
+          var svcName=s.services&&s.services.name?s.services.name:code.toUpperCase();
           showToast(s);
+          // ── PUSH NOTIFICATION ──
+          var isOpen=s.signal_type==='OPEN';
+          var dir=s.direction||'';
+          var price=s.strike?parseFloat(s.strike).toFixed(2):'';
+          var pushTitle=isOpen?('🚀 '+svcName+' — '+dir):('✅ Chiusura '+svcName);
+          var pushBody=isOpen?(dir+' • Apertura: '+price):(s.pnl?(parseFloat(s.pnl)>0?'GAIN +':'LOSS ')+Math.abs(parseFloat(s.pnl)).toFixed(2)+' €':'');
+          sendLocalPush(pushTitle, pushBody);
           if(code){unreadCounts[code]=(unreadCounts[code]||0)+1;updateNavBadge(code);}
           // I segnali PAMM non incrementano il badge di "Segnali Live"
           if(code!=='fund_pamm'){
