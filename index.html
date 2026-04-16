@@ -222,8 +222,23 @@ tr:hover td{background:rgba(255,255,255,0.02);}
   /* Tabelle responsive → card stacked su mobile */
   .tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:10px;}
   .tbl-wrap table{min-width:520px;}
-  /* Dashboard bottom grid → colonna singola su mobile */
-  .dash-bottom-grid{grid-template-columns:1fr !important;}
+  /* Fix TUTTE le griglie inline che escono dallo schermo su mobile */
+  .main [style*="grid-template-columns"],
+  .main [style*="grid-template-columns:repeat"],
+  .main [style*="1fr 300px"],
+  .main [style*="300px"] {
+    grid-template-columns: 1fr !important;
+  }
+  /* Eccezione: griglie 2 colonne piccole vanno bene */
+  .main [style*="grid-template-columns:1fr 1fr"],
+  .main [style*="grid-template-columns: 1fr 1fr"] {
+    grid-template-columns: 1fr 1fr !important;
+  }
+  /* kpi-row con 4-5 colonne → 2 colonne su mobile */
+  .kpi-row[style*="repeat(4"], 
+  .kpi-row[style*="repeat(5"] {
+    grid-template-columns: 1fr 1fr !important;
+  }
   /* Nessun elemento deve uscire dallo schermo */
   .card, .kpi, .svc-card{max-width:100%;}
   
@@ -496,10 +511,8 @@ var isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent)&&!window.MSStream;
 // Rileva se è installata come PWA (standalone)
 var isPWA=window.navigator.standalone===true||window.matchMedia('(display-mode: standalone)').matches;
 
-async function togglePushNotifications(){
+function togglePushNotifications(){
   var bell=document.getElementById('push-bell-btn');
-
-  // Se già attive → disabilita
   if(pushEnabled){
     pushEnabled=false;
     localStorage.setItem('iup_push','off');
@@ -507,53 +520,40 @@ async function togglePushNotifications(){
     showToast('🔕 Notifiche disabilitate','','amber');
     return;
   }
-
-  // iOS Safari: Notification non disponibile → spiega come installarla
   if(!('Notification' in window)){
     if(isIOS && !isPWA){
-      showToast('📱 Installa l\'app prima','Safari → Condividi → Aggiungi a schermata Home, poi attiva le notifiche','amber');
+      showToast('📱 Prima installa l\'app su Home','Safari → icona Condividi → "Aggiungi a schermata Home" → poi riapri e clicca 🔔','amber');
     } else {
-      showToast('⚠️ Notifiche non supportate','Usa Chrome su Android o Safari 16.4+ con app installata','amber');
+      showToast('⚠️ Notifiche non supportate','Usa Chrome Android o Safari 16.4+ con app installata','amber');
     }
     return;
   }
-
-  // iOS PWA: richiedi permesso
-  var perm;
+  if(Notification.permission==='granted'){ _enablePush(bell); return; }
+  if(Notification.permission==='denied'){
+    showToast('🔕 Notifiche bloccate','Impostazioni → Safari/App → Notifiche → Consenti','red');
+    return;
+  }
   try {
-    perm = await Notification.requestPermission();
-  } catch(e) {
-    // Safari vecchio usa callback invece di promise
-    perm = await new Promise(function(resolve){
-      Notification.requestPermission(resolve);
+    var res=Notification.requestPermission(function(p){
+      if(p==='granted') _enablePush(bell);
+      else showToast('🔕 Permesso negato','Accetta la richiesta per ricevere i segnali','amber');
     });
-  }
-
-  if(perm !== 'granted'){
-    if(perm === 'denied'){
-      showToast('🔕 Notifiche bloccate','Vai in Impostazioni → IUPPITER → Notifiche → Consenti','red');
-    } else {
-      showToast('🔕 Permesso non concesso','Riprova e accetta la richiesta di notifica','amber');
+    if(res && typeof res.then==='function'){
+      res.then(function(p){
+        if(p==='granted') _enablePush(bell);
+        else showToast('🔕 Permesso negato','Accetta la richiesta per ricevere i segnali','amber');
+      });
     }
-    return;
-  }
+  } catch(e){ showToast('⚠️ Errore','Browser non supporta le notifiche','amber'); }
+}
 
-  // Registra service worker se disponibile
-  if('serviceWorker' in navigator){
-    try {
-      await navigator.serviceWorker.register('/sw.js');
-    } catch(e){ /* ignora, non blocca */ }
-  }
-
+function _enablePush(bell){
+  if('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(function(){});
   pushEnabled=true;
   localStorage.setItem('iup_push','on');
-  bell.classList.add('enabled');
-  showToast('🔔 Notifiche attive!','Riceverai ogni segnale IUPPITER in tempo reale','green');
-
-  // Test notifica immediata
-  setTimeout(function(){
-    sendLocalPush('🔔 IUPPITER attivato','Le notifiche dei segnali sono ora attive!');
-  }, 500);
+  if(bell) bell.classList.add('enabled');
+  showToast('🔔 Notifiche attive!','Riceverai ogni segnale in tempo reale','green');
+  setTimeout(function(){ sendLocalPush('🔔 IUPPITER attivato','Notifiche segnali attive!'); },1000);
 }
 
 function initPushState(){
