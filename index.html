@@ -590,24 +590,25 @@ function _enablePush(bell){
     pushEnabled=true;
     localStorage.setItem('iup_push','on');
     if(bell) bell.classList.add('enabled');
-    showSystemToast('🔔 Notifiche attivate!','Solo con app aperta','amber');
+    showSystemToast('Solo notifiche locali','ServiceWorker non disponibile','amber');
     return;
   }
+  showSystemToast('Step 1/4','Registro Service Worker...','amber');
   navigator.serviceWorker.register('/sw.js').then(function(reg){
-    // Aspetta che il SW sia attivo
+    showSystemToast('Step 2/4','SW OK, attendo attivazione...','amber');
     return reg.ready;
   }).then(function(reg){
-    // Registra push subscription vera
+    showSystemToast('Step 3/4','Richiedo push subscription...','amber');
     return reg.pushManager.subscribe({
       userVisibleOnly: true,
       applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
     });
   }).then(function(sub){
-    // Salva subscription nel backend
+    showSystemToast('Step 4/4','Subscription OK, salvo nel server...','amber');
     var subJson = sub.toJSON();
     return fetch(API_BASE+'/api/push-subscribe', {
       method: 'POST',
-      headers: {'Content-Type':'application/json'},
+      headers: {'Content-Type':'application/json', 'Authorization': 'Bearer '+token},
       body: JSON.stringify({
         endpoint: subJson.endpoint,
         p256dh: subJson.keys.p256dh,
@@ -615,21 +616,20 @@ function _enablePush(bell){
         userId: localStorage.getItem('iup_user_id') || ''
       })
     });
-  }).then(function(){
+  }).then(function(resp){
+    if(!resp.ok) throw new Error('HTTP '+resp.status);
     pushEnabled=true;
     localStorage.setItem('iup_push','on');
     if(bell) bell.classList.add('enabled');
-    showSystemToast('🔔 Notifiche attivate!','Riceverai i segnali anche con app chiusa 🎯','green');
+    showSystemToast('Push attive!','Riceverai i segnali anche con app chiusa','green');
   }).catch(function(err){
-    console.error('Push subscribe error:', err);
-    // Fallback: notifiche locali (solo con app aperta)
+    var errMsg = err ? (err.message || err.toString()) : 'errore sconosciuto';
+    showSystemToast('Errore push: '+errMsg.substring(0,70),'','red');
     pushEnabled=true;
     localStorage.setItem('iup_push','on');
     if(bell) bell.classList.add('enabled');
-    showSystemToast('🔔 Notifiche attivate!','Solo con app aperta (push completo non disponibile)','amber');
   });
 }
-
 function initPushState(){
   var saved=localStorage.getItem('iup_push');
   var bell=document.getElementById('push-bell-btn');
