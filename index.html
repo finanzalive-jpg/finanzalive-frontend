@@ -513,6 +513,18 @@ var isPWA=window.navigator.standalone===true||window.matchMedia('(display-mode: 
 
 function togglePushNotifications(){
   var bell=document.getElementById('push-bell-btn');
+
+  // ── DEBUG: mostra stato esatto
+  var isStandalone=window.navigator.standalone===true||window.matchMedia('(display-mode: standalone)').matches;
+  var hasNotif='Notification' in window;
+  var notifPerm=hasNotif?Notification.permission:'N/A';
+  showSystemToast(
+    '🔍 Debug campanella',
+    'PWA: '+(isStandalone?'SI':'NO')+' | Notification: '+(hasNotif?'SI':'NO')+' | Permesso: '+notifPerm,
+    'amber'
+  );
+  // Fine debug — rimuovi dopo il test
+
   if(pushEnabled){
     pushEnabled=false;
     localStorage.setItem('iup_push','off');
