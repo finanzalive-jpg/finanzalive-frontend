@@ -587,69 +587,44 @@ function urlBase64ToUint8Array(base64String){
 
 function _enablePush(bell){
   if(!('serviceWorker' in navigator)){
-    pushEnabled=true;
-    localStorage.setItem('iup_push','on');
+    pushEnabled=true; localStorage.setItem('iup_push','on');
     if(bell) bell.classList.add('enabled');
-    showSystemToast('Solo notifiche locali','ServiceWorker non disponibile','amber');
+    showSystemToast('Notifiche locali','Solo con app aperta','amber');
     return;
   }
-  showSystemToast('Step 1/4','Registro Service Worker...','amber');
-  
-  var swReg = null;
-  
+  // Registra SW poi usa navigator.serviceWorker.ready (NON reg.ready)
   navigator.serviceWorker.register('/sw.js')
-  .then(function(reg){
-    swReg = reg;
-    showSystemToast('Step 2/4','SW registrato, attendo attivazione...','amber');
-    // Usa direttamente reg invece di reg.ready per iOS
-    if(reg.active){
-      return Promise.resolve(reg);
-    }
-    return new Promise(function(resolve){
-      var sw = reg.installing || reg.waiting || reg.active;
-      if(!sw){ resolve(reg); return; }
-      sw.addEventListener('statechange', function(){
-        if(sw.state === 'activated' || reg.active) resolve(reg);
-      });
-      setTimeout(function(){ resolve(reg); }, 3000);
-    });
+  .then(function(){
+    showSystemToast('Step 2/4','SW OK, attendo ready...','amber');
+    return navigator.serviceWorker.ready; // <-- chiave: su navigator, non su reg
   })
   .then(function(reg){
-    showSystemToast('Step 3/4','Richiedo push subscription...','amber');
-    // Su iOS usare swReg che è garantito avere pushManager
-    var r = swReg || reg;
-    if(!r.pushManager) throw new Error('pushManager non disponibile su questo browser/dispositivo');
-    return r.pushManager.subscribe({
+    showSystemToast('Step 3/4','pushManager: '+(reg.pushManager?'SI':'NO'),'amber');
+    if(!reg.pushManager) throw new Error('pushManager assente');
+    return reg.pushManager.subscribe({
       userVisibleOnly: true,
       applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
     });
   })
   .then(function(sub){
-    showSystemToast('Step 4/4','Subscription OK, salvo nel server...','amber');
-    var subJson = sub.toJSON();
+    showSystemToast('Step 4/4','Subscription OK, salvo...','amber');
+    var k = sub.toJSON().keys;
     return fetch(API_BASE+'/api/push-subscribe', {
-      method: 'POST',
-      headers: {'Content-Type':'application/json', 'Authorization': 'Bearer '+token},
-      body: JSON.stringify({
-        endpoint: subJson.endpoint,
-        p256dh: subJson.keys.p256dh,
-        auth: subJson.keys.auth,
-        userId: localStorage.getItem('iup_user_id') || ''
-      })
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
+      body: JSON.stringify({endpoint:sub.endpoint, p256dh:k.p256dh, auth:k.auth})
     });
   })
-  .then(function(resp){
-    if(!resp.ok) throw new Error('HTTP '+resp.status);
-    pushEnabled=true;
-    localStorage.setItem('iup_push','on');
+  .then(function(r){
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    pushEnabled=true; localStorage.setItem('iup_push','on');
     if(bell) bell.classList.add('enabled');
-    showSystemToast('Push attive!','Riceverai i segnali anche con app chiusa','green');
+    showSystemToast('Push attive!','Arrivano anche con app chiusa','green');
   })
   .catch(function(err){
-    var errMsg = err ? (err.message || err.toString()) : 'errore sconosciuto';
-    showSystemToast('Errore: '+errMsg.substring(0,70),'','red');
-    pushEnabled=true;
-    localStorage.setItem('iup_push','on');
+    var m=err?(err.message||String(err)):'?';
+    showSystemToast('Errore: '+m.substring(0,70),'','red');
+    pushEnabled=true; localStorage.setItem('iup_push','on');
     if(bell) bell.classList.add('enabled');
   });
 }
