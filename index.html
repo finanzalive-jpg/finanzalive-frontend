@@ -594,16 +594,37 @@ function _enablePush(bell){
     return;
   }
   showSystemToast('Step 1/4','Registro Service Worker...','amber');
-  navigator.serviceWorker.register('/sw.js').then(function(reg){
-    showSystemToast('Step 2/4','SW OK, attendo attivazione...','amber');
-    return reg.ready;
-  }).then(function(reg){
+  
+  var swReg = null;
+  
+  navigator.serviceWorker.register('/sw.js')
+  .then(function(reg){
+    swReg = reg;
+    showSystemToast('Step 2/4','SW registrato, attendo attivazione...','amber');
+    // Usa direttamente reg invece di reg.ready per iOS
+    if(reg.active){
+      return Promise.resolve(reg);
+    }
+    return new Promise(function(resolve){
+      var sw = reg.installing || reg.waiting || reg.active;
+      if(!sw){ resolve(reg); return; }
+      sw.addEventListener('statechange', function(){
+        if(sw.state === 'activated' || reg.active) resolve(reg);
+      });
+      setTimeout(function(){ resolve(reg); }, 3000);
+    });
+  })
+  .then(function(reg){
     showSystemToast('Step 3/4','Richiedo push subscription...','amber');
-    return reg.pushManager.subscribe({
+    // Su iOS usare swReg che è garantito avere pushManager
+    var r = swReg || reg;
+    if(!r.pushManager) throw new Error('pushManager non disponibile su questo browser/dispositivo');
+    return r.pushManager.subscribe({
       userVisibleOnly: true,
       applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
     });
-  }).then(function(sub){
+  })
+  .then(function(sub){
     showSystemToast('Step 4/4','Subscription OK, salvo nel server...','amber');
     var subJson = sub.toJSON();
     return fetch(API_BASE+'/api/push-subscribe', {
@@ -616,15 +637,17 @@ function _enablePush(bell){
         userId: localStorage.getItem('iup_user_id') || ''
       })
     });
-  }).then(function(resp){
+  })
+  .then(function(resp){
     if(!resp.ok) throw new Error('HTTP '+resp.status);
     pushEnabled=true;
     localStorage.setItem('iup_push','on');
     if(bell) bell.classList.add('enabled');
     showSystemToast('Push attive!','Riceverai i segnali anche con app chiusa','green');
-  }).catch(function(err){
+  })
+  .catch(function(err){
     var errMsg = err ? (err.message || err.toString()) : 'errore sconosciuto';
-    showSystemToast('Errore push: '+errMsg.substring(0,70),'','red');
+    showSystemToast('Errore: '+errMsg.substring(0,70),'','red');
     pushEnabled=true;
     localStorage.setItem('iup_push','on');
     if(bell) bell.classList.add('enabled');
