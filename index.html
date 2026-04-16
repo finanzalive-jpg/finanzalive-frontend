@@ -188,7 +188,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
 .spinner{text-align:center;padding:2rem;color:var(--muted);font-size:13px;}
 
 /* ── PUSH NOTIFICATION BELL ── */
-.push-bell{background:none;border:1px solid var(--border);border-radius:8px;width:34px;height:34px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px;position:relative;transition:all .2s;}
+.push-bell{background:none;border:1px solid var(--border);border-radius:8px;width:34px;height:34px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px;position:relative;transition:all .2s;-webkit-tap-highlight-color:transparent;}
 .push-bell:hover{border-color:var(--gold);background:var(--gold-dim);}
 .push-bell.enabled{border-color:var(--green);background:rgba(29,185,122,0.08);}
 .push-bell .bell-dot{position:absolute;top:5px;right:6px;width:7px;height:7px;border-radius:50%;background:var(--red);border:1.5px solid var(--bg2);display:none;}
@@ -222,6 +222,10 @@ tr:hover td{background:rgba(255,255,255,0.02);}
   /* Tabelle responsive → card stacked su mobile */
   .tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:10px;}
   .tbl-wrap table{min-width:520px;}
+  /* Dashboard bottom grid → colonna singola su mobile */
+  .dash-bottom-grid{grid-template-columns:1fr !important;}
+  /* Nessun elemento deve uscire dallo schermo */
+  .card, .kpi, .svc-card{max-width:100%;}
   
   /* Card compatte per storico operazioni */
   .trades-mobile-list{display:flex;flex-direction:column;gap:8px;}
@@ -285,7 +289,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
       <div class="live-dot"></div>
       <span style="font-size:11px;color:var(--green)">LIVE</span>
       <span style="font-size:13px;color:var(--muted)" id="user-label"></span>
-      <button class="push-bell" id="push-bell-btn" onclick="togglePushNotifications()" title="Notifiche segnali">
+      <button class="push-bell" id="push-bell-btn" onclick="togglePushNotifications()" aria-label="Notifiche segnali">
         🔔<span class="bell-dot"></span>
       </button>
       <button class="logout-btn" id="theme-btn" onclick="toggleTheme()">&#x2600;&#xFE0F;</button>
@@ -366,7 +370,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
           <div class="card-title">Ultimi segnali <span class="card-title-live">&#x25CF; live</span></div>
           <div id="dash-feed"><div class="spinner">Caricamento...</div></div>
         </div>
-        <div style="display:grid;grid-template-columns:2fr 1fr;gap:1rem;">
+        <div style="display:grid;grid-template-columns:2fr 1fr;gap:1rem;" class="dash-bottom-grid">
           <div class="card" style="margin-bottom:0">
             <div class="card-title">&#x1F4C5; Calendario economico <span style="font-size:10px;color:var(--amber)">&#x25CF; questa settimana</span></div>
             <div id="cal-content"><div class="spinner">Caricamento...</div></div>
@@ -487,50 +491,69 @@ document.addEventListener('click',function(e){
 // ── PUSH NOTIFICATIONS ────────────────────────────────────────────────────────
 var pushEnabled=false;
 
+// Rileva iOS
+var isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent)&&!window.MSStream;
+// Rileva se è installata come PWA (standalone)
+var isPWA=window.navigator.standalone===true||window.matchMedia('(display-mode: standalone)').matches;
+
 async function togglePushNotifications(){
   var bell=document.getElementById('push-bell-btn');
+
+  // Se già attive → disabilita
   if(pushEnabled){
-    // Disabilita
     pushEnabled=false;
     localStorage.setItem('iup_push','off');
     bell.classList.remove('enabled');
-    bell.title='Attiva notifiche segnali';
     showToast('🔕 Notifiche disabilitate','','amber');
     return;
   }
-  // Chiedi permesso
+
+  // iOS Safari: Notification non disponibile → spiega come installarla
   if(!('Notification' in window)){
-    showToast('⚠️ Notifiche non supportate','Usa Chrome o Safari 16.4+','amber');
-    return;
-  }
-  var perm=await Notification.requestPermission();
-  if(perm!=='granted'){
-    showToast('🔕 Permesso negato','Abilita le notifiche nelle impostazioni del browser','red');
-    return;
-  }
-  // Registra service worker
-  if('serviceWorker' in navigator){
-    try{
-      await navigator.serviceWorker.register('/sw.js');
-      var reg=await navigator.serviceWorker.ready;
-      pushEnabled=true;
-      localStorage.setItem('iup_push','on');
-      bell.classList.add('enabled');
-      bell.title='Notifiche attive — clicca per disabilitare';
-      showToast('🔔 Notifiche attive!','Riceverai i segnali IUPPITER in tempo reale','green');
-    } catch(e){
-      // Fallback: notifiche browser senza SW
-      pushEnabled=true;
-      localStorage.setItem('iup_push','on');
-      bell.classList.add('enabled');
-      showToast('🔔 Notifiche attive!','','green');
+    if(isIOS && !isPWA){
+      showToast('📱 Installa l\'app prima','Safari → Condividi → Aggiungi a schermata Home, poi attiva le notifiche','amber');
+    } else {
+      showToast('⚠️ Notifiche non supportate','Usa Chrome su Android o Safari 16.4+ con app installata','amber');
     }
-  } else {
-    pushEnabled=true;
-    localStorage.setItem('iup_push','on');
-    bell.classList.add('enabled');
-    showToast('🔔 Notifiche attive!','','green');
+    return;
   }
+
+  // iOS PWA: richiedi permesso
+  var perm;
+  try {
+    perm = await Notification.requestPermission();
+  } catch(e) {
+    // Safari vecchio usa callback invece di promise
+    perm = await new Promise(function(resolve){
+      Notification.requestPermission(resolve);
+    });
+  }
+
+  if(perm !== 'granted'){
+    if(perm === 'denied'){
+      showToast('🔕 Notifiche bloccate','Vai in Impostazioni → IUPPITER → Notifiche → Consenti','red');
+    } else {
+      showToast('🔕 Permesso non concesso','Riprova e accetta la richiesta di notifica','amber');
+    }
+    return;
+  }
+
+  // Registra service worker se disponibile
+  if('serviceWorker' in navigator){
+    try {
+      await navigator.serviceWorker.register('/sw.js');
+    } catch(e){ /* ignora, non blocca */ }
+  }
+
+  pushEnabled=true;
+  localStorage.setItem('iup_push','on');
+  bell.classList.add('enabled');
+  showToast('🔔 Notifiche attive!','Riceverai ogni segnale IUPPITER in tempo reale','green');
+
+  // Test notifica immediata
+  setTimeout(function(){
+    sendLocalPush('🔔 IUPPITER attivato','Le notifiche dei segnali sono ora attive!');
+  }, 500);
 }
 
 function initPushState(){
