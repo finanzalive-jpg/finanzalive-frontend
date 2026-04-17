@@ -665,7 +665,24 @@ function openClientModal(cid,name){
     (client.subscriptions||[]).forEach(function(s){
       if(s.services&&s.services.code) subsMap[s.services.code]=s;
     });
-    var html='<p style="font-size:12px;color:var(--muted);margin-bottom:12px">Attiva / disattiva servizi e imposta scadenze</p>';
+    // ── SEZIONE PASSWORD ──
+    var pwdSection = '<div style="background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:16px">';
+    pwdSection += '<div style="font-size:11px;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px">🔑 Credenziali accesso</div>';
+    pwdSection += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">';
+    pwdSection += '<span style="font-size:12px;color:var(--muted)">Email:</span>';
+    pwdSection += '<span style="font-size:12px;font-weight:600">'+escHtml(client.email||'—')+'</span>';
+    pwdSection += '</div>';
+    pwdSection += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">';
+    pwdSection += '<span style="font-size:12px;color:var(--muted)">Password attuale:</span>';
+    pwdSection += '<span style="font-size:12px;font-weight:600;background:var(--bg2);padding:3px 10px;border-radius:5px;border:1px solid var(--border);font-family:monospace">'+(client.temp_password||'<span style="color:var(--muted);font-style:italic">non disponibile</span>')+'</span>';
+    pwdSection += '</div>';
+    pwdSection += '<div style="display:flex;gap:8px;align-items:center">';
+    pwdSection += '<input type="text" id="new-client-pass" placeholder="Nuova password (min 6 car.)" style="flex:1;background:var(--bg2);border:1px solid var(--border);border-radius:7px;padding:7px 10px;color:var(--text);font-size:12px;outline:none">';
+    pwdSection += '<button class="btn sm green" onclick="resetClientPassword(''+cid+'')">Reset</button>';
+    pwdSection += '</div>';
+    pwdSection += '</div>';
+
+    var html = pwdSection + '<p style="font-size:12px;color:var(--muted);margin-bottom:12px">Attiva / disattiva servizi e imposta scadenze</p>';
     // Itera SVC_NAMES — include automaticamente tutti i servizi registrati
     Object.keys(SVC_NAMES).forEach(function(code){
       var sub=subsMap[code];
@@ -688,6 +705,24 @@ function openClientModal(cid,name){
     });
     document.getElementById('modal-body').innerHTML=html;
   });
+}
+
+function resetClientPassword(cid){
+  var np = document.getElementById('new-client-pass').value.trim();
+  if(!np||np.length<6){showToast('Password minimo 6 caratteri',false);return;}
+  var btn = event.target;
+  btn.disabled=true; btn.textContent='...';
+  adminApi('/admin/client/'+cid+'/password','PATCH',{password:np}).then(function(r){
+    if(r&&r.ok){
+      showToast('✅ Password aggiornata: '+np);
+      document.getElementById('new-client-pass').value='';
+      var name=document.getElementById('modal-title').textContent.replace('Gestione — ','');
+      openClientModal(cid,name); // ricarica modal con nuova password
+    } else {
+      showToast('Errore reset password',false);
+    }
+    btn.disabled=false; btn.textContent='Reset';
+  }).catch(function(){showToast('Errore reset password',false);btn.disabled=false;btn.textContent='Reset';});
 }
 
 function toggleSubModal(cid,code,active,btn){
