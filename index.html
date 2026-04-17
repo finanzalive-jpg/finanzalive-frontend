@@ -429,6 +429,21 @@ tr:hover td{background:rgba(255,255,255,0.02);}
         <div class="pg-sub">Le tue informazioni e abbonamenti</div>
         <div class="card"><div class="card-title">Dati account</div><div id="profile-info"></div></div>
         <div class="card" style="margin-top:1rem;"><div class="card-title">Abbonamenti attivi</div><div id="profile-subs"></div></div>
+        <div class="card" style="margin-top:1rem;">
+          <div class="card-title">🔑 Cambia password</div>
+          <div style="display:flex;flex-direction:column;gap:10px;max-width:380px">
+            <div>
+              <label style="font-size:11px;color:var(--muted);display:block;margin-bottom:4px">Nuova password</label>
+              <input type="password" id="new-pass-input" placeholder="Minimo 6 caratteri" style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-size:13px;outline:none">
+            </div>
+            <div>
+              <label style="font-size:11px;color:var(--muted);display:block;margin-bottom:4px">Conferma nuova password</label>
+              <input type="password" id="new-pass-confirm" placeholder="Ripeti la password" style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-size:13px;outline:none">
+            </div>
+            <div id="pass-change-msg" style="font-size:12px;min-height:16px"></div>
+            <button onclick="changePassword()" style="background:linear-gradient(135deg,var(--gold),var(--gold2));color:#0a0a0c;border:none;border-radius:8px;padding:10px 20px;font-size:13px;font-weight:700;cursor:pointer;width:fit-content">Aggiorna password</button>
+          </div>
+        </div>
       </div>
 
     </div>
@@ -1004,6 +1019,33 @@ function showSystemToast(title, body, type){
   c.appendChild(t);
   setTimeout(function(){t.classList.add('show');},50);
   setTimeout(function(){t.classList.add('hide');setTimeout(function(){if(t.parentElement)t.remove();},400);},7000);
+}
+
+function changePassword(){
+  var np = document.getElementById('new-pass-input').value;
+  var nc = document.getElementById('new-pass-confirm').value;
+  var msg = document.getElementById('pass-change-msg');
+  if(!np||np.length<6){msg.style.color='var(--red)';msg.textContent='Password minimo 6 caratteri';return;}
+  if(np!==nc){msg.style.color='var(--red)';msg.textContent='Le password non corrispondono';return;}
+  msg.style.color='var(--muted)';msg.textContent='Aggiornamento in corso...';
+  fetch(API_BASE+'/api/change-password',{
+    method:'PATCH',
+    headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
+    body:JSON.stringify({new_password:np})
+  }).then(function(r){return r.json();}).then(function(r){
+    if(r&&r.ok){
+      msg.style.color='var(--green)';
+      msg.textContent='✅ Password aggiornata con successo!';
+      document.getElementById('new-pass-input').value='';
+      document.getElementById('new-pass-confirm').value='';
+    } else {
+      msg.style.color='var(--red)';
+      msg.textContent='Errore durante aggiornamento';
+    }
+  }).catch(function(){
+    msg.style.color='var(--red)';
+    msg.textContent='Errore di connessione';
+  });
 }
 
 function showPage(name){
