@@ -3,23 +3,19 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="IUPPITER">
 <title>IUPPITER — Risultati Live & Download App</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <style>
-:root{
-  --bg:#0a0a0c; --bg2:#111318; --bg3:#1a1d27;
-  --border:rgba(255,255,255,0.07);
-  --text:#e8e6df; --muted:#7a7870;
-  --gold:#c9a84c; --gold2:#e8c96a; --gold-dim:rgba(201,168,76,0.10);
-  --green:#1db97a; --red:#e84b4a;
-}
+:root{--bg:#0a0a0c;--bg2:#111318;--bg3:#1a1d27;--border:rgba(255,255,255,0.07);--text:#e8e6df;--muted:#7a7870;--gold:#c9a84c;--gold2:#e8c96a;--gold-dim:rgba(201,168,76,0.10);--green:#1db97a;--red:#e84b4a;}
 *{box-sizing:border-box;margin:0;padding:0;}
 body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:14px;overflow-x:hidden;}
 
 /* HERO */
 .hero{background:radial-gradient(ellipse at 50% 0%,rgba(201,168,76,0.12) 0%,transparent 65%);padding:3rem 1.5rem 2.5rem;text-align:center;}
 .hero-logo{display:flex;align-items:center;justify-content:center;gap:14px;margin-bottom:2rem;}
-.logo-img{width:56px;height:56px;border-radius:14px;background:linear-gradient(135deg,var(--gold),var(--gold2));display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:900;color:#0a0a0c;flex-shrink:0;}
+.logo-img{width:56px;height:56px;border-radius:14px;background:linear-gradient(135deg,var(--gold),var(--gold2));display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:900;color:#0a0a0c;}
 .logo-text{font-size:28px;font-weight:900;color:var(--gold);letter-spacing:2px;}
 .hero h1{font-size:clamp(1.6rem,5vw,2.8rem);font-weight:800;line-height:1.15;margin-bottom:1rem;}
 .hero h1 span{color:var(--gold);}
@@ -28,15 +24,13 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSy
 .live-dot{width:7px;height:7px;border-radius:50%;background:var(--green);animation:pulse 2s infinite;}
 @keyframes pulse{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(29,185,122,0.4);}50%{box-shadow:0 0 0 6px rgba(29,185,122,0);}}
 
-/* STATS GLOBAL */
+/* STATS */
 .stats-section{padding:1.5rem;max-width:900px;margin:0 auto;}
 .section-title{font-size:11px;font-weight:800;color:var(--gold);text-transform:uppercase;letter-spacing:.12em;margin-bottom:1rem;}
 .kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:2rem;}
 .kpi{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:1.1rem 1.2rem;text-align:center;}
 .kpi-val{font-size:22px;font-weight:800;color:var(--gold);margin-bottom:2px;}
 .kpi-lbl{font-size:11px;color:var(--muted);font-weight:600;}
-
-/* SERVICE CARDS */
 .services-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;margin-bottom:2rem;}
 .svc-card{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:1.3rem;transition:border-color .2s;}
 .svc-card:hover{border-color:rgba(201,168,76,0.3);}
@@ -52,12 +46,95 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSy
 .svc-pnl-neg{color:var(--red);}
 .svc-wr{height:4px;background:var(--bg3);border-radius:2px;overflow:hidden;margin-top:.5rem;}
 .svc-wr-fill{height:100%;background:linear-gradient(90deg,var(--green),#2ecc71);border-radius:2px;transition:width 1s ease;}
-
-/* EQUITY CHART */
 .chart-card{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:1.3rem;margin-bottom:2rem;}
 .chart-wrap{height:220px;position:relative;}
 
-/* DOWNLOAD SECTION */
+/* ═══ TOUR ═══ */
+.tour-section{max-width:960px;margin:0 auto 3rem;padding:0 1.5rem;}
+.tour-tagline{font-size:14px;color:var(--muted);margin-bottom:1.5rem;}
+.browser-chrome{background:#1a1d27;border-radius:14px 14px 0 0;padding:10px 16px;display:flex;align-items:center;gap:10px;border:1px solid rgba(255,255,255,0.06);border-bottom:none;}
+.browser-dots{display:flex;gap:6px;}
+.browser-dots span{width:10px;height:10px;border-radius:50%;}
+.d-red{background:#e84b4a;}.d-yel{background:#f0a030;}.d-grn{background:#1db97a;}
+.browser-bar{background:var(--bg2);border-radius:6px;flex:1;padding:5px 12px;font-size:11px;color:var(--muted);display:flex;align-items:center;gap:6px;}
+.browser-bar::before{content:'🔒';font-size:10px;}
+.screen-wrap{background:var(--bg);border:1px solid rgba(255,255,255,0.06);border-top:none;border-radius:0 0 14px 14px;overflow:hidden;position:relative;height:520px;}
+.screen-slide{position:absolute;inset:0;opacity:0;transition:opacity .7s ease;overflow:hidden;}
+.screen-slide.active{opacity:1;}
+.tour-progress{position:absolute;bottom:0;left:0;height:2px;background:var(--gold);transition:width .1s linear;z-index:10;}
+/* Mini components */
+.mini-topbar{background:var(--bg2);border-bottom:1px solid var(--border);padding:10px 16px;display:flex;align-items:center;justify-content:space-between;}
+.mini-brand{font-size:13px;font-weight:900;color:var(--gold);letter-spacing:1px;}
+.mini-live{display:flex;align-items:center;gap:5px;font-size:10px;color:var(--green);}
+.mini-live-dot{width:6px;height:6px;border-radius:50%;background:var(--green);animation:pulse 2s infinite;}
+.mini-avatar{width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,var(--gold),var(--gold2));display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:900;color:#0a0a0c;}
+.mini-sidebar{width:160px;background:var(--bg2);border-right:1px solid var(--border);padding:.8rem 0;flex-shrink:0;height:100%;}
+.mini-nav{display:flex;align-items:center;gap:7px;padding:7px 12px;font-size:11px;color:var(--muted);}
+.mini-nav.active{color:var(--gold);background:var(--gold-dim);border-left:2px solid var(--gold);}
+.mini-main{flex:1;padding:14px;overflow:hidden;}
+.mini-layout{display:flex;height:calc(100% - 40px);}
+.mini-pg-title{font-size:16px;font-weight:700;margin-bottom:12px;}
+.mini-kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px;}
+.mini-kpi{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:8px;text-align:center;}
+.mini-kpi-val{font-size:13px;font-weight:800;color:var(--gold);}
+.mini-kpi-lbl{font-size:9px;color:var(--muted);}
+.mini-card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:8px;}
+.mini-card-title{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;}
+.tag-green{background:rgba(29,185,122,0.15);color:var(--green);padding:2px 7px;border-radius:4px;font-size:9px;font-weight:700;}
+.tag-red{background:rgba(232,75,74,0.15);color:var(--red);padding:2px 7px;border-radius:4px;font-size:9px;font-weight:700;}
+.tag-gold{background:rgba(201,168,76,0.15);color:var(--gold);padding:2px 7px;border-radius:4px;font-size:9px;font-weight:700;}
+.svc-mini-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;}
+.svc-mini{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:10px;position:relative;overflow:hidden;}
+.svc-mini-img{width:32px;height:32px;border-radius:7px;object-fit:cover;background:#f5f0e8;margin-bottom:6px;}
+.svc-mini-name{font-size:11px;font-weight:700;color:var(--text);}
+.svc-mini-pnl{font-size:10px;color:var(--green);font-weight:600;}
+.svc-mini-badge{position:absolute;top:8px;right:8px;font-size:8px;}
+.trade-row{display:grid;grid-template-columns:60px 55px auto 65px 55px;gap:6px;align-items:center;padding:7px 0;border-bottom:1px solid var(--border);font-size:10px;}
+.trade-row:last-child{border-bottom:none;}
+.dir-buy{color:var(--green);font-weight:700;}
+.dir-sell{color:var(--red);font-weight:700;}
+.pnl-pos{color:var(--green);font-weight:700;text-align:right;}
+.pnl-neg{color:var(--red);font-weight:700;text-align:right;}
+.signal-item{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;margin-bottom:6px;display:flex;align-items:flex-start;gap:10px;}
+.signal-icon{font-size:20px;flex-shrink:0;}
+.signal-svc{font-size:10px;font-weight:700;color:var(--gold);}
+.signal-text{font-size:11px;color:var(--text);margin:2px 0;}
+.signal-time{font-size:9px;color:var(--muted);}
+/* Phone */
+.phone-wrap{display:flex;justify-content:center;align-items:center;height:100%;gap:40px;}
+.phone-frame{width:200px;height:400px;background:#0a0a0c;border-radius:32px;border:6px solid #2a2a2a;box-shadow:0 20px 60px rgba(0,0,0,0.6);overflow:hidden;position:relative;}
+.phone-notch{position:absolute;top:0;left:50%;transform:translateX(-50%);width:80px;height:20px;background:#2a2a2a;border-radius:0 0 12px 12px;z-index:10;}
+.phone-topbar{background:var(--bg2);padding:24px 10px 8px;display:flex;align-items:center;justify-content:space-between;}
+.phone-brand{font-size:10px;font-weight:900;color:var(--gold);}
+.phone-content{padding:8px;}
+.phone-kpi-row{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-bottom:8px;}
+.phone-kpi{background:var(--bg2);border-radius:7px;padding:7px;text-align:center;}
+.phone-kpi-val{font-size:13px;font-weight:800;color:var(--gold);}
+.phone-kpi-lbl{font-size:8px;color:var(--muted);}
+.phone-svc{background:var(--bg2);border-radius:7px;padding:8px;margin-bottom:5px;display:flex;align-items:center;gap:6px;}
+.phone-svc-img{width:26px;height:26px;border-radius:5px;background:#f5f0e8;object-fit:cover;}
+.phone-svc-name{font-size:9px;font-weight:700;color:var(--text);}
+.phone-svc-pnl{font-size:9px;color:var(--green);}
+.phone-bottom-nav{position:absolute;bottom:0;left:0;right:0;background:var(--bg2);border-top:1px solid var(--border);display:flex;justify-content:space-around;padding:6px 0;}
+.phone-nav-item{text-align:center;font-size:7px;color:var(--muted);}
+.phone-nav-item.active{color:var(--gold);}
+.phone-nav-icon{font-size:14px;display:block;}
+.phone-push{position:absolute;top:24px;left:8px;right:8px;background:rgba(17,19,24,0.95);border-radius:10px;border:1px solid rgba(201,168,76,0.3);padding:8px 10px;z-index:20;display:flex;align-items:center;gap:8px;opacity:0;transition:opacity .5s ease;}
+.phone-push.show{opacity:1;}
+.phone-push-icon{font-size:18px;flex-shrink:0;}
+.phone-push-title{font-size:9px;font-weight:700;color:var(--gold);}
+.phone-push-body{font-size:8px;color:var(--muted);}
+/* Tour controls */
+.tour-controls{display:flex;align-items:center;justify-content:space-between;margin-top:10px;}
+.tour-dots{display:flex;gap:8px;}
+.tour-dot{width:8px;height:8px;border-radius:50%;background:var(--muted);cursor:pointer;transition:all .3s;border:none;padding:0;}
+.tour-dot.active{background:var(--gold);transform:scale(1.3);}
+.tour-btns{display:flex;gap:8px;}
+.tour-btn{background:var(--bg2);border:1px solid var(--border);color:var(--muted);border-radius:8px;padding:6px 14px;cursor:pointer;font-size:12px;transition:all .2s;}
+.tour-btn:hover{border-color:var(--gold);color:var(--gold);}
+.tour-label{font-size:12px;color:var(--muted);}
+
+/* DOWNLOAD */
 .download-section{background:linear-gradient(135deg,rgba(201,168,76,0.08),rgba(201,168,76,0.03));border:1px solid rgba(201,168,76,0.2);border-radius:20px;padding:2.5rem 1.5rem;text-align:center;margin:0 1.5rem 2rem;max-width:900px;margin-left:auto;margin-right:auto;}
 .download-section h2{font-size:1.5rem;font-weight:800;margin-bottom:.5rem;}
 .download-section p{color:var(--muted);font-size:14px;margin-bottom:2rem;}
@@ -73,29 +150,26 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSy
 .pwa-step{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:1rem;}
 .pwa-step-num{font-size:20px;font-weight:900;color:var(--gold);margin-bottom:4px;}
 .pwa-step-text{font-size:12px;color:var(--muted);}
-
-/* LOGIN CTA */
 .cta-section{text-align:center;padding:2rem 1.5rem 3rem;}
 .cta-section p{color:var(--muted);margin-bottom:1rem;font-size:14px;}
 .btn-cta{display:inline-block;background:linear-gradient(135deg,var(--gold),var(--gold2));color:#0a0a0c;font-weight:800;font-size:15px;padding:14px 36px;border-radius:12px;text-decoration:none;transition:opacity .2s;}
 .btn-cta:hover{opacity:.88;}
-
-/* FOOTER */
 footer{background:var(--bg2);border-top:1px solid var(--border);padding:1.5rem;text-align:center;color:var(--muted);font-size:12px;}
 
-/* MOBILE */
 @media(max-width:600px){
   .hero{padding:2rem 1rem 1.5rem;}
   .kpi-grid{grid-template-columns:1fr 1fr;}
   .pwa-steps{grid-template-columns:1fr;}
   .download-btns{flex-direction:column;align-items:center;}
   .dl-btn{width:100%;max-width:300px;justify-content:center;}
+  .screen-wrap{height:420px;}
+  .mini-sidebar{display:none;}
+  .phone-frame{width:160px;height:320px;}
 }
 </style>
 </head>
 <body>
 
-<!-- HERO -->
 <div class="hero">
   <div class="hero-logo">
     <div class="logo-img">I</div>
@@ -106,40 +180,228 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:1.5rem;t
   <p>Segnali su Gold, Indici e Forex generati da algoritmi proprietari. Risultati reali, trasparenti, verificabili.</p>
 </div>
 
-<!-- KPI GLOBALI -->
 <div class="stats-section">
   <div class="section-title">Performance globale</div>
-  <div class="kpi-grid" id="kpi-global">
+  <div class="kpi-grid">
     <div class="kpi"><div class="kpi-val" id="kpi-tot-pnl">...</div><div class="kpi-lbl">PNL Totale €</div></div>
     <div class="kpi"><div class="kpi-val" id="kpi-tot-trades">...</div><div class="kpi-lbl">Operazioni chiuse</div></div>
     <div class="kpi"><div class="kpi-val" id="kpi-wr">...</div><div class="kpi-lbl">Win Rate</div></div>
-    <div class="kpi"><div class="kpi-val" id="kpi-from">dal 2022</div><div class="kpi-lbl">Track record</div></div>
+    <div class="kpi"><div class="kpi-val">dal 2022</div><div class="kpi-lbl">Track record</div></div>
   </div>
-
-  <!-- EQUITY CHART -->
   <div class="chart-card">
     <div class="section-title">Equity curve — Gold (ultimi 60 trade)</div>
     <div class="chart-wrap"><canvas id="equity-chart"></canvas></div>
   </div>
-
-  <!-- SERVIZI -->
   <div class="section-title">Risultati per servizio</div>
-  <div class="services-grid" id="services-grid">
-    <div style="color:var(--muted);font-size:13px;padding:1rem;">Caricamento...</div>
+  <div class="services-grid" id="services-grid"><div style="color:var(--muted);font-size:13px;padding:1rem;">Caricamento...</div></div>
+</div>
+
+<!-- ═══ TOUR PIATTAFORMA ═══ -->
+<div class="tour-section">
+  <div class="section-title">Tour della piattaforma</div>
+  <div class="tour-tagline">Scopri come appare IUPPITER dall'interno — dalla dashboard ai segnali live</div>
+
+  <div class="browser-chrome">
+    <div class="browser-dots"><span class="d-red"></span><span class="d-yel"></span><span class="d-grn"></span></div>
+    <div class="browser-bar" id="tourUrl">finanzalive-frontend.vercel.app</div>
+    <span style="font-size:11px;color:var(--muted)" id="tourLabelTop">Dashboard</span>
+  </div>
+
+  <div class="screen-wrap">
+    <div class="tour-progress" id="tourProgress" style="width:0%"></div>
+
+    <!-- S1: DASHBOARD -->
+    <div class="screen-slide active" id="screen-1">
+      <div class="mini-topbar">
+        <div class="mini-brand">IUPPITER</div>
+        <div class="mini-live"><span class="mini-live-dot"></span> LIVE <span style="color:var(--muted);margin-left:4px">santino fantocchi</span></div>
+        <div style="display:flex;align-items:center;gap:8px"><span style="font-size:16px">🔔</span><div class="mini-avatar">S</div></div>
+      </div>
+      <div class="mini-layout">
+        <div class="mini-sidebar">
+          <div class="mini-nav active">⊞ Dashboard</div>
+          <div class="mini-nav">⚡ Segnali Live</div>
+          <div style="font-size:9px;font-weight:800;color:var(--gold);padding:12px 12px 4px;letter-spacing:.1em">SERVIZI</div>
+          <div class="mini-nav">🥇 Sala Gold</div>
+          <div class="mini-nav">📈 Indici World</div>
+          <div class="mini-nav">💱 Sala Forex</div>
+          <div class="mini-nav">💼 Fondo PAMM</div>
+          <div class="mini-nav">📅 Vanilla Mensile</div>
+          <div class="mini-nav">⚡ Vanilla Weekly</div>
+        </div>
+        <div class="mini-main">
+          <div class="mini-pg-title">Benvenuto, santino 👋</div>
+          <div class="mini-kpi-row">
+            <div class="mini-kpi"><div class="mini-kpi-val" style="color:var(--green)">+€9.775</div><div class="mini-kpi-lbl">PNL Totale</div></div>
+            <div class="mini-kpi"><div class="mini-kpi-val">2.573</div><div class="mini-kpi-lbl">Operazioni</div></div>
+            <div class="mini-kpi"><div class="mini-kpi-val">2</div><div class="mini-kpi-lbl">Aperte ora</div></div>
+            <div class="mini-kpi"><div class="mini-kpi-val" style="color:var(--green)">67%</div><div class="mini-kpi-lbl">Win Rate</div></div>
+          </div>
+          <div class="svc-mini-grid">
+            <div class="svc-mini"><img class="svc-mini-img" src="https://raw.githubusercontent.com/finanzalive-jpg/finanzalive-frontend/main/gold%20logo.jpg" onerror="this.style.display='none'"><div class="svc-mini-name">Sala Gold</div><div class="svc-mini-pnl">+€4.183 · 1891 op.</div><span class="svc-mini-badge tag-green">Attivo</span></div>
+            <div class="svc-mini"><img class="svc-mini-img" src="https://raw.githubusercontent.com/finanzalive-jpg/finanzalive-frontend/main/indici_world_logo.jpg" onerror="this.style.display='none'"><div class="svc-mini-name">Indici World</div><div class="svc-mini-pnl">+€3.514 · 596 op.</div><span class="svc-mini-badge tag-green">Attivo</span></div>
+            <div class="svc-mini"><img class="svc-mini-img" src="https://raw.githubusercontent.com/finanzalive-jpg/finanzalive-frontend/main/forex%20logo.jpg" onerror="this.style.display='none'"><div class="svc-mini-name">Sala Forex</div><div class="svc-mini-pnl">+€2.079 · 86 op.</div><span class="svc-mini-badge tag-green">Attivo</span></div>
+            <div class="svc-mini"><img class="svc-mini-img" src="https://raw.githubusercontent.com/finanzalive-jpg/finanzalive-frontend/main/fondo%20paam.jpg" onerror="this.style.display='none'"><div class="svc-mini-name">Fondo PAMM</div><div class="svc-mini-pnl">+€91 · 200 op.</div><span class="svc-mini-badge tag-green">Attivo</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- S2: SALA GOLD -->
+    <div class="screen-slide" id="screen-2">
+      <div class="mini-topbar">
+        <div style="display:flex;align-items:center;gap:8px"><img style="width:28px;height:28px;border-radius:6px;object-fit:cover;background:#f5f0e8" src="https://raw.githubusercontent.com/finanzalive-jpg/finanzalive-frontend/main/gold%20logo.jpg" onerror="this.style.display='none'"><div class="mini-brand">Sala Gold</div></div>
+        <div class="mini-live"><span class="mini-live-dot"></span> LIVE</div>
+        <span class="tag-green">1 APERTA</span>
+      </div>
+      <div class="mini-layout">
+        <div class="mini-sidebar">
+          <div class="mini-nav">⊞ Dashboard</div>
+          <div class="mini-nav active">🥇 Sala Gold</div>
+          <div class="mini-nav">📈 Indici World</div>
+          <div class="mini-nav">💱 Sala Forex</div>
+          <div class="mini-nav">💼 Fondo PAMM</div>
+        </div>
+        <div class="mini-main">
+          <div class="mini-kpi-row">
+            <div class="mini-kpi"><div class="mini-kpi-val" style="color:var(--green)">+€4.183</div><div class="mini-kpi-lbl">PNL Totale</div></div>
+            <div class="mini-kpi"><div class="mini-kpi-val">1.891</div><div class="mini-kpi-lbl">Operazioni</div></div>
+            <div class="mini-kpi"><div class="mini-kpi-val">73%</div><div class="mini-kpi-lbl">Win Rate</div></div>
+            <div class="mini-kpi"><div class="mini-kpi-val" style="color:var(--gold)">€4.846</div><div class="mini-kpi-lbl">Prezzo ora</div></div>
+          </div>
+          <div class="mini-card">
+            <div class="mini-card-title">⚡ Posizione aperta</div>
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0">
+              <span class="tag-green">BUY</span>
+              <span style="font-size:11px;color:var(--muted)">Apertura: 4.834,99</span>
+              <span style="font-size:11px;color:var(--muted)">14 apr 20:00</span>
+              <span style="font-size:12px;font-weight:700;color:var(--green)">+€11,3 ↗</span>
+            </div>
+          </div>
+          <div class="mini-card">
+            <div class="mini-card-title">Storico operazioni</div>
+            <div class="trade-row" style="font-size:9px;font-weight:700;color:var(--muted)"><span>Data</span><span>Dir.</span><span>Prezzo</span><span style="text-align:right">PNL €</span><span style="text-align:right">Esito</span></div>
+            <div class="trade-row"><span style="color:var(--muted)">15 apr</span><span class="dir-buy">BUY</span><span style="color:var(--muted)">4.846,29</span><span class="pnl-pos">+11,30</span><span class="tag-green" style="justify-self:end">GAIN</span></div>
+            <div class="trade-row"><span style="color:var(--muted)">14 apr</span><span class="dir-buy">BUY</span><span style="color:var(--muted)">4.803,70</span><span class="pnl-pos">+36,15</span><span class="tag-green" style="justify-self:end">GAIN</span></div>
+            <div class="trade-row"><span style="color:var(--muted)">14 apr</span><span class="dir-buy">BUY</span><span style="color:var(--muted)">4.786,54</span><span class="pnl-pos">+25,90</span><span class="tag-green" style="justify-self:end">GAIN</span></div>
+            <div class="trade-row"><span style="color:var(--muted)">13 apr</span><span class="dir-buy">BUY</span><span style="color:var(--muted)">4.723,20</span><span class="pnl-pos">+40,12</span><span class="tag-green" style="justify-self:end">GAIN</span></div>
+            <div class="trade-row"><span style="color:var(--muted)">09 apr</span><span class="dir-buy">BUY</span><span style="color:var(--muted)">4.788,80</span><span class="pnl-neg">-110,95</span><span class="tag-red" style="justify-self:end">LOSS</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- S3: SEGNALI LIVE -->
+    <div class="screen-slide" id="screen-3">
+      <div class="mini-topbar">
+        <div class="mini-brand">IUPPITER</div>
+        <div class="mini-live"><span class="mini-live-dot"></span> Segnali Live</div>
+        <span class="tag-gold">3 nuovi</span>
+      </div>
+      <div class="mini-layout">
+        <div class="mini-sidebar">
+          <div class="mini-nav">⊞ Dashboard</div>
+          <div class="mini-nav active">⚡ Segnali Live</div>
+          <div class="mini-nav">🥇 Sala Gold</div>
+          <div class="mini-nav">📈 Indici World</div>
+        </div>
+        <div class="mini-main">
+          <div class="mini-pg-title">Feed segnali in tempo reale</div>
+          <div class="signal-item"><span class="signal-icon">🚀</span><div><div class="signal-svc">🥇 Sala Gold</div><div class="signal-text">BUY SCALPING GOLD · Apertura: 4.834,93 · TP: 4.856,77 · SL: 4.756,87</div><div class="signal-time">14 apr 2026, 20:00 · <span class="tag-green">OPEN</span></div></div></div>
+          <div class="signal-item"><span class="signal-icon">✅</span><div><div class="signal-svc">🥇 Sala Gold</div><div class="signal-text">Exit Long · Chiusura BUY SCALPING GOLD · Uscita: 4.839,85</div><div class="signal-time">14 apr 2026, 19:00 · <span class="tag-green">+€36,15</span></div></div></div>
+          <div class="signal-item"><span class="signal-icon">🚀</span><div><div class="signal-svc">📈 Indici World</div><div class="signal-text">BUY UT100 · Apertura: 18.245,30 · TP: 18.410,00 · SL: 18.050,00</div><div class="signal-time">14 apr 2026, 17:00 · <span class="tag-green">OPEN</span></div></div></div>
+          <div class="signal-item"><span class="signal-icon">✅</span><div><div class="signal-svc">💱 Sala Forex</div><div class="signal-text">Exit Long · EURUSD · Chiusura a 1.09182</div><div class="signal-time">14 apr 2026, 16:30 · <span class="tag-green">+€28,50</span></div></div></div>
+          <div class="signal-item"><span class="signal-icon">🚀</span><div><div class="signal-svc">🥇 Sala Gold</div><div class="signal-text">BUY SCALPING GOLD · Apertura: 4.786,54 · TP: 4.812,44 · SL: 4.727,37</div><div class="signal-time">14 apr 2026, 11:00 · <span class="tag-green">CHIUSO +€25,90</span></div></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- S4: APP MOBILE -->
+    <div class="screen-slide" id="screen-4" style="background:linear-gradient(135deg,#0a0a0c,#1a1d27)">
+      <div style="display:flex;align-items:center;justify-content:center;height:100%;flex-direction:column;gap:16px;padding:20px">
+        <div style="font-size:12px;color:var(--muted);text-align:center;margin-bottom:4px">📱 App mobile — iPhone & Android</div>
+        <div style="flex:1;display:flex;align-items:center;gap:30px;width:100%;justify-content:center">
+          <div style="display:flex;flex-direction:column;align-items:center;gap:8px">
+            <div class="phone-frame">
+              <div class="phone-notch"></div>
+              <div class="phone-push" id="phonePush">
+                <span class="phone-push-icon">🚀</span>
+                <div><div class="phone-push-title">Sala Gold — BUY</div><div class="phone-push-body">Apertura: 4.834,93 · TP: 4.856,77</div></div>
+              </div>
+              <div class="phone-topbar"><span class="phone-brand">IUPPITER</span><span style="font-size:14px">🔔</span></div>
+              <div class="phone-content">
+                <div class="phone-kpi-row">
+                  <div class="phone-kpi"><div class="phone-kpi-val" style="color:var(--green)">+€4.183</div><div class="phone-kpi-lbl">Gold PNL</div></div>
+                  <div class="phone-kpi"><div class="phone-kpi-val">73%</div><div class="phone-kpi-lbl">Win Rate</div></div>
+                </div>
+                <div class="phone-svc"><img class="phone-svc-img" src="https://raw.githubusercontent.com/finanzalive-jpg/finanzalive-frontend/main/gold%20logo.jpg" onerror="this.style.display='none'"><div><div class="phone-svc-name">Sala Gold</div><div class="phone-svc-pnl">+€4.183 · 1891 op.</div></div></div>
+                <div class="phone-svc"><img class="phone-svc-img" src="https://raw.githubusercontent.com/finanzalive-jpg/finanzalive-frontend/main/indici_world_logo.jpg" onerror="this.style.display='none'"><div><div class="phone-svc-name">Indici World</div><div class="phone-svc-pnl">+€3.514 · 596 op.</div></div></div>
+                <div class="phone-svc"><img class="phone-svc-img" src="https://raw.githubusercontent.com/finanzalive-jpg/finanzalive-frontend/main/forex%20logo.jpg" onerror="this.style.display='none'"><div><div class="phone-svc-name">Sala Forex</div><div class="phone-svc-pnl">+€2.079 · 86 op.</div></div></div>
+              </div>
+              <div class="phone-bottom-nav">
+                <div class="phone-nav-item active"><span class="phone-nav-icon">⊞</span>Home</div>
+                <div class="phone-nav-item"><span class="phone-nav-icon">⚡</span>Segnali</div>
+                <div class="phone-nav-item"><span class="phone-nav-icon">🥇</span>Gold</div>
+                <div class="phone-nav-item"><span class="phone-nav-icon">≡</span>Altro</div>
+              </div>
+            </div>
+            <div style="font-size:10px;color:var(--muted)">🍎 iPhone iOS 18</div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:10px;max-width:280px">
+            <div style="background:var(--bg2);border:1px solid rgba(201,168,76,0.2);border-radius:10px;padding:12px;border-left:3px solid var(--gold)"><div style="font-size:11px;font-weight:700;color:var(--gold);margin-bottom:4px">🔔 Push Notifications</div><div style="font-size:10px;color:var(--muted);line-height:1.5">Ogni segnale arriva direttamente sul telefono, anche con app chiusa e schermo bloccato.</div></div>
+            <div style="background:var(--bg2);border:1px solid rgba(29,185,122,0.2);border-radius:10px;padding:12px;border-left:3px solid var(--green)"><div style="font-size:11px;font-weight:700;color:var(--green);margin-bottom:4px">📱 iPhone + Android</div><div style="font-size:10px;color:var(--muted);line-height:1.5">Installabile come app nativa su entrambi i sistemi operativi. Nessun app store necessario.</div></div>
+            <div style="background:var(--bg2);border:1px solid rgba(201,168,76,0.2);border-radius:10px;padding:12px;border-left:3px solid var(--gold)"><div style="font-size:11px;font-weight:700;color:var(--gold);margin-bottom:4px">⚡ Tempo reale</div><div style="font-size:10px;color:var(--muted);line-height:1.5">Polling ogni 30 secondi + push istantanee dal server. Sempre aggiornato.</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- S5: EQUITY CURVE -->
+    <div class="screen-slide" id="screen-5">
+      <div class="mini-topbar">
+        <div class="mini-brand">IUPPITER</div>
+        <div style="font-size:11px;color:var(--muted)">Equity Curve — Fondo Rotativo</div>
+        <span class="tag-green">+€9.775</span>
+      </div>
+      <div style="padding:14px;height:calc(100% - 40px);display:flex;flex-direction:column;gap:10px">
+        <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px">
+          <div class="mini-kpi"><div class="mini-kpi-val" style="color:var(--green)">+€9.775</div><div class="mini-kpi-lbl">PNL Totale</div></div>
+          <div class="mini-kpi"><div class="mini-kpi-val">2.573</div><div class="mini-kpi-lbl">Operazioni</div></div>
+          <div class="mini-kpi"><div class="mini-kpi-val">67%</div><div class="mini-kpi-lbl">Win Rate</div></div>
+          <div class="mini-kpi"><div class="mini-kpi-val" style="color:var(--red)">-12.4%</div><div class="mini-kpi-lbl">Max DD</div></div>
+          <div class="mini-kpi"><div class="mini-kpi-val" style="color:var(--gold)">2022</div><div class="mini-kpi-lbl">Da</div></div>
+        </div>
+        <div class="mini-card" style="flex:1">
+          <div class="mini-card-title">Equity Curve Globale — Tutti i servizi (Cap. partenza €10.000)</div>
+          <div style="position:relative;height:300px"><canvas id="tour-equity-chart"></canvas></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tour-controls">
+    <div style="display:flex;align-items:center;gap:12px">
+      <div class="tour-dots" id="tourDots"></div>
+      <span class="tour-label" id="tourLabelBottom">1 / 5 — Dashboard</span>
+    </div>
+    <div class="tour-btns">
+      <button class="tour-btn" onclick="tourNav(-1)">‹ Prec</button>
+      <button class="tour-btn" id="tourPlayBtn" onclick="toggleTourAuto()">⏸ Pausa</button>
+      <button class="tour-btn" onclick="tourNav(1)">Succ ›</button>
+    </div>
   </div>
 </div>
 
-<!-- DOWNLOAD APP -->
+<!-- DOWNLOAD -->
 <div class="download-section">
   <h2>📱 Scarica l'app IUPPITER</h2>
   <p>Ricevi i segnali in tempo reale direttamente sul tuo telefono, anche con lo schermo spento.</p>
-
   <div class="download-btns">
-    <a class="dl-btn dl-btn-ios" href="https://finanzalive-frontend.vercel.app" id="btn-pwa-ios">
+    <a class="dl-btn dl-btn-ios" href="https://finanzalive-frontend.vercel.app">
       <span class="dl-icon">🍎</span>
       <div><span>iPhone — Aggiungi a Home</span><span class="dl-sub">Safari → Condividi → Aggiungi a schermata Home</span></div>
     </a>
-    <a class="dl-btn dl-btn-android" href="https://finanzalive-frontend.vercel.app" id="btn-pwa-android">
+    <a class="dl-btn dl-btn-android" href="https://finanzalive-frontend.vercel.app">
       <span class="dl-icon">🤖</span>
       <div><span>Android — Installa app</span><span class="dl-sub">Chrome → Menu → Aggiungi alla schermata Home</span></div>
     </a>
@@ -148,29 +410,14 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:1.5rem;t
       <div><span>Apri nel browser</span><span class="dl-sub">Accedi subito senza installare</span></div>
     </a>
   </div>
-
-  <!-- Steps iPhone -->
   <div class="pwa-steps" style="margin-top:1.5rem;">
-    <div class="pwa-step">
-      <div class="pwa-step-num">1</div>
-      <div class="pwa-step-text"><strong>Apri Safari</strong> sul tuo iPhone e vai su finanzalive-frontend.vercel.app</div>
-    </div>
-    <div class="pwa-step">
-      <div class="pwa-step-num">2</div>
-      <div class="pwa-step-text"><strong>Tocca l'icona Condividi</strong> (il quadrato con la freccia in basso alla pagina)</div>
-    </div>
-    <div class="pwa-step">
-      <div class="pwa-step-num">3</div>
-      <div class="pwa-step-text"><strong>Seleziona "Aggiungi a schermata Home"</strong> e conferma con "Aggiungi"</div>
-    </div>
-    <div class="pwa-step">
-      <div class="pwa-step-num">4</div>
-      <div class="pwa-step-text"><strong>Apri l'app</strong> dalla schermata Home e attiva le notifiche 🔔</div>
-    </div>
+    <div class="pwa-step"><div class="pwa-step-num">1</div><div class="pwa-step-text"><strong>Apri Safari</strong> sul tuo iPhone e vai su finanzalive-frontend.vercel.app</div></div>
+    <div class="pwa-step"><div class="pwa-step-num">2</div><div class="pwa-step-text"><strong>Tocca Condividi</strong> (quadrato con freccia ↑)</div></div>
+    <div class="pwa-step"><div class="pwa-step-num">3</div><div class="pwa-step-text"><strong>"Aggiungi a schermata Home"</strong> → Aggiungi</div></div>
+    <div class="pwa-step"><div class="pwa-step-num">4</div><div class="pwa-step-text"><strong>Apri l'icona IUPPITER</strong> → Login → attiva 🔔</div></div>
   </div>
 </div>
 
-<!-- LOGIN CTA -->
 <div class="cta-section">
   <p>Sei già cliente IUPPITER?</p>
   <a href="https://finanzalive-frontend.vercel.app" class="btn-cta">Accedi all'area riservata →</a>
@@ -182,95 +429,66 @@ footer{background:var(--bg2);border-top:1px solid var(--border);padding:1.5rem;t
 </footer>
 
 <script>
-var API = 'https://finanzalive-backend-1ggq.onrender.com';
+var API='https://finanzalive-backend-1ggq.onrender.com';
 
-// ── Carica statistiche pubbliche
-fetch(API + '/api/public/stats').then(function(r){ return r.json(); }).then(renderStats).catch(loadFallback);
-
-function loadFallback(){
-  // Dati statici di fallback se il backend non ha ancora l'endpoint pubblico
-  renderStats({
-    total_pnl: 9989.03,
-    total_trades: 2568,
-    total_gains: 1724,
-    total_losses: 844,
-    services: [
-      { code:'gold', name:'Sala Gold', icon:'gold logo.jpg', pnl: 4196.30, trades: 1888, gains: 1384, losses: 504 },
-      { code:'indices', name:'Indici World', icon:'indici_world_logo.jpg', pnl: 3713.95, trades: 594, gains: 284, losses: 310 },
-      { code:'forex', name:'Sala Forex', icon:'forex logo.jpg', pnl: 2078.78, trades: 86, gains: 56, losses: 30 }
-    ]
-  });
-}
-
+fetch(API+'/api/public/stats').then(function(r){return r.json();}).then(renderStats).catch(loadFallback);
+function loadFallback(){renderStats({total_pnl:9775,total_trades:2573,total_gains:1726,total_losses:847,services:[{code:'gold',name:'Sala Gold',icon:'gold logo.jpg',pnl:4182.66,trades:1891,gains:1386,losses:505},{code:'indices',name:'Indici World',icon:'indici_world_logo.jpg',pnl:3513.51,trades:596,gains:284,losses:312},{code:'forex',name:'Sala Forex',icon:'forex logo.jpg',pnl:2078.78,trades:86,gains:56,losses:30}]});}
 function renderStats(data){
-  var wr = data.total_trades > 0 ? Math.round(data.total_gains / data.total_trades * 100) : 0;
-  document.getElementById('kpi-tot-pnl').textContent = '+' + parseFloat(data.total_pnl).toLocaleString('it-IT', {minimumFractionDigits:0, maximumFractionDigits:0}) + ' €';
-  document.getElementById('kpi-tot-pnl').style.color = 'var(--green)';
-  document.getElementById('kpi-tot-trades').textContent = data.total_trades.toLocaleString('it-IT');
-  document.getElementById('kpi-wr').textContent = wr + '%';
-
-  // Servizi
-  var html = '';
-  (data.services || []).forEach(function(s){
-    var sWr = s.trades > 0 ? Math.round(s.gains / s.trades * 100) : 0;
-    var pnlClass = s.pnl >= 0 ? 'svc-pnl-pos' : 'svc-pnl-neg';
-    var pnlStr = (s.pnl >= 0 ? '+' : '') + parseFloat(s.pnl).toLocaleString('it-IT', {minimumFractionDigits:2, maximumFractionDigits:2}) + ' €';
-    var iconUrl = 'https://raw.githubusercontent.com/finanzalive-jpg/finanzalive-frontend/main/' + encodeURIComponent(s.icon || '');
-    html += '<div class="svc-card">' +
-      '<div class="svc-header">' +
-        '<img class="svc-icon" src="' + iconUrl + '" onerror="this.style.display=\'none\'">' +
-        '<div><div class="svc-name">' + s.name + '</div><div class="svc-desc">' + s.trades + ' operazioni chiuse</div></div>' +
-      '</div>' +
-      '<div class="svc-stats">' +
-        '<div class="svc-stat"><div class="svc-stat-val ' + pnlClass + '">' + pnlStr + '</div><div class="svc-stat-lbl">PNL €</div></div>' +
-        '<div class="svc-stat"><div class="svc-stat-val">' + s.gains + '</div><div class="svc-stat-lbl">Gain</div></div>' +
-        '<div class="svc-stat"><div class="svc-stat-val" style="color:var(--red)">' + s.losses + '</div><div class="svc-stat-lbl">Loss</div></div>' +
-      '</div>' +
-      '<div style="font-size:11px;color:var(--muted);margin-bottom:4px">Win Rate: <strong style="color:var(--text)">' + sWr + '%</strong></div>' +
-      '<div class="svc-wr"><div class="svc-wr-fill" style="width:' + sWr + '%"></div></div>' +
-    '</div>';
+  var wr=data.total_trades>0?Math.round(data.total_gains/data.total_trades*100):0;
+  document.getElementById('kpi-tot-pnl').textContent='+'+(parseFloat(data.total_pnl)).toLocaleString('it-IT',{minimumFractionDigits:0,maximumFractionDigits:0})+' €';
+  document.getElementById('kpi-tot-pnl').style.color='var(--green)';
+  document.getElementById('kpi-tot-trades').textContent=data.total_trades.toLocaleString('it-IT');
+  document.getElementById('kpi-wr').textContent=wr+'%';
+  var html='';
+  (data.services||[]).forEach(function(s){
+    var sWr=s.trades>0?Math.round(s.gains/s.trades*100):0;
+    var pnlClass=s.pnl>=0?'svc-pnl-pos':'svc-pnl-neg';
+    var pnlStr=(s.pnl>=0?'+':'')+parseFloat(s.pnl).toLocaleString('it-IT',{minimumFractionDigits:2,maximumFractionDigits:2})+' €';
+    var iconUrl='https://raw.githubusercontent.com/finanzalive-jpg/finanzalive-frontend/main/'+encodeURIComponent(s.icon||'');
+    html+='<div class="svc-card"><div class="svc-header"><img class="svc-icon" src="'+iconUrl+'" onerror="this.style.display=\'none\'"><div><div class="svc-name">'+s.name+'</div><div class="svc-desc">'+s.trades+' operazioni chiuse</div></div></div><div class="svc-stats"><div class="svc-stat"><div class="svc-stat-val '+pnlClass+'">'+pnlStr+'</div><div class="svc-stat-lbl">PNL €</div></div><div class="svc-stat"><div class="svc-stat-val">'+s.gains+'</div><div class="svc-stat-lbl">Gain</div></div><div class="svc-stat"><div class="svc-stat-val" style="color:var(--red)">'+s.losses+'</div><div class="svc-stat-lbl">Loss</div></div></div><div style="font-size:11px;color:var(--muted);margin-bottom:4px">Win Rate: <strong style="color:var(--text)">'+sWr+'%</strong></div><div class="svc-wr"><div class="svc-wr-fill" style="width:'+sWr+'%"></div></div></div>';
   });
-  document.getElementById('services-grid').innerHTML = html;
+  document.getElementById('services-grid').innerHTML=html;
 }
 
-// ── Equity chart Gold
-fetch(API + '/api/trades?service_code=gold&limit=60').then(function(r){ return r.json(); }).then(function(trades){
-  if(!trades || !trades.length) return;
-  var closed = trades.filter(function(t){ return t.status === 'CLOSED' && t.pnl != null; });
-  closed.sort(function(a,b){ return new Date(a.closed_at) - new Date(b.closed_at); });
-  var labels = [], data = [], cum = 0;
-  closed.forEach(function(t){
-    cum += parseFloat(t.pnl);
-    labels.push(new Date(t.closed_at).toLocaleDateString('it-IT',{day:'2-digit',month:'short'}));
-    data.push(Math.round(cum * 100) / 100);
-  });
-  var ctx = document.getElementById('equity-chart').getContext('2d');
-  new Chart(ctx, {
-    type: 'line',
-    data: {
-      labels: labels,
-      datasets: [{
-        data: data,
-        borderColor: '#c9a84c',
-        backgroundColor: 'rgba(201,168,76,0.08)',
-        borderWidth: 2,
-        pointRadius: 0,
-        fill: true,
-        tension: 0.3
-      }]
-    },
-    options: {
-      responsive: true, maintainAspectRatio: false,
-      plugins: { legend: { display: false }, tooltip: {
-        callbacks: { label: function(ctx){ return (ctx.raw >= 0 ? '+' : '') + ctx.raw.toFixed(2) + ' €'; }}
-      }},
-      scales: {
-        x: { ticks: { color: '#7a7870', font: { size: 10 }, maxRotation: 0, maxTicksLimit: 8 }, grid: { display: false } },
-        y: { ticks: { color: '#7a7870', font: { size: 10 }, callback: function(v){ return v + '€'; } }, grid: { color: 'rgba(255,255,255,0.04)' } }
-      }
-    }
-  });
+fetch(API+'/api/trades?service_code=gold&limit=60').then(function(r){return r.json();}).then(function(trades){
+  if(!trades||!trades.length)return;
+  var closed=trades.filter(function(t){return t.status==='CLOSED'&&t.pnl!=null;});
+  closed.sort(function(a,b){return new Date(a.closed_at)-new Date(b.closed_at);});
+  var labels=[],data=[],cum=0;
+  closed.forEach(function(t){cum+=parseFloat(t.pnl);labels.push(new Date(t.closed_at).toLocaleDateString('it-IT',{day:'2-digit',month:'short'}));data.push(Math.round(cum*100)/100);});
+  new Chart(document.getElementById('equity-chart').getContext('2d'),{type:'line',data:{labels:labels,datasets:[{data:data,borderColor:'#c9a84c',backgroundColor:'rgba(201,168,76,0.08)',borderWidth:2,pointRadius:0,fill:true,tension:0.3}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#7a7870',font:{size:10},maxRotation:0,maxTicksLimit:8},grid:{display:false}},y:{ticks:{color:'#7a7870',font:{size:10},callback:function(v){return v+'€';}},grid:{color:'rgba(255,255,255,0.04)'}}}}});
 }).catch(function(){});
+
+// ═══ TOUR ═══
+var TOTAL=5,current=1,auto=true,tourIv=null,progIv=null,DUR=6000,progStart=0,equityBuilt=false;
+var labels_tour=['Dashboard','Sala Gold','Segnali Live','App Mobile','Equity Curve'];
+var urls_tour=['finanzalive-frontend.vercel.app','finanzalive-frontend.vercel.app/gold','finanzalive-frontend.vercel.app/signals','finanzalive-frontend.vercel.app (mobile)','finanzalive-frontend.vercel.app/fondo-rotativo'];
+
+var dotsEl=document.getElementById('tourDots');
+for(var i=1;i<=TOTAL;i++){var d=document.createElement('button');d.className='tour-dot'+(i===1?' active':'');d.dataset.n=i;d.onclick=(function(n){return function(){tourGoTo(n);};})(i);dotsEl.appendChild(d);}
+
+function tourGoTo(n){
+  document.getElementById('screen-'+current)?.classList.remove('active');
+  current=n;
+  document.getElementById('screen-'+n)?.classList.add('active');
+  document.getElementById('tourUrl').textContent=urls_tour[n-1];
+  document.getElementById('tourLabelTop').textContent=labels_tour[n-1];
+  document.getElementById('tourLabelBottom').textContent=n+' / '+TOTAL+' — '+labels_tour[n-1];
+  document.querySelectorAll('.tour-dot').forEach(function(d){d.classList.toggle('active',parseInt(d.dataset.n)===n);});
+  document.getElementById('tourProgress').style.width='0%';
+  if(n===4)animatePush();
+  if(n===5)buildEquity();
+  resetProg();
+}
+function tourNav(dir){var next=current+dir;if(next<1)next=TOTAL;if(next>TOTAL)next=1;tourGoTo(next);if(auto)restartAuto();}
+function restartAuto(){clearInterval(tourIv);tourIv=setInterval(function(){tourNav(1);},DUR);}
+function toggleTourAuto(){auto=!auto;document.getElementById('tourPlayBtn').textContent=auto?'⏸ Pausa':'▶ Play';if(auto){restartAuto();resetProg();}else{clearInterval(tourIv);clearInterval(progIv);}}
+function resetProg(){clearInterval(progIv);if(!auto)return;progStart=Date.now();progIv=setInterval(function(){var p=Math.min((Date.now()-progStart)/DUR*100,100);document.getElementById('tourProgress').style.width=p+'%';if(p>=100)clearInterval(progIv);},50);}
+function animatePush(){var p=document.getElementById('phonePush');if(!p)return;p.classList.remove('show');setTimeout(function(){p.classList.add('show');},1200);setTimeout(function(){p.classList.remove('show');},4500);}
+function buildEquity(){if(equityBuilt)return;equityBuilt=true;var c=document.getElementById('tour-equity-chart');if(!c)return;var months=['Ago 22','Nov 22','Feb 23','Mag 23','Ago 23','Nov 23','Feb 24','Mag 24','Ago 24','Nov 24','Feb 25','Mag 25','Ago 25','Nov 25','Feb 26','Apr 26'];var eq=[10000,9850,10320,10890,11200,11050,11800,12400,13100,12800,13600,14200,14900,15400,16100,19775];new Chart(c.getContext('2d'),{type:'line',data:{labels:months,datasets:[{data:eq,borderColor:'#c9a84c',backgroundColor:'rgba(201,168,76,0.06)',borderWidth:2.5,pointRadius:3,pointBackgroundColor:'#c9a84c',fill:true,tension:0.4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#7a7870',font:{size:9},maxRotation:0},grid:{display:false}},y:{ticks:{color:'#7a7870',font:{size:9},callback:function(v){return '€'+v.toLocaleString('it-IT');}},grid:{color:'rgba(255,255,255,0.04)'}}}}});}
+
+restartAuto();resetProg();
+document.getElementById('tourProgress').style.width=(1/TOTAL*100)+'%';
 </script>
 </body>
 </html>
