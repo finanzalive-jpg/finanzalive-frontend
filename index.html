@@ -2539,92 +2539,122 @@ function loadFondoRotativo(){
 
 
 // ── AZIONI ITALIA ─────────────────────────────────────────────────────────────
-function loadAzioniItalia() {
-  var AZIONI = [
-    { code:'ENI',  name:'ENI',               color:'#1db97a' },
-    { code:'ISP',  name:'Intesa Sanpaolo',   color:'#c9a84c' },
-    { code:'UCG',  name:'UniCredit',         color:'#f0a030' },
-    { code:'LDO',  name:'Leonardo',          color:'#e84b4a' },
-    { code:'BC',   name:'Brunello Cucinelli',color:'#b06ef3' },
-    { code:'AZM',  name:'Azimut',            color:'#1db97a' },
-    { code:'A2A',  name:'A2A',               color:'#c9a84c' },
-    { code:'ACE',  name:'ACEA',              color:'#f0a030' },
-    { code:'RACE', name:'Ferrari',           color:'#e84b4a' },
-    { code:'ERG',  name:'ERG',               color:'#e8c96a' }
-  ];
-  var CAPITAL = 10000;
+var AZIONI_DEF = [
+  {code:'ISP',  name:'Intesa Sanpaolo',    color:'#c9a84c'},
+  {code:'UCG',  name:'UniCredit',          color:'#e8c96a'},
+  {code:'ERG',  name:'ERG',               color:'#1db97a'},
+  {code:'LDO',  name:'Leonardo',          color:'#e84b4a'},
+  {code:'A2A',  name:'A2A',               color:'#b06ef3'},
+  {code:'ACE',  name:'ACEA',             color:'#f0a030'},
+  {code:'ENI',  name:'ENI',              color:'#1db97a'},
+  {code:'AZM',  name:'Azimut',           color:'#c9a84c'},
+  {code:'BC',   name:'Brunello Cucinelli',color:'#e84b4a'},
+  {code:'RACE', name:'Ferrari',          color:'#f0a030'}
+];
+var CAPITAL_PER_AZIONE = 1000;
+var N_AZIONI = 10;
+var CAPITALE_TOTALE = CAPITAL_PER_AZIONE * N_AZIONI;
 
-  api('/api/trades?service_code=azioni_italia').then(function(allT) {
-    allT = allT || [];
-    var closed = allT.filter(function(t){ return t.status==='CLOSED'; })
-                     .sort(function(a,b){ return new Date(a.opened_at)-new Date(b.opened_at); });
-    var openT  = allT.filter(function(t){ return t.status==='OPEN'; });
+function hexToRgb(hex){
+  var r=/^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  return r?parseInt(r[1],16)+','+parseInt(r[2],16)+','+parseInt(r[3],16):'201,168,76';
+}
 
-    function getSym(t) {
-      var ticker = (t.ticker||'').toUpperCase();
-      if(ticker) return ticker;
-      var n = (t.notes||'').toUpperCase();
-      for(var i=0;i<AZIONI.length;i++){ if(n.indexOf(AZIONI[i].code)>=0) return AZIONI[i].code; }
+function loadAzioniItalia(){
+  api('/api/trades?service_code=azioni_italia').then(function(allT){
+    allT=allT||[];
+    var closed=allT.filter(function(t){return t.status==='CLOSED';}).sort(function(a,b){return new Date(a.opened_at)-new Date(b.opened_at);});
+    var openT=allT.filter(function(t){return t.status==='OPEN';});
+
+    function getSym(t){
+      var tk=(t.ticker||'').toUpperCase();
+      if(tk)return tk;
+      var n=(t.notes||'').toUpperCase();
+      for(var i=0;i<AZIONI_DEF.length;i++){if(n.indexOf(AZIONI_DEF[i].code)>=0)return AZIONI_DEF[i].code;}
       return null;
     }
 
-    var bySym = {};
-    AZIONI.forEach(function(az){ bySym[az.code]={closed:[],open:[]}; });
-    closed.forEach(function(t){ var s=getSym(t); if(s&&bySym[s])bySym[s].closed.push(t); });
-    openT.forEach(function(t){  var s=getSym(t); if(s&&bySym[s])bySym[s].open.push(t);   });
+    var bySym={};
+    AZIONI_DEF.forEach(function(az){bySym[az.code]={closed:[],open:[]};});
+    closed.forEach(function(t){var s=getSym(t);if(s&&bySym[s])bySym[s].closed.push(t);});
+    openT.forEach(function(t){var s=getSym(t);if(s&&bySym[s])bySym[s].open.push(t);});
 
-    var totPnl    = closed.reduce(function(s,t){return s+(parseFloat(t.pnl)||0);},0);
-    var totTrades = closed.length;
-    var totWin    = closed.filter(function(t){return (parseFloat(t.pnl)||0)>0;}).length;
-    var globalWR  = totTrades?((totWin/totTrades)*100).toFixed(1):0;
+    var totPnl=closed.reduce(function(s,t){return s+(parseFloat(t.pnl)||0);},0);
+    var totTrades=closed.length;
+    var totWin=closed.filter(function(t){return(parseFloat(t.pnl)||0)>0;}).length;
+    var globalWR=totTrades?((totWin/totTrades)*100).toFixed(1):0;
 
     var html='';
 
-    // KPI
-    html+='<div class="kpi-row" style="grid-template-columns:repeat(4,1fr);margin-bottom:1.2rem">'+
-      '<div class="kpi gold"><div class="kl">Capitale iniziale</div><div class="kv gold">€ '+CAPITAL.toLocaleString('it-IT')+'</div><div class="ks">Base di riferimento</div></div>'+
-      '<div class="kpi"><div class="kl">Azioni monitorate</div><div class="kv gold">'+AZIONI.length+'</div><div class="ks">Borsa Italiana MIL</div></div>'+
-      '<div class="kpi"><div class="kl">PnL totale netto</div><div class="kv '+(totPnl>=0?'g':'r')+'">'+(totPnl>=0?'+':'')+totPnl.toFixed(2)+' €</div><div class="ks">Tutte le azioni</div></div>'+
-      '<div class="kpi"><div class="kl">Win rate globale</div><div class="kv gold">'+globalWR+'%</div><div class="ks">'+totWin+'W / '+(totTrades-totWin)+'L su '+totTrades+' op.</div></div>'+
-      '<div class="kpi"><div class="kl">Posizioni aperte</div><div class="kv '+(openT.length?'tb':'')+'">'+openT.length+'</div><div class="ks">Live in questo momento</div></div>'+
-    '</div>';
+    // ── RIQUADRO DISTRIBUZIONE CAPITALE ────────────────────────────────────────
+    html+='<div class="card gold-border" style="margin-bottom:1.4rem">';
+    html+='<div class="card-title">💼 Portfolio — Distribuzione Capitale & Capital Gain</div>';
+    html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem">';
+    // colonna sx: info fisse
+    html+='<div style="background:var(--bg3);border-radius:10px;padding:1rem">';
+    html+='<div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:.6rem">Struttura investimento</div>';
+    html+='<div style="display:flex;flex-direction:column;gap:.4rem">';
+    html+='<div style="display:flex;justify-content:space-between;font-size:13px"><span style="color:var(--muted)">Capitale per azione</span><span style="font-weight:700;color:var(--gold)">€ 1.000</span></div>';
+    html+='<div style="display:flex;justify-content:space-between;font-size:13px"><span style="color:var(--muted)">Azioni monitorate</span><span style="font-weight:700">'+N_AZIONI+'</span></div>';
+    html+='<div style="display:flex;justify-content:space-between;font-size:13px;border-top:1px solid var(--border);padding-top:.4rem;margin-top:.2rem"><span style="color:var(--muted)">Capitale totale investito</span><span style="font-weight:800;color:var(--gold);font-size:15px">€ '+CAPITALE_TOTALE.toLocaleString('it-IT')+'</span></div>';
+    html+='<div style="display:flex;justify-content:space-between;font-size:13px"><span style="color:var(--muted)">Tipo gestione</span><span style="color:var(--green);font-weight:600">Capital fisso — no reinvestimento</span></div>';
+    html+='<div style="display:flex;justify-content:space-between;font-size:13px"><span style="color:var(--muted)">Gain distribuito (€)</span><span style="font-weight:700;color:'+(totPnl>=0?'var(--green)':'var(--red)');
+    html+='">'+(totPnl>=0?'+':'')+totPnl.toFixed(2)+'</span></div>';
+    html+='<div style="display:flex;justify-content:space-between;font-size:13px"><span style="color:var(--muted)">Rendimento totale %</span><span style="font-weight:700;color:'+(totPnl>=0?'var(--green)':'var(--red)')+'">'+((totPnl/CAPITALE_TOTALE)*100).toFixed(1)+'%</span></div>';
+    html+='</div></div>';
+    // colonna dx: barre per azione
+    html+='<div style="background:var(--bg3);border-radius:10px;padding:1rem">';
+    html+='<div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:.6rem">Capital gain distribuito per azione</div>';
+    var maxPnl=Math.max.apply(null,AZIONI_DEF.map(function(az){return Math.abs(bySym[az.code].closed.reduce(function(s,t){return s+(parseFloat(t.pnl)||0);},0));}));
+    AZIONI_DEF.forEach(function(az){
+      var pnl=bySym[az.code].closed.reduce(function(s,t){return s+(parseFloat(t.pnl)||0);},0);
+      var pct=maxPnl>0?(Math.abs(pnl)/maxPnl*100):0;
+      var rgb=hexToRgb(az.color);
+      html+='<div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.35rem">';
+      html+='<span style="font-size:11px;font-weight:700;color:'+az.color+';min-width:36px">'+az.code+'</span>';
+      html+='<div style="flex:1;background:rgba(255,255,255,0.05);border-radius:4px;height:14px;overflow:hidden">';
+      html+='<div style="width:'+pct+'%;height:100%;background:rgba('+rgb+',.5);border-radius:4px;transition:width .6s"></div></div>';
+      html+='<span style="font-size:11px;font-weight:600;min-width:72px;text-align:right;color:'+(pnl>=0?'var(--green)':'var(--red)')+'">'+(pnl>=0?'+':'')+pnl.toFixed(0)+' €</span>';
+      html+='</div>';
+    });
+    html+='</div></div>';
+    // KPI row
+    html+='<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:.6rem">';
+    [{l:'Capitale fisso',v:'€ '+CAPITALE_TOTALE.toLocaleString('it-IT'),s:'10 azioni × €1.000',c:'gold'},
+     {l:'Gain distribuito',v:(totPnl>=0?'+':'')+totPnl.toFixed(2)+' €',s:'Senza reinvestimento',c:totPnl>=0?'g':'r'},
+     {l:'Rendimento netto',v:((totPnl/CAPITALE_TOTALE)*100).toFixed(1)+'%',s:'Su capitale iniziale',c:totPnl>=0?'g':'r'},
+     {l:'Win rate globale',v:globalWR+'%',s:totWin+'W / '+(totTrades-totWin)+'L su '+totTrades+' op.',c:'gold'}
+    ].forEach(function(k){
+      html+='<div class="kpi"><div class="kl">'+k.l+'</div><div class="kv '+k.c+'">'+k.v+'</div><div class="ks">'+k.s+'</div></div>';
+    });
+    html+='</div></div>';
 
     // Equity globale
-    html+='<div class="card gold-border" style="margin-bottom:1.2rem">'+
-      '<div class="card-title">📈 Equity Curve Globale — Azioni Italia</div>'+
-      '<div class="chart-wrap" style="height:180px"><canvas id="chart-azioni-global-eq"></canvas></div>'+
-    '</div>';
+    html+='<div class="card gold-border" style="margin-bottom:1.2rem"><div class="card-title">📈 Equity Curve Globale — Sala Azioni Italia</div><div class="chart-wrap" style="height:180px"><canvas id="chart-azioni-global-eq"></canvas></div></div>';
 
     // Griglia 5x2
     html+='<div style="display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:1.2rem">';
-    AZIONI.forEach(function(az) {
-      var c=bySym[az.code].closed, o=bySym[az.code].open;
+    AZIONI_DEF.forEach(function(az){
+      var c=bySym[az.code].closed,o=bySym[az.code].open;
       var pnl=c.reduce(function(s,t){return s+(parseFloat(t.pnl)||0);},0);
-      var win=c.filter(function(t){return (parseFloat(t.pnl)||0)>0;}).length;
+      var win=c.filter(function(t){return(parseFloat(t.pnl)||0)>0;}).length;
       var wr=c.length?((win/c.length)*100).toFixed(1):0;
       var rgb=hexToRgb(az.color);
       html+='<div style="background:var(--bg2);border:1px solid rgba('+rgb+',0.3);border-radius:12px;overflow:hidden">';
-      html+='<div style="background:rgba('+rgb+',0.08);padding:10px 12px;border-bottom:1px solid rgba('+rgb+',0.15)">'+
-        '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">'+
-          '<span style="font-size:13px;font-weight:800;color:'+az.color+'">'+az.code+'</span>'+
-          '<span style="font-size:9px;color:var(--muted)">'+az.name+'</span>'+
-        '</div>'+
-        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:4px">'+
-          '<div style="background:var(--bg3);border-radius:6px;padding:5px 7px"><div style="font-size:9px;color:var(--muted)">PnL</div><div style="font-size:13px;font-weight:700;color:'+(pnl>=0?'var(--green)':'var(--red)')+'">'+(pnl>=0?'+':'')+pnl.toFixed(0)+'€</div></div>'+
-          '<div style="background:var(--bg3);border-radius:6px;padding:5px 7px"><div style="font-size:9px;color:var(--muted)">Win%</div><div style="font-size:13px;font-weight:700;color:'+az.color+'">'+wr+'%</div></div>'+
-          '<div style="background:var(--bg3);border-radius:6px;padding:5px 7px"><div style="font-size:9px;color:var(--muted)">Op.</div><div style="font-size:13px;font-weight:700">'+c.length+'</div></div>'+
-          '<div style="background:var(--bg3);border-radius:6px;padding:5px 7px"><div style="font-size:9px;color:var(--muted)">Live</div><div style="font-size:13px;font-weight:700;color:'+(o.length?'var(--amber)':'var(--muted)')+'">'+o.length+'</div></div>'+
-        '</div>'+
-      '</div>';
+      html+='<div style="background:rgba('+rgb+',0.08);padding:10px 12px;border-bottom:1px solid rgba('+rgb+',0.15)">';
+      html+='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px"><span style="font-size:13px;font-weight:800;color:'+az.color+'">'+az.code+'</span><span style="font-size:9px;color:var(--muted)">'+az.name+'</span></div>';
+      html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:4px">';
+      html+='<div style="background:var(--bg3);border-radius:6px;padding:5px 7px"><div style="font-size:9px;color:var(--muted)">Gain</div><div style="font-size:13px;font-weight:700;color:'+(pnl>=0?'var(--green)':'var(--red)')+'">'+(pnl>=0?'+':'')+pnl.toFixed(0)+'€</div></div>';
+      html+='<div style="background:var(--bg3);border-radius:6px;padding:5px 7px"><div style="font-size:9px;color:var(--muted)">Win%</div><div style="font-size:13px;font-weight:700;color:'+az.color+'">'+wr+'%</div></div>';
+      html+='<div style="background:var(--bg3);border-radius:6px;padding:5px 7px"><div style="font-size:9px;color:var(--muted)">Op.</div><div style="font-size:13px;font-weight:700">'+c.length+'</div></div>';
+      html+='<div style="background:var(--bg3);border-radius:6px;padding:5px 7px"><div style="font-size:9px;color:var(--muted)">Live</div><div style="font-size:13px;font-weight:700;color:'+(o.length?'var(--amber)':'var(--muted)')+'">'+o.length+'</div></div>';
+      html+='</div></div>';
       html+='<div style="padding:8px 12px 4px"><div style="height:60px"><canvas id="chart-az-eq-'+az.code+'"></canvas></div></div>';
       if(o.length){
         html+='<div style="padding:4px 12px">';
         o.forEach(function(t){
           var ep=t.entry_price||t.strike;
-          html+='<div style="background:rgba(240,160,48,0.07);border:1px solid rgba(240,160,48,0.2);border-radius:5px;padding:4px 7px;margin-bottom:3px;font-size:10px;display:flex;justify-content:space-between">'+
-            '<span class="tag '+(t.direction==='BUY'?'tg':'tr')+'" style="font-size:9px">'+t.direction+'</span>'+
-            '<span style="color:var(--muted)">'+(ep?'@ '+parseFloat(ep).toFixed(2)+' €':'-')+'</span>'+
-          '</div>';
+          html+='<div style="background:rgba(240,160,48,0.07);border:1px solid rgba(240,160,48,0.2);border-radius:5px;padding:4px 7px;margin-bottom:3px;font-size:10px;display:flex;justify-content:space-between"><span class="tag '+(t.direction==='BUY'?'tg':'tr')+'" style="font-size:9px">'+t.direction+'</span><span style="color:var(--muted)">'+(ep?'@ '+parseFloat(ep).toFixed(2)+' €':'-')+'</span></div>';
         });
         html+='</div>';
       }
@@ -2634,13 +2664,7 @@ function loadAzioniItalia() {
       else{recent.forEach(function(t){
         var d=t.opened_at?new Date(t.opened_at):null;
         var pnlT=parseFloat(t.pnl)||0;
-        html+='<div style="display:flex;align-items:center;justify-content:space-between;padding:3px 0;border-bottom:1px solid rgba(255,255,255,0.03);font-size:10px">'+
-          '<div style="display:flex;align-items:center;gap:4px">'+
-            '<span class="tag '+(t.direction==='BUY'?'tg':'tr')+'" style="font-size:9px;padding:1px 4px">'+t.direction+'</span>'+
-            '<span style="color:var(--muted)">'+(d?d.toLocaleDateString('it-IT',{day:'2-digit',month:'2-digit'}):'-')+'</span>'+
-          '</div>'+
-          '<span style="font-weight:600;color:'+(pnlT>=0?'var(--green)':'var(--red)')+'">'+(pnlT>=0?'+':'')+pnlT.toFixed(2)+'</span>'+
-        '</div>';
+        html+='<div style="display:flex;align-items:center;justify-content:space-between;padding:3px 0;border-bottom:1px solid rgba(255,255,255,0.03);font-size:10px"><div style="display:flex;align-items:center;gap:4px"><span class="tag '+(t.direction==='BUY'?'tg':'tr')+'" style="font-size:9px;padding:1px 4px">'+t.direction+'</span><span style="color:var(--muted)">'+(d?d.toLocaleDateString('it-IT',{day:'2-digit',month:'2-digit'}):'-')+'</span></div><span style="font-weight:600;color:'+(pnlT>=0?'var(--green)':'var(--red)')+'">'+(pnlT>=0?'+':'')+pnlT.toFixed(2)+'</span></div>';
       });}
       html+='</div></div>';
     });
@@ -2648,45 +2672,29 @@ function loadAzioniItalia() {
 
     // Storico
     var allRecent=closed.slice().sort(function(a,b){return new Date(b.opened_at)-new Date(a.opened_at);}).slice(0,100);
-    html+='<div class="card"><div class="card-title">Storico completo operazioni</div>'+
-      '<div class="tbl-wrap"><table><thead><tr>'+
-        '<th>Ticker</th><th>Data ingresso</th><th>Ora</th><th>Dir.</th>'+
-        '<th>Entrata €</th><th>Uscita €</th><th>Data uscita</th><th>PnL €</th><th>Esito</th>'+
-      '</tr></thead><tbody>'+
+    html+='<div class="card"><div class="card-title">Storico operazioni</div><div class="tbl-wrap"><table><thead><tr><th>Ticker</th><th>Data ingresso</th><th>Dir.</th><th>Entrata €</th><th>Uscita €</th><th>Data uscita</th><th>PnL €</th><th>Esito</th></tr></thead><tbody>'+
       allRecent.map(function(t){
         var dIn=t.opened_at?new Date(t.opened_at):null;
         var dOut=t.closed_at?new Date(t.closed_at):null;
         var pnlT=parseFloat(t.pnl)||0;
         var sym=getSym(t)||'?';
-        var az=AZIONI.find(function(a){return a.code===sym;})||{color:'var(--muted)'};
+        var az=AZIONI_DEF.find(function(a){return a.code===sym;})||{color:'var(--muted)'};
         var ep=t.entry_price||t.strike;
         var xp=t.exit_price;
-        return '<tr>'+
-          '<td><span style="font-weight:700;color:'+az.color+'">'+sym+'</span></td>'+
-          '<td style="white-space:nowrap">'+(dIn?dIn.toLocaleDateString('it-IT'):'—')+'</td>'+
-          '<td style="color:var(--muted)">'+(dIn?dIn.toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'}):'—')+'</td>'+
-          '<td><span class="tag '+(t.direction==='BUY'?'tg':'tr')+'">'+(t.direction||'?')+'</span></td>'+
-          '<td style="font-weight:500">'+(ep?parseFloat(ep).toLocaleString('it-IT',{minimumFractionDigits:2}):'—')+'</td>'+
-          '<td style="color:var(--muted)">'+(xp?parseFloat(xp).toLocaleString('it-IT',{minimumFractionDigits:2}):'—')+'</td>'+
-          '<td style="color:var(--muted);white-space:nowrap">'+(dOut?dOut.toLocaleDateString('it-IT')+' '+dOut.toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'}):'—')+'</td>'+
-          '<td style="color:'+(pnlT>=0?'var(--green)':'var(--red)')+';font-weight:600">'+(pnlT>=0?'+':'')+pnlT.toFixed(2)+'</td>'+
-          '<td><span class="tag '+(pnlT>=0?'tg':'tr')+'">'+(pnlT>=0?'GAIN':'LOSS')+'</span></td>'+
-        '</tr>';
+        return '<tr><td><span style="font-weight:700;color:'+az.color+'">'+sym+'</span></td><td style="white-space:nowrap">'+(dIn?dIn.toLocaleDateString('it-IT'):'—')+'</td><td><span class="tag '+(t.direction==='BUY'?'tg':'tr')+'">'+(t.direction||'?')+'</span></td><td style="font-weight:500">'+(ep?parseFloat(ep).toLocaleString('it-IT',{minimumFractionDigits:2}):'—')+'</td><td style="color:var(--muted)">'+(xp?parseFloat(xp).toLocaleString('it-IT',{minimumFractionDigits:2}):'—')+'</td><td style="color:var(--muted);white-space:nowrap">'+(dOut?dOut.toLocaleDateString('it-IT'):'—')+'</td><td style="color:'+(pnlT>=0?'var(--green)':'var(--red)')+';font-weight:600">'+(pnlT>=0?'+':'')+pnlT.toFixed(2)+'</td><td><span class="tag '+(pnlT>=0?'tg':'tr')+'">'+(pnlT>=0?'GAIN':'LOSS')+'</span></td></tr>';
       }).join('')+
-      '</tbody></table></div></div>';
+    '</tbody></table></div></div>';
 
     api('/api/signals?service_code=azioni_italia&limit=20').then(function(sigs){
       sigs=sigs||[];
-      html+='<div class="card"><div class="card-title">Segnali recenti <span class="card-title-live">&#x25cf; live</span></div>'+
-        (sigs.length?sigs.map(renderSig).join(''):'<p style="color:var(--muted);font-size:13px">Nessun segnale ricevuto</p>')+
-      '</div>';
+      html+='<div class="card"><div class="card-title">Segnali recenti <span class="card-title-live">&#x25cf; live</span></div>'+(sigs.length?sigs.map(renderSig).join(''):'<p style="color:var(--muted);font-size:13px">Nessun segnale ricevuto</p>')+'</div>';
       document.getElementById('svc-pg-content').innerHTML=html;
-      renderAzioniCharts(closed,bySym,AZIONI,CAPITAL);
+      renderAzioniCharts(closed,bySym,AZIONI_DEF,CAPITALE_TOTALE);
     });
   });
 }
 
-function renderAzioniCharts(closed,bySym,AZIONI,CAPITAL){
+function renderAzioniCharts(closed,bySym,AZIONI_DEF,CAPITALE_TOTALE){
   Object.keys(chartInstances).forEach(function(k){try{chartInstances[k].destroy();}catch(e){}});
   chartInstances={};
   var cum=0,gLabels=[],gData=[];
@@ -2697,8 +2705,7 @@ function renderAzioniCharts(closed,bySym,AZIONI,CAPITAL){
   });
   var elG=document.getElementById('chart-azioni-global-eq');
   if(elG){
-    chartInstances['azioni-global']=new Chart(elG,{
-      type:'line',
+    chartInstances['azioni-global']=new Chart(elG,{type:'line',
       data:{labels:gLabels,datasets:[{data:gData,borderColor:'#c9a84c',backgroundColor:'rgba(201,168,76,0.08)',fill:true,tension:0.2,pointRadius:0,borderWidth:2}]},
       options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{
         x:{ticks:{color:'#7a7870',font:{size:9},maxTicksLimit:15,maxRotation:45},grid:{color:'rgba(255,255,255,0.03)'}},
@@ -2706,22 +2713,15 @@ function renderAzioniCharts(closed,bySym,AZIONI,CAPITAL){
       }}
     });
   }
-  AZIONI.forEach(function(az){
+  AZIONI_DEF.forEach(function(az){
     var c2=bySym[az.code].closed;
     var cum2=0;
     var vals=c2.map(function(t){cum2+=parseFloat(t.pnl)||0;return parseFloat(cum2.toFixed(2));});
     var el=document.getElementById('chart-az-eq-'+az.code);
     if(!el)return;
-    chartInstances['az-'+az.code]=new Chart(el,{
-      type:'line',
-      data:{labels:c2.map(function(){return '';}),datasets:[{
-        data:vals,borderColor:az.color,
-        backgroundColor:'rgba('+hexToRgb(az.color)+',0.1)',
-        fill:true,tension:0.3,pointRadius:0,borderWidth:1.5
-      }]},
-      options:{responsive:true,maintainAspectRatio:false,
-        plugins:{legend:{display:false},tooltip:{enabled:false}},
-        scales:{x:{display:false},y:{display:false}}}
+    chartInstances['az-'+az.code]=new Chart(el,{type:'line',
+      data:{labels:c2.map(function(){return '';}),datasets:[{data:vals,borderColor:az.color,backgroundColor:'rgba('+hexToRgb(az.color)+',0.1)',fill:true,tension:0.3,pointRadius:0,borderWidth:1.5}]},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{enabled:false}},scales:{x:{display:false},y:{display:false}}}
     });
   });
 }
