@@ -353,6 +353,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
     <div class="nav-item" onclick="showService('forex');closeMobileMore();setMobileNav('forex')"><img src="https://raw.githubusercontent.com/finanzalive-jpg/finanzalive-frontend/main/forex%20logo.jpg" style="width:20px;height:20px;border-radius:4px;object-fit:contain;background:#f5f0e8"> Sala Forex</div>
     <div class="nav-item" onclick="showService('fund_pamm');closeMobileMore();setMobileNav('fund_pamm')"><img src="https://raw.githubusercontent.com/finanzalive-jpg/finanzalive-frontend/main/fondo%20paam.jpg" style="width:20px;height:20px;border-radius:4px;object-fit:contain;background:#f5f0e8"> Fondo PAMM</div>
     <div class="nav-item" onclick="showService('fondo_rotativo');closeMobileMore();setMobileNav('fondo_rotativo')"><img src="https://raw.githubusercontent.com/finanzalive-jpg/finanzalive-frontend/main/fondo%20rotativo.jpg" style="width:20px;height:20px;border-radius:4px;object-fit:contain;background:#f5f0e8"> Fondo Rotativo</div>
+    <div class="nav-item" onclick="showService('azioni_usa');closeMobileMore();setMobileNav('azioni_usa')"><img src="https://raw.githubusercontent.com/finanzalive-jpg/finanzalive-frontend/main/logo%20azioni%20usa.png" style="width:20px;height:20px;border-radius:4px;object-fit:contain;background:#f0f4ff"> Sala Azioni USA</div>
     <div class="nav-item" onclick="showService('azioni_italia');closeMobileMore();setMobileNav('azioni_italia')"><img src="https://raw.githubusercontent.com/finanzalive-jpg/finanzalive-frontend/main/logo%20azioni%20italia.png" style="width:20px;height:20px;border-radius:4px;object-fit:contain;background:#f5f0e8"> Sala Azioni Italia</div>
     <div style="font-size:11px;font-weight:800;color:var(--gold);text-transform:uppercase;letter-spacing:.1em;margin:12px 0 10px;">Account</div>
     <div class="nav-item" onclick="showPage('profile');closeMobileMore();setMobileNav('profile')"><span style="font-size:18px">◈</span> Profilo</div>
@@ -371,6 +372,7 @@ tr:hover td{background:rgba(255,255,255,0.02);}
       <div class="nav-item" id="nav-gold" onclick="showService('gold')"><img src="https://raw.githubusercontent.com/finanzalive-jpg/finanzalive-frontend/main/gold%20logo.jpg" style="width:18px;height:18px;border-radius:4px;object-fit:contain;background:#f5f0e8;flex-shrink:0;vertical-align:-3px"> Sala Gold</div>
       <div class="nav-item" id="nav-fund_pamm" onclick="showService('fund_pamm')"><img src="https://raw.githubusercontent.com/finanzalive-jpg/finanzalive-frontend/main/fondo%20paam.jpg" style="width:18px;height:18px;border-radius:4px;object-fit:contain;background:#f5f0e8;flex-shrink:0;vertical-align:-3px"> Fondo PAMM</div>
       <div class="nav-item" id="nav-fondo_rotativo" onclick="showService('fondo_rotativo')" style="color:var(--gold);border-left:2px solid transparent;"><img src="https://raw.githubusercontent.com/finanzalive-jpg/finanzalive-frontend/main/fondo%20rotativo.jpg" style="width:18px;height:18px;border-radius:4px;object-fit:contain;background:#f5f0e8;flex-shrink:0;vertical-align:-3px"> Fondo Rotativo</div>
+      <div class="nav-item" id="nav-azioni_usa" onclick="showService('azioni_usa')"><img src="https://raw.githubusercontent.com/finanzalive-jpg/finanzalive-frontend/main/logo%20azioni%20usa.png" style="width:18px;height:18px;border-radius:4px;object-fit:contain;background:#f0f4ff;flex-shrink:0;vertical-align:-3px"> Sala Azioni USA</div>
       <div class="nav-item" id="nav-azioni_italia" onclick="showService('azioni_italia')"><img src="https://raw.githubusercontent.com/finanzalive-jpg/finanzalive-frontend/main/logo%20azioni%20italia.png" style="width:18px;height:18px;border-radius:4px;object-fit:contain;background:#f5f0e8;flex-shrink:0;vertical-align:-3px"> Sala Azioni Italia</div>
       <div class="nav-sec">Account</div>
       <div class="nav-item" onclick="showPage('profile')"><span style="font-size:15px">◈</span> Profilo</div>
@@ -472,7 +474,8 @@ var SVC={
   gold:{name:'Sala Gold',icon:'🥇',desc:'Segnali su Oro in tempo reale'},
   fund_pamm:{name:'Fondo PAMM',icon:'💼',desc:'Andamento e aggiornamenti fondo PAMM'},
   fondo_rotativo:{name:'Fondo Rotativo Multi-Prodotto',icon:'🔄',desc:'Benchmark consolidato — equity aggregata di tutti i servizi IUPPITER'},
-  azioni_italia:{name:'Sala Azioni Italia',icon:'🇮🇹',desc:'Segnali su azioni del mercato italiano — ENI, RACE, UCG e altre'}
+  azioni_italia:{name:'Sala Azioni Italia',icon:'🇮🇹',desc:'Segnali su azioni del mercato italiano — ENI, RACE, UCG e altre'},
+  azioni_usa:{name:'Sala Azioni USA',icon:'🇺🇸',desc:'Segnali su azioni del mercato americano — AAPL, NVDA, MSFT e altre'}
 };
 var token=localStorage.getItem('iup_tok');
 var myServices=[];
@@ -845,7 +848,8 @@ function loadDashboard(activeCodes){
       var lastSig=lastBySvc[code];
       var lastStr=lastSig?('<span class="svc-last">Ultimo: '+new Date(lastSig.created_at).toLocaleDateString('it-IT',{day:'2-digit',month:'short'})+' '+new Date(lastSig.created_at).toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'})+'</span>'):'';
       var imgs={indices:'https://raw.githubusercontent.com/finanzalive-jpg/finanzalive-frontend/main/indici_world_logo.jpg',vanilla_monthly:'https://raw.githubusercontent.com/finanzalive-jpg/finanzalive-frontend/main/Logo%20S%26P500%20con%20bandiera%20americana.jpg',vanilla_weekly:'https://raw.githubusercontent.com/finanzalive-jpg/finanzalive-frontend/main/Opzioni%20settimanali%20S%26P500%20con%20bandiera%20USA.jpg',forex:'https://raw.githubusercontent.com/finanzalive-jpg/finanzalive-frontend/main/forex%20logo.jpg',gold:'https://raw.githubusercontent.com/finanzalive-jpg/finanzalive-frontend/main/gold%20logo.jpg',fund_pamm:'https://raw.githubusercontent.com/finanzalive-jpg/finanzalive-frontend/main/fondo%20paam.jpg',fondo_rotativo:'https://raw.githubusercontent.com/finanzalive-jpg/finanzalive-frontend/main/fondo%20rotativo.jpg',
-    azioni_italia:'https://raw.githubusercontent.com/finanzalive-jpg/finanzalive-frontend/main/logo%20azioni%20italia.png'};
+    azioni_italia:'https://raw.githubusercontent.com/finanzalive-jpg/finanzalive-frontend/main/logo%20azioni%20italia.png',
+    azioni_usa:'https://raw.githubusercontent.com/finanzalive-jpg/finanzalive-frontend/main/logo%20azioni%20usa.png'};
       var imgSrc=imgs[code]||'';
       var imgH=imgSrc?('<div style="margin:-1.3rem -1.3rem 1rem -1.3rem;width:calc(100% + 2.6rem);height:220px;overflow:hidden;border-radius:10px 10px 0 0"><img src="'+imgSrc+'" style="width:100%;height:220px;object-fit:contain;display:block;background:#f5f0e8"></div>'):'';
       return '<div class="svc-card '+cls+'" '+oc+'>'+
@@ -1073,7 +1077,8 @@ function showService(code){
   clearBadge(code);
   var info=SVC[code];
   var svcLogos={indices:'https://raw.githubusercontent.com/finanzalive-jpg/finanzalive-frontend/main/indici_world_logo.jpg',vanilla_monthly:'https://raw.githubusercontent.com/finanzalive-jpg/finanzalive-frontend/main/Logo%20S%26P500%20con%20bandiera%20americana.jpg',vanilla_weekly:'https://raw.githubusercontent.com/finanzalive-jpg/finanzalive-frontend/main/Opzioni%20settimanali%20S%26P500%20con%20bandiera%20USA.jpg',forex:'https://raw.githubusercontent.com/finanzalive-jpg/finanzalive-frontend/main/forex%20logo.jpg',gold:'https://raw.githubusercontent.com/finanzalive-jpg/finanzalive-frontend/main/gold%20logo.jpg',fund_pamm:'https://raw.githubusercontent.com/finanzalive-jpg/finanzalive-frontend/main/fondo%20paam.jpg',fondo_rotativo:'https://raw.githubusercontent.com/finanzalive-jpg/finanzalive-frontend/main/fondo%20rotativo.jpg',
-    azioni_italia:'https://raw.githubusercontent.com/finanzalive-jpg/finanzalive-frontend/main/logo%20azioni%20italia.png'};
+    azioni_italia:'https://raw.githubusercontent.com/finanzalive-jpg/finanzalive-frontend/main/logo%20azioni%20italia.png',
+    azioni_usa:'https://raw.githubusercontent.com/finanzalive-jpg/finanzalive-frontend/main/logo%20azioni%20usa.png'};
   var logoHtml=svcLogos[code]?'<img src="'+svcLogos[code]+'" style="width:52px;height:52px;border-radius:10px;object-fit:contain;background:#f5f0e8;flex-shrink:0">':'';
   document.getElementById('svc-pg-title').innerHTML=logoHtml+'<span>'+info.name+'</span>';
   document.getElementById('svc-pg-sub').textContent=info.desc;
@@ -1092,6 +1097,7 @@ function showService(code){
   else if(code==='vanilla_monthly'){loadVanillaMonthly();}
   else if(code==='gold'){loadGoldService();}
   else if(code==='azioni_italia'){loadAzioniItalia();}
+  else if(code==='azioni_usa'){loadAzioniUsa();}
   else{loadGenericService(code);}
 }
 
@@ -2726,6 +2732,248 @@ function renderAzioniCharts(closed,bySym,AZIONI_DEF,CAPITALE_TOTALE){
     });
   });
 }
+
+
+
+// ── AZIONI USA ─────────────────────────────────────────────────────────────
+var AZIONI_USA_DEF = [
+  {code:'USA01', name:'Titolo 1',  color:'#c9a84c'},
+  {code:'USA02', name:'Titolo 2',  color:'#1db97a'},
+  {code:'USA03', name:'Titolo 3',  color:'#e84b4a'},
+  {code:'USA04', name:'Titolo 4',  color:'#f0a030'},
+  {code:'USA05', name:'Titolo 5',  color:'#b06ef3'},
+  {code:'USA06', name:'Titolo 6',  color:'#e8c96a'},
+  {code:'USA07', name:'Titolo 7',  color:'#1db97a'},
+  {code:'USA08', name:'Titolo 8',  color:'#c9a84c'},
+  {code:'USA09', name:'Titolo 9',  color:'#e84b4a'},
+  {code:'USA10', name:'Titolo 10', color:'#f0a030'},
+  {code:'USA11', name:'Titolo 11', color:'#b06ef3'},
+  {code:'USA12', name:'Titolo 12', color:'#1db97a'},
+  {code:'USA13', name:'Titolo 13', color:'#c9a84c'},
+  {code:'USA14', name:'Titolo 14', color:'#e84b4a'},
+  {code:'USA15', name:'Titolo 15', color:'#f0a030'},
+  {code:'USA16', name:'Titolo 16', color:'#b06ef3'},
+  {code:'USA17', name:'Titolo 17', color:'#e8c96a'},
+  {code:'USA18', name:'Titolo 18', color:'#1db97a'},
+  {code:'USA19', name:'Titolo 19', color:'#c9a84c'},
+  {code:'USA20', name:'Titolo 20', color:'#e84b4a'},
+  {code:'USA21', name:'Titolo 21', color:'#f0a030'},
+  {code:'USA22', name:'Titolo 22', color:'#b06ef3'},
+  {code:'USA23', name:'Titolo 23', color:'#e8c96a'},
+  {code:'USA24', name:'Titolo 24', color:'#1db97a'},
+  {code:'USA25', name:'Titolo 25', color:'#c9a84c'},
+  {code:'USA26', name:'Titolo 26', color:'#e84b4a'},
+  {code:'USA27', name:'Titolo 27', color:'#f0a030'},
+  {code:'USA28', name:'Titolo 28', color:'#b06ef3'},
+  {code:'USA29', name:'Titolo 29', color:'#e8c96a'},
+  {code:'USA30', name:'Titolo 30', color:'#1db97a'}
+];
+var CAPITAL_PER_AZIONE_USA = 1000;
+var N_AZIONI_USA = 30;
+var CAPITALE_TOTALE_USA = CAPITAL_PER_AZIONE_USA * N_AZIONI_USA;
+
+function loadAzioniUsa(){
+  api('/api/trades?service_code=azioni_usa').then(function(allT){
+    allT=allT||[];
+    var closed=allT.filter(function(t){return t.status==='CLOSED';}).sort(function(a,b){return new Date(a.opened_at)-new Date(b.opened_at);});
+    var openT=allT.filter(function(t){return t.status==='OPEN';});
+
+    function getSym(t){
+      var tk=(t.ticker||'').toUpperCase();
+      if(tk)return tk;
+      var n=(t.notes||'').toUpperCase();
+      for(var i=0;i<AZIONI_USA_DEF.length;i++){if(n.indexOf(AZIONI_USA_DEF[i].code)>=0)return AZIONI_USA_DEF[i].code;}
+      return null;
+    }
+
+    var bySym={};
+    AZIONI_USA_DEF.forEach(function(az){bySym[az.code]={closed:[],open:[]};});
+    closed.forEach(function(t){var s=getSym(t);if(s&&bySym[s])bySym[s].closed.push(t);});
+    openT.forEach(function(t){var s=getSym(t);if(s&&bySym[s])bySym[s].open.push(t);});
+
+    var totPnl=closed.reduce(function(s,t){return s+(parseFloat(t.pnl)||0);},0);
+    var totTrades=closed.length;
+    var totWin=closed.filter(function(t){return(parseFloat(t.pnl)||0)>0;}).length;
+    var globalWR=totTrades?((totWin/totTrades)*100).toFixed(1):0;
+
+    var html='';
+
+    // ── RIQUADRO DISTRIBUZIONE CAPITALE ──────────────────────────────────────
+    html+='<div class="card gold-border" style="margin-bottom:1.4rem">';
+    html+='<div class="card-title">🇺🇸 Portfolio — Distribuzione Capitale & Capital Gain USA</div>';
+    html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem">';
+
+    // colonna sx
+    html+='<div style="background:var(--bg3);border-radius:10px;padding:1rem">';
+    html+='<div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:.6rem">Struttura investimento</div>';
+    html+='<div style="display:flex;flex-direction:column;gap:.4rem">';
+    html+='<div style="display:flex;justify-content:space-between;font-size:13px"><span style="color:var(--muted)">Capitale per azione</span><span style="font-weight:700;color:var(--gold)">€ 1.000</span></div>';
+    html+='<div style="display:flex;justify-content:space-between;font-size:13px"><span style="color:var(--muted)">Azioni monitorate</span><span style="font-weight:700">'+N_AZIONI_USA+'</span></div>';
+    html+='<div style="display:flex;justify-content:space-between;font-size:13px;border-top:1px solid var(--border);padding-top:.4rem;margin-top:.2rem"><span style="color:var(--muted)">Capitale totale investito</span><span style="font-weight:800;color:var(--gold);font-size:15px">€ '+CAPITALE_TOTALE_USA.toLocaleString('it-IT')+'</span></div>';
+    html+='<div style="display:flex;justify-content:space-between;font-size:13px"><span style="color:var(--muted)">Tipo gestione</span><span style="color:var(--green);font-weight:600">Capitale fisso — no reinvestimento</span></div>';
+    html+='<div style="display:flex;justify-content:space-between;font-size:13px"><span style="color:var(--muted)">Gain distribuito (€)</span><span style="font-weight:700;color:'+(totPnl>=0?'var(--green)':'var(--red)')+'">'+(totPnl>=0?'+':'')+totPnl.toFixed(2)+'</span></div>';
+    html+='<div style="display:flex;justify-content:space-between;font-size:13px"><span style="color:var(--muted)">Rendimento totale %</span><span style="font-weight:700;color:'+(totPnl>=0?'var(--green)':'var(--red)')+'">'+((totPnl/CAPITALE_TOTALE_USA)*100).toFixed(1)+'%</span></div>';
+    html+='</div></div>';
+
+    // colonna dx — barre gain per azione
+    html+='<div style="background:var(--bg3);border-radius:10px;padding:1rem">';
+    html+='<div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:.6rem">Capital gain distribuito per azione</div>';
+    var maxPnlU=Math.max.apply(null,AZIONI_USA_DEF.map(function(az){
+      return Math.abs(bySym[az.code].closed.reduce(function(s,t){return s+(parseFloat(t.pnl)||0);},0));
+    }))||1;
+    AZIONI_USA_DEF.forEach(function(az){
+      var pnl=bySym[az.code].closed.reduce(function(s,t){return s+(parseFloat(t.pnl)||0);},0);
+      var pct=maxPnlU>0?(Math.abs(pnl)/maxPnlU*100):0;
+      var rgb=hexToRgb(az.color);
+      html+='<div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.28rem">';
+      html+='<span style="font-size:10px;font-weight:700;color:'+az.color+';min-width:40px">'+az.code+'</span>';
+      html+='<div style="flex:1;background:rgba(255,255,255,0.05);border-radius:4px;height:12px;overflow:hidden"><div style="width:'+pct+'%;height:100%;background:rgba('+rgb+',.5);border-radius:4px;transition:width .6s"></div></div>';
+      html+='<span style="font-size:10px;font-weight:600;min-width:64px;text-align:right;color:'+(pnl>=0?'var(--green)':'var(--red)')+'">'+(pnl>=0?'+':'')+pnl.toFixed(0)+' €</span>';
+      html+='</div>';
+    });
+    html+='</div></div>';
+
+    // KPI row
+    html+='<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:.6rem">';
+    [{l:'Capitale fisso',v:'€ '+CAPITALE_TOTALE_USA.toLocaleString('it-IT'),s:'30 azioni × €1.000',c:'gold'},
+     {l:'Gain distribuito',v:(totPnl>=0?'+':'')+totPnl.toFixed(2)+' €',s:'Senza reinvestimento',c:totPnl>=0?'g':'r'},
+     {l:'Rendimento netto',v:((totPnl/CAPITALE_TOTALE_USA)*100).toFixed(1)+'%',s:'Su capitale iniziale',c:totPnl>=0?'g':'r'},
+     {l:'Win rate globale',v:globalWR+'%',s:totWin+'W / '+(totTrades-totWin)+'L su '+totTrades+' op.',c:'gold'}
+    ].forEach(function(k){
+      html+='<div class="kpi"><div class="kl">'+k.l+'</div><div class="kv '+k.c+'">'+k.v+'</div><div class="ks">'+k.s+'</div></div>';
+    });
+    html+='</div></div>';
+
+    // Equity globale
+    html+='<div class="card gold-border" style="margin-bottom:1.2rem">';
+    html+='<div class="card-title">📈 Equity Curve Globale — Sala Azioni USA</div>';
+    html+='<div class="chart-wrap" style="height:180px"><canvas id="chart-usa-global-eq"></canvas></div>';
+    html+='</div>';
+
+    // Griglia 6x5 (30 azioni)
+    html+='<div style="display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-bottom:1.2rem">';
+    AZIONI_USA_DEF.forEach(function(az){
+      var c=bySym[az.code].closed, o=bySym[az.code].open;
+      var pnl=c.reduce(function(s,t){return s+(parseFloat(t.pnl)||0);},0);
+      var win=c.filter(function(t){return(parseFloat(t.pnl)||0)>0;}).length;
+      var wr=c.length?((win/c.length)*100).toFixed(1):0;
+      var rgb=hexToRgb(az.color);
+      html+='<div style="background:var(--bg2);border:1px solid rgba('+rgb+',0.3);border-radius:12px;overflow:hidden">';
+      html+='<div style="background:rgba('+rgb+',0.08);padding:8px 10px;border-bottom:1px solid rgba('+rgb+',0.15)">';
+      html+='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px">';
+      html+='<span style="font-size:11px;font-weight:800;color:'+az.color+'">'+az.code+'</span>';
+      html+='<span style="font-size:8px;color:var(--muted)">'+az.name+'</span></div>';
+      html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:3px">';
+      html+='<div style="background:var(--bg3);border-radius:5px;padding:4px 6px"><div style="font-size:8px;color:var(--muted)">Gain</div><div style="font-size:12px;font-weight:700;color:'+(pnl>=0?'var(--green)':'var(--red)')+'">'+(c.length?((pnl>=0?'+':'')+pnl.toFixed(0)+'€'):'—')+'</div></div>';
+      html+='<div style="background:var(--bg3);border-radius:5px;padding:4px 6px"><div style="font-size:8px;color:var(--muted)">Win%</div><div style="font-size:12px;font-weight:700;color:'+az.color+'">'+(c.length?wr+'%':'—')+'</div></div>';
+      html+='<div style="background:var(--bg3);border-radius:5px;padding:4px 6px"><div style="font-size:8px;color:var(--muted)">Op.</div><div style="font-size:12px;font-weight:700">'+c.length+'</div></div>';
+      html+='<div style="background:var(--bg3);border-radius:5px;padding:4px 6px"><div style="font-size:8px;color:var(--muted)">Live</div><div style="font-size:12px;font-weight:700;color:'+(o.length?'var(--amber)':'var(--muted)')+'">'+o.length+'</div></div>';
+      html+='</div></div>';
+      html+='<div style="padding:6px 10px 4px"><div style="height:55px"><canvas id="chart-usa-eq-'+az.code+'"></canvas></div></div>';
+      if(o.length){
+        html+='<div style="padding:3px 10px">';
+        o.forEach(function(t){
+          var ep=t.entry_price;
+          html+='<div style="background:rgba(240,160,48,0.07);border:1px solid rgba(240,160,48,0.2);border-radius:4px;padding:3px 6px;margin-bottom:2px;font-size:9px;display:flex;justify-content:space-between">';
+          html+='<span class="tag '+(t.direction==='BUY'?'tg':'tr')+'" style="font-size:8px">'+t.direction+'</span>';
+          html+='<span style="color:var(--muted)">'+(ep?'$'+parseFloat(ep).toFixed(2):'-')+'</span></div>';
+        });
+        html+='</div>';
+      }
+      var recent=c.slice().sort(function(a,b){return new Date(b.opened_at)-new Date(a.opened_at);}).slice(0,3);
+      html+='<div style="padding:3px 10px 7px">';
+      if(!recent.length){html+='<div style="font-size:9px;color:var(--muted);padding:3px 0">Dati in arrivo...</div>';}
+      else{recent.forEach(function(t){
+        var d=t.opened_at?new Date(t.opened_at):null;
+        var pnlT=parseFloat(t.pnl)||0;
+        html+='<div style="display:flex;align-items:center;justify-content:space-between;padding:2px 0;border-bottom:1px solid rgba(255,255,255,0.03);font-size:9px">';
+        html+='<div style="display:flex;align-items:center;gap:3px"><span class="tag '+(t.direction==='BUY'?'tg':'tr')+'" style="font-size:8px;padding:1px 3px">'+t.direction+'</span>';
+        html+='<span style="color:var(--muted)">'+(d?d.toLocaleDateString('it-IT',{day:'2-digit',month:'2-digit'}):'-')+'</span></div>';
+        html+='<span style="font-weight:600;color:'+(pnlT>=0?'var(--green)':'var(--red)')+'">'+(pnlT>=0?'+':'')+pnlT.toFixed(2)+'</span></div>';
+      });}
+      html+='</div></div>';
+    });
+    html+='</div>';
+
+    // Storico
+    var allRecent=closed.slice().sort(function(a,b){return new Date(b.opened_at)-new Date(a.opened_at);}).slice(0,100);
+    html+='<div class="card"><div class="card-title">Storico operazioni USA</div>';
+    html+='<div class="tbl-wrap"><table><thead><tr>';
+    html+='<th>Ticker</th><th>Data ingresso</th><th>Dir.</th><th>Entrata $</th><th>Uscita $</th><th>Data uscita</th><th>PnL €</th><th>Esito</th>';
+    html+='</tr></thead><tbody>';
+    if(!allRecent.length){
+      html+='<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:24px">Storico in arrivo — carica i primi XLS!</td></tr>';
+    } else {
+      allRecent.forEach(function(t){
+        var dIn=t.opened_at?new Date(t.opened_at):null;
+        var dOut=t.closed_at?new Date(t.closed_at):null;
+        var pnlT=parseFloat(t.pnl)||0;
+        var sym=getSym(t)||'?';
+        var az=AZIONI_USA_DEF.find(function(a){return a.code===sym;})||{color:'var(--muted)'};
+        html+='<tr>';
+        html+='<td><span style="font-weight:700;color:'+az.color+'">'+sym+'</span></td>';
+        html+='<td style="white-space:nowrap">'+(dIn?dIn.toLocaleDateString('it-IT'):'—')+'</td>';
+        html+='<td><span class="tag '+(t.direction==='BUY'?'tg':'tr')+'">'+(t.direction||'?')+'</span></td>';
+        html+='<td>'+(t.entry_price?'$'+parseFloat(t.entry_price).toLocaleString('it-IT',{minimumFractionDigits:2}):'—')+'</td>';
+        html+='<td style="color:var(--muted)">'+(t.exit_price?'$'+parseFloat(t.exit_price).toLocaleString('it-IT',{minimumFractionDigits:2}):'—')+'</td>';
+        html+='<td style="white-space:nowrap">'+(dOut?dOut.toLocaleDateString('it-IT'):'—')+'</td>';
+        html+='<td style="color:'+(pnlT>=0?'var(--green)':'var(--red)')+';font-weight:600">'+(pnlT>=0?'+':'')+pnlT.toFixed(2)+'</td>';
+        html+='<td><span class="tag '+(pnlT>=0?'tg':'tr')+'">'+(pnlT>=0?'GAIN':'LOSS')+'</span></td>';
+        html+='</tr>';
+      });
+    }
+    html+='</tbody></table></div></div>';
+
+    // Segnali live
+    api('/api/signals?service_code=azioni_usa&limit=20').then(function(sigs){
+      sigs=sigs||[];
+      html+='<div class="card"><div class="card-title">Segnali recenti 🇺🇸 <span class="card-title-live">&#x25cf; live</span></div>';
+      html+=(sigs.length?sigs.map(renderSig).join(''):'<p style="color:var(--muted);font-size:13px">Nessun segnale ricevuto</p>');
+      html+='</div>';
+      document.getElementById('svc-pg-content').innerHTML=html;
+      renderAzioniUsaCharts(closed,bySym);
+    });
+  });
+}
+
+function renderAzioniUsaCharts(closed,bySym){
+  Object.keys(chartInstances).forEach(function(k){try{chartInstances[k].destroy();}catch(e){}});
+  chartInstances={};
+  // Global
+  var cum=0,gL=[],gD=[];
+  closed.forEach(function(t){
+    cum+=parseFloat(t.pnl)||0;
+    gL.push(t.opened_at?new Date(t.opened_at).toLocaleDateString('it-IT',{day:'2-digit',month:'short'}):'');
+    gD.push(parseFloat(cum.toFixed(2)));
+  });
+  var elG=document.getElementById('chart-usa-global-eq');
+  if(elG){
+    chartInstances['usa-global']=new Chart(elG,{type:'line',
+      data:{labels:gL,datasets:[{data:gD,borderColor:'#4a90d9',backgroundColor:'rgba(74,144,217,0.08)',fill:true,tension:0.2,pointRadius:0,borderWidth:2}]},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{
+        x:{ticks:{color:'#7a7870',font:{size:9},maxTicksLimit:15,maxRotation:45},grid:{color:'rgba(255,255,255,0.03)'}},
+        y:{ticks:{color:'#7a7870',font:{size:10},callback:function(v){return '€'+Math.round(v);}},grid:{color:'rgba(255,255,255,0.04)'}}
+      }}
+    });
+  }
+  // Per azione
+  AZIONI_USA_DEF.forEach(function(az){
+    var c2=bySym[az.code].closed;
+    var cum2=0;
+    var vals=c2.map(function(t){cum2+=parseFloat(t.pnl)||0;return parseFloat(cum2.toFixed(2));});
+    var el=document.getElementById('chart-usa-eq-'+az.code);
+    if(!el)return;
+    chartInstances['usa-'+az.code]=new Chart(el,{type:'line',
+      data:{labels:c2.map(function(){return '';}),datasets:[{
+        data:vals.length?vals:[0],
+        borderColor:az.color,backgroundColor:'rgba('+hexToRgb(az.color)+',0.1)',
+        fill:true,tension:0.3,pointRadius:0,borderWidth:1.5
+      }]},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{enabled:false}},scales:{x:{display:false},y:{display:false}}}
+    });
+  });
+}
+
 
 // Avvio
 if(token){
