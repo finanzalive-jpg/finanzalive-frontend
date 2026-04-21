@@ -2556,7 +2556,8 @@ var AZIONI_DEF = [
   {code:'ENI',  name:'ENI',              color:'#1db97a'},
   {code:'AZM',  name:'Azimut',           color:'#c9a84c'},
   {code:'BC',   name:'Brunello Cucinelli',color:'#e84b4a'},
-  {code:'RACE', name:'Ferrari',          color:'#f0a030'}
+  {code:'RACE', name:'Ferrari',          color:'#f0a030'},
+  {code:'MONC', name:'Moncler',          color:'#1877f2'}
 ];
 var CAPITAL_PER_AZIONE = 1000;
 var N_AZIONI = 10;
@@ -2696,7 +2697,7 @@ function loadAzioniItalia(){
       sigs=sigs||[];
       html+='<div class="card"><div class="card-title">Segnali recenti <span class="card-title-live">&#x25cf; live</span></div>'+(sigs.length?sigs.map(renderSig).join(''):'<p style="color:var(--muted);font-size:13px">Nessun segnale ricevuto</p>')+'</div>';
       document.getElementById('svc-pg-content').innerHTML=html;
-      renderAzioniCharts(closed,bySym,AZIONI_DEF,CAPITALE_TOTALE);
+      setTimeout(function(){renderAzioniCharts(closed,bySym,AZIONI_DEF,CAPITALE_TOTALE);},50);
     });
   });
 }
@@ -2741,8 +2742,8 @@ var AZIONI_USA_DEF = [
   {code:'NTAP', name:'NetApp',  color:'#1db97a'},
   {code:'SNOW', name:'Snowflake',  color:'#e84b4a'},
   {code:'BILL', name:'Bill.com',  color:'#f0a030'},
-  {code:'USA05', name:'Titolo 5',  color:'#b06ef3'},
-  {code:'USA06', name:'Titolo 6',  color:'#e8c96a'},
+  {code:'DNA',  name:'Ginkgo Bio', color:'#b06ef3'},
+  {code:'ABCL', name:'AbCellera',  color:'#e8c96a'},
   {code:'USA07', name:'Titolo 7',  color:'#1db97a'},
   {code:'USA08', name:'Titolo 8',  color:'#c9a84c'},
   {code:'USA09', name:'Titolo 9',  color:'#e84b4a'},
@@ -2786,10 +2787,31 @@ function loadAzioniUsa(){
       return null;
     }
 
+    // Init bySym — include tutti i simboli del DEF + quelli trovati nel DB
     var bySym={};
     AZIONI_USA_DEF.forEach(function(az){bySym[az.code]={closed:[],open:[]};});
-    closed.forEach(function(t){var s=getSym(t);if(s&&bySym[s])bySym[s].closed.push(t);});
-    openT.forEach(function(t){var s=getSym(t);if(s&&bySym[s])bySym[s].open.push(t);});
+    // Aggiungi dinamicamente ticker dal DB non ancora nel DEF
+    closed.forEach(function(t){
+      var s=getSym(t);
+      if(!s) return;
+      if(!bySym[s]) bySym[s]={closed:[],open:[]};
+      bySym[s].closed.push(t);
+    });
+    openT.forEach(function(t){
+      var s=getSym(t);
+      if(!s) return;
+      if(!bySym[s]) bySym[s]={closed:[],open:[]};
+      bySym[s].open.push(t);
+    });
+    // Aggiorna AZIONI_USA_DEF con i ticker dal DB che non sono ancora definiti
+    var defCodes=AZIONI_USA_DEF.map(function(a){return a.code;});
+    Object.keys(bySym).forEach(function(sym){
+      if(defCodes.indexOf(sym)<0){
+        // Cerca uno slot USA-placeholder da sostituire
+        var slot=AZIONI_USA_DEF.find(function(a){return a.code.indexOf('USA')==0 && a.name.indexOf('Titolo')==0;});
+        if(slot){ slot.code=sym; slot.name=sym; defCodes.push(sym); }
+      }
+    });
 
     var totPnl=closed.reduce(function(s,t){return s+(parseFloat(t.pnl)||0);},0);
     var totTrades=closed.length;
@@ -2931,7 +2953,7 @@ function loadAzioniUsa(){
       html+=(sigs.length?sigs.map(renderSig).join(''):'<p style="color:var(--muted);font-size:13px">Nessun segnale ricevuto</p>');
       html+='</div>';
       document.getElementById('svc-pg-content').innerHTML=html;
-      renderAzioniUsaCharts(closed,bySym);
+      setTimeout(function(){renderAzioniUsaCharts(closed,bySym);},50);
     });
   });
 }
