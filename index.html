@@ -2626,49 +2626,88 @@ function loadAzioniItalia(){
     var totWin=closed.filter(function(t){return(parseFloat(t.pnl)||0)>0;}).length;
     var globalWR=totTrades?((totWin/totTrades)*100).toFixed(1):0;
 
+    var isMobile=window.innerWidth<=768;
     var html='';
 
-    // ── RIQUADRO DISTRIBUZIONE CAPITALE ────────────────────────────────────────
+    // ── RIQUADRO PORTFOLIO ──────────────────────────────────────────────────────
     html+='<div class="card gold-border" style="margin-bottom:1.4rem">';
     html+='<div class="card-title">💼 Portfolio — Distribuzione Capitale & Capital Gain</div>';
-    html+='<div class="azioni-portfolio-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem">';
-    // colonna sx: info fisse
-    html+='<div style="background:var(--bg3);border-radius:10px;padding:1rem">';
-    html+='<div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:.6rem">Struttura investimento</div>';
-    html+='<div style="display:flex;flex-direction:column;gap:.4rem">';
-    html+='<div style="display:flex;justify-content:space-between;font-size:13px"><span style="color:var(--muted)">Capitale per azione</span><span style="font-weight:700;color:var(--gold)">€ 1.000</span></div>';
-    html+='<div style="display:flex;justify-content:space-between;font-size:13px"><span style="color:var(--muted)">Azioni monitorate</span><span style="font-weight:700">'+N_AZIONI+'</span></div>';
-    html+='<div style="display:flex;justify-content:space-between;font-size:13px;border-top:1px solid var(--border);padding-top:.4rem;margin-top:.2rem"><span style="color:var(--muted)">Capitale totale investito</span><span style="font-weight:800;color:var(--gold);font-size:15px">€ '+CAPITALE_TOTALE.toLocaleString('it-IT')+'</span></div>';
-    html+='<div style="display:flex;justify-content:space-between;font-size:13px"><span style="color:var(--muted)">Tipo gestione</span><span style="color:var(--green);font-weight:600">Capital fisso — no reinvestimento</span></div>';
-    html+='<div style="display:flex;justify-content:space-between;font-size:13px"><span style="color:var(--muted)">Gain distribuito (€)</span><span style="font-weight:700;color:'+(totPnl>=0?'var(--green)':'var(--red)')+'">'+(totPnl>=0?'+':'')+totPnl.toFixed(2)+'</span></div>';
-    html+='<div style="display:flex;justify-content:space-between;font-size:13px"><span style="color:var(--muted)">Rendimento totale %</span><span style="font-weight:700;color:'+(totPnl>=0?'var(--green)':'var(--red)')+'">'+((totPnl/CAPITALE_TOTALE)*100).toFixed(1)+'%</span></div>';
-    html+='</div></div>';
-    // colonna dx: barre per azione
-    html+='<div style="background:var(--bg3);border-radius:10px;padding:1rem">';
-    html+='<div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:.6rem">Capital gain distribuito per azione</div>';
-    var maxPnl=Math.max.apply(null,AZIONI_DEF.map(function(az){return Math.abs(bySym[az.code].closed.reduce(function(s,t){return s+(parseFloat(t.pnl)||0);},0));}));
-    AZIONI_DEF.forEach(function(az){
-      var pnl=bySym[az.code].closed.reduce(function(s,t){return s+(parseFloat(t.pnl)||0);},0);
-      var pct=maxPnl>0?(Math.abs(pnl)/maxPnl*100):0;
-      var rgb=hexToRgb(az.color);
-      html+='<div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.35rem">';
-      html+='<span style="font-size:11px;font-weight:700;color:'+az.color+';min-width:36px">'+az.code+'</span>';
-      html+='<div style="flex:1;background:rgba(255,255,255,0.05);border-radius:4px;height:14px;overflow:hidden">';
-      html+='<div style="width:'+pct+'%;height:100%;background:rgba('+rgb+',.5);border-radius:4px;transition:width .6s"></div></div>';
-      html+='<span style="font-size:11px;font-weight:600;min-width:72px;text-align:right;color:'+(pnl>=0?'var(--green)':'var(--red)')+'">'+(pnl>=0?'+':'')+pnl.toFixed(0)+' €</span>';
+
+    if(isMobile){
+      // ── MOBILE: layout verticale ──────────────────────────────────────────
+      // KPI 2x2
+      html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:.6rem;margin-bottom:.8rem">';
+      [{l:'Capitale',v:'€ '+CAPITALE_TOTALE.toLocaleString('it-IT'),s:N_AZIONI+' azioni × €1k',c:'gold'},
+       {l:'Gain totale',v:(totPnl>=0?'+':'')+totPnl.toFixed(0)+' €',s:'Senza reinvestimento',c:totPnl>=0?'g':'r'},
+       {l:'Rendimento',v:((totPnl/CAPITALE_TOTALE)*100).toFixed(1)+'%',s:'Su capitale iniziale',c:totPnl>=0?'g':'r'},
+       {l:'Win Rate',v:globalWR+'%',s:totWin+'W / '+(totTrades-totWin)+'L',c:'gold'}
+      ].forEach(function(k){
+        html+='<div class="kpi"><div class="kl">'+k.l+'</div><div class="kv '+k.c+'">'+k.v+'</div><div class="ks">'+k.s+'</div></div>';
+      });
       html+='</div>';
-    });
-    html+='</div></div>';
-    // KPI row
-    html+='<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:.6rem">';
-    [{l:'Capitale fisso',v:'€ '+CAPITALE_TOTALE.toLocaleString('it-IT'),s:N_AZIONI+' azioni × €1.000',c:'gold'},
-     {l:'Gain distribuito',v:(totPnl>=0?'+':'')+totPnl.toFixed(2)+' €',s:'Senza reinvestimento',c:totPnl>=0?'g':'r'},
-     {l:'Rendimento netto',v:((totPnl/CAPITALE_TOTALE)*100).toFixed(1)+'%',s:'Su capitale iniziale',c:totPnl>=0?'g':'r'},
-     {l:'Win rate globale',v:globalWR+'%',s:totWin+'W / '+(totTrades-totWin)+'L su '+totTrades+' op.',c:'gold'}
-    ].forEach(function(k){
-      html+='<div class="kpi"><div class="kl">'+k.l+'</div><div class="kv '+k.c+'">'+k.v+'</div><div class="ks">'+k.s+'</div></div>';
-    });
-    html+='</div></div>';
+      // Struttura investimento full-width
+      html+='<div style="background:var(--bg3);border-radius:10px;padding:.9rem;margin-bottom:.8rem">';
+      html+='<div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:.5rem">Struttura investimento</div>';
+      html+='<div style="display:flex;flex-direction:column;gap:.35rem">';
+      html+='<div style="display:flex;justify-content:space-between;font-size:13px"><span style="color:var(--muted)">Capitale per azione</span><span style="font-weight:700;color:var(--gold)">€ 1.000</span></div>';
+      html+='<div style="display:flex;justify-content:space-between;font-size:13px"><span style="color:var(--muted)">Azioni monitorate</span><span style="font-weight:700">'+N_AZIONI+'</span></div>';
+      html+='<div style="display:flex;justify-content:space-between;font-size:13px"><span style="color:var(--muted)">Tipo gestione</span><span style="color:var(--green);font-weight:600;font-size:12px">Capitale fisso</span></div>';
+      html+='<div style="display:flex;justify-content:space-between;font-size:13px"><span style="color:var(--muted)">Gain distribuito</span><span style="font-weight:700;color:'+(totPnl>=0?'var(--green)':'var(--red)')+'">'+(totPnl>=0?'+':'')+totPnl.toFixed(2)+' €</span></div>';
+      html+='</div></div>';
+      // Capital gain full-width
+      html+='<div style="background:var(--bg3);border-radius:10px;padding:.9rem">';
+      html+='<div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:.5rem">Capital gain per azione</div>';
+      var maxPnl=Math.max.apply(null,AZIONI_DEF.map(function(az){return Math.abs(bySym[az.code].closed.reduce(function(s,t){return s+(parseFloat(t.pnl)||0);},0));}));
+      AZIONI_DEF.forEach(function(az){
+        var pnl=bySym[az.code].closed.reduce(function(s,t){return s+(parseFloat(t.pnl)||0);},0);
+        var pct=maxPnl>0?(Math.abs(pnl)/maxPnl*100):0;
+        var rgb=hexToRgb(az.color);
+        html+='<div style="display:flex;align-items:center;gap:.4rem;margin-bottom:.3rem">';
+        html+='<span style="font-size:11px;font-weight:700;color:'+az.color+';min-width:38px">'+az.code+'</span>';
+        html+='<div style="flex:1;background:rgba(255,255,255,0.05);border-radius:4px;height:13px;overflow:hidden"><div style="width:'+pct+'%;height:100%;background:rgba('+rgb+',.5);border-radius:4px"></div></div>';
+        html+='<span style="font-size:11px;font-weight:600;min-width:62px;text-align:right;color:'+(pnl>=0?'var(--green)':'var(--red)')+'">'+(pnl>=0?'+':'')+pnl.toFixed(0)+' €</span>';
+        html+='</div>';
+      });
+      html+='</div>';
+    } else {
+      // ── DESKTOP: layout originale 2 colonne ──────────────────────────────
+      html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem">';
+      html+='<div style="background:var(--bg3);border-radius:10px;padding:1rem">';
+      html+='<div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:.6rem">Struttura investimento</div>';
+      html+='<div style="display:flex;flex-direction:column;gap:.4rem">';
+      html+='<div style="display:flex;justify-content:space-between;font-size:13px"><span style="color:var(--muted)">Capitale per azione</span><span style="font-weight:700;color:var(--gold)">€ 1.000</span></div>';
+      html+='<div style="display:flex;justify-content:space-between;font-size:13px"><span style="color:var(--muted)">Azioni monitorate</span><span style="font-weight:700">'+N_AZIONI+'</span></div>';
+      html+='<div style="display:flex;justify-content:space-between;font-size:13px;border-top:1px solid var(--border);padding-top:.4rem;margin-top:.2rem"><span style="color:var(--muted)">Capitale totale investito</span><span style="font-weight:800;color:var(--gold);font-size:15px">€ '+CAPITALE_TOTALE.toLocaleString('it-IT')+'</span></div>';
+      html+='<div style="display:flex;justify-content:space-between;font-size:13px"><span style="color:var(--muted)">Tipo gestione</span><span style="color:var(--green);font-weight:600">Capital fisso — no reinvestimento</span></div>';
+      html+='<div style="display:flex;justify-content:space-between;font-size:13px"><span style="color:var(--muted)">Gain distribuito (€)</span><span style="font-weight:700;color:'+(totPnl>=0?'var(--green)':'var(--red)')+'">'+(totPnl>=0?'+':'')+totPnl.toFixed(2)+'</span></div>';
+      html+='<div style="display:flex;justify-content:space-between;font-size:13px"><span style="color:var(--muted)">Rendimento totale %</span><span style="font-weight:700;color:'+(totPnl>=0?'var(--green)':'var(--red)')+'">'+((totPnl/CAPITALE_TOTALE)*100).toFixed(1)+'%</span></div>';
+      html+='</div></div>';
+      html+='<div style="background:var(--bg3);border-radius:10px;padding:1rem">';
+      html+='<div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:.6rem">Capital gain distribuito per azione</div>';
+      var maxPnl=Math.max.apply(null,AZIONI_DEF.map(function(az){return Math.abs(bySym[az.code].closed.reduce(function(s,t){return s+(parseFloat(t.pnl)||0);},0));}));
+      AZIONI_DEF.forEach(function(az){
+        var pnl=bySym[az.code].closed.reduce(function(s,t){return s+(parseFloat(t.pnl)||0);},0);
+        var pct=maxPnl>0?(Math.abs(pnl)/maxPnl*100):0;
+        var rgb=hexToRgb(az.color);
+        html+='<div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.35rem">';
+        html+='<span style="font-size:11px;font-weight:700;color:'+az.color+';min-width:36px">'+az.code+'</span>';
+        html+='<div style="flex:1;background:rgba(255,255,255,0.05);border-radius:4px;height:14px;overflow:hidden">';
+        html+='<div style="width:'+pct+'%;height:100%;background:rgba('+rgb+',.5);border-radius:4px;transition:width .6s"></div></div>';
+        html+='<span style="font-size:11px;font-weight:600;min-width:72px;text-align:right;color:'+(pnl>=0?'var(--green)':'var(--red)')+'">'+(pnl>=0?'+':'')+pnl.toFixed(0)+' €</span>';
+        html+='</div>';
+      });
+      html+='</div></div>';
+      html+='<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:.6rem">';
+      [{l:'Capitale fisso',v:'€ '+CAPITALE_TOTALE.toLocaleString('it-IT'),s:N_AZIONI+' azioni × €1.000',c:'gold'},
+       {l:'Gain distribuito',v:(totPnl>=0?'+':'')+totPnl.toFixed(2)+' €',s:'Senza reinvestimento',c:totPnl>=0?'g':'r'},
+       {l:'Rendimento netto',v:((totPnl/CAPITALE_TOTALE)*100).toFixed(1)+'%',s:'Su capitale iniziale',c:totPnl>=0?'g':'r'},
+       {l:'Win rate globale',v:globalWR+'%',s:totWin+'W / '+(totTrades-totWin)+'L su '+totTrades+' op.',c:'gold'}
+      ].forEach(function(k){
+        html+='<div class="kpi"><div class="kl">'+k.l+'</div><div class="kv '+k.c+'">'+k.v+'</div><div class="ks">'+k.s+'</div></div>';
+      });
+      html+='</div>';
+    }
+    html+='</div>';
 
     // Equity globale
     html+='<div class="card gold-border" style="margin-bottom:1.2rem"><div class="card-title">📈 Equity Curve Globale — Sala Azioni Italia</div><div class="chart-wrap" style="height:180px"><canvas id="chart-azioni-global-eq"></canvas></div></div>';
@@ -2862,53 +2901,86 @@ function loadAzioniUsa(){
     var totWin=closed.filter(function(t){return(parseFloat(t.pnl)||0)>0;}).length;
     var globalWR=totTrades?((totWin/totTrades)*100).toFixed(1):0;
 
-    var html='';
-
-    // ── RIQUADRO DISTRIBUZIONE CAPITALE ──────────────────────────────────────
-    html+='<div class="card gold-border" style="margin-bottom:1.4rem">';
-    html+='<div class="card-title">🇺🇸 Portfolio — Distribuzione Capitale & Capital Gain USA</div>';
-    html+='<div class="azioni-portfolio-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem">';
-
-    // colonna sx
-    html+='<div style="background:var(--bg3);border-radius:10px;padding:1rem">';
-    html+='<div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:.6rem">Struttura investimento</div>';
-    html+='<div style="display:flex;flex-direction:column;gap:.4rem">';
-    html+='<div style="display:flex;justify-content:space-between;font-size:13px"><span style="color:var(--muted)">Capitale per azione</span><span style="font-weight:700;color:var(--gold)">€ 1.000</span></div>';
-    html+='<div style="display:flex;justify-content:space-between;font-size:13px"><span style="color:var(--muted)">Azioni monitorate</span><span style="font-weight:700">'+N_AZIONI_USA+'</span></div>';
-    html+='<div style="display:flex;justify-content:space-between;font-size:13px;border-top:1px solid var(--border);padding-top:.4rem;margin-top:.2rem"><span style="color:var(--muted)">Capitale totale investito</span><span style="font-weight:800;color:var(--gold);font-size:15px">€ '+CAPITALE_TOTALE_USA.toLocaleString('it-IT')+'</span></div>';
-    html+='<div style="display:flex;justify-content:space-between;font-size:13px"><span style="color:var(--muted)">Tipo gestione</span><span style="color:var(--green);font-weight:600">Capitale fisso — no reinvestimento</span></div>';
-    html+='<div style="display:flex;justify-content:space-between;font-size:13px"><span style="color:var(--muted)">Gain distribuito (€)</span><span style="font-weight:700;color:'+(totPnl>=0?'var(--green)':'var(--red)')+'">'+(totPnl>=0?'+':'')+totPnl.toFixed(2)+'</span></div>';
-    html+='<div style="display:flex;justify-content:space-between;font-size:13px"><span style="color:var(--muted)">Rendimento totale %</span><span style="font-weight:700;color:'+(totPnl>=0?'var(--green)':'var(--red)')+'">'+((totPnl/CAPITALE_TOTALE_USA)*100).toFixed(1)+'%</span></div>';
-    html+='</div></div>';
-
-    // colonna dx — barre gain per azione
-    html+='<div style="background:var(--bg3);border-radius:10px;padding:1rem">';
-    html+='<div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:.6rem">Capital gain distribuito per azione</div>';
+    var isMobile=window.innerWidth<=768;
     var maxPnlU=Math.max.apply(null,AZIONI_USA_DEF.map(function(az){
       return Math.abs(bySym[az.code].closed.reduce(function(s,t){return s+(parseFloat(t.pnl)||0);},0));
     }))||1;
-    AZIONI_USA_DEF.forEach(function(az){
-      var pnl=bySym[az.code].closed.reduce(function(s,t){return s+(parseFloat(t.pnl)||0);},0);
-      var pct=maxPnlU>0?(Math.abs(pnl)/maxPnlU*100):0;
-      var rgb=hexToRgb(az.color);
-      html+='<div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.28rem">';
-      html+='<span style="font-size:10px;font-weight:700;color:'+az.color+';min-width:40px">'+az.code+'</span>';
-      html+='<div style="flex:1;background:rgba(255,255,255,0.05);border-radius:4px;height:12px;overflow:hidden"><div style="width:'+pct+'%;height:100%;background:rgba('+rgb+',.5);border-radius:4px;transition:width .6s"></div></div>';
-      html+='<span style="font-size:10px;font-weight:600;min-width:64px;text-align:right;color:'+(pnl>=0?'var(--green)':'var(--red)')+'">'+(pnl>=0?'+':'')+pnl.toFixed(0)+' €</span>';
-      html+='</div>';
-    });
-    html+='</div></div>';
 
-    // KPI row
-    html+='<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:.6rem">';
-    [{l:'Capitale fisso',v:'€ '+CAPITALE_TOTALE_USA.toLocaleString('it-IT'),s:N_AZIONI_USA+' azioni × €1.000',c:'gold'},
-     {l:'Gain distribuito',v:(totPnl>=0?'+':'')+totPnl.toFixed(2)+' €',s:'Senza reinvestimento',c:totPnl>=0?'g':'r'},
-     {l:'Rendimento netto',v:((totPnl/CAPITALE_TOTALE_USA)*100).toFixed(1)+'%',s:'Su capitale iniziale',c:totPnl>=0?'g':'r'},
-     {l:'Win rate globale',v:globalWR+'%',s:totWin+'W / '+(totTrades-totWin)+'L su '+totTrades+' op.',c:'gold'}
-    ].forEach(function(k){
-      html+='<div class="kpi"><div class="kl">'+k.l+'</div><div class="kv '+k.c+'">'+k.v+'</div><div class="ks">'+k.s+'</div></div>';
-    });
-    html+='</div></div>';
+    var html='';
+
+    // ── RIQUADRO PORTFOLIO ──────────────────────────────────────────────────
+    html+='<div class="card gold-border" style="margin-bottom:1.4rem">';
+    html+='<div class="card-title">🇺🇸 Portfolio — Distribuzione Capitale & Capital Gain USA</div>';
+
+    if(isMobile){
+      // ── MOBILE: layout verticale ─────────────────────────────────────────
+      html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:.6rem;margin-bottom:.8rem">';
+      [{l:'Capitale',v:'€ '+CAPITALE_TOTALE_USA.toLocaleString('it-IT'),s:N_AZIONI_USA+' az × €1k',c:'gold'},
+       {l:'Gain totale',v:(totPnl>=0?'+':'')+totPnl.toFixed(0)+' €',s:'Senza reinvestimento',c:totPnl>=0?'g':'r'},
+       {l:'Rendimento',v:((totPnl/CAPITALE_TOTALE_USA)*100).toFixed(1)+'%',s:'Su capitale iniziale',c:totPnl>=0?'g':'r'},
+       {l:'Win Rate',v:globalWR+'%',s:totWin+'W / '+(totTrades-totWin)+'L',c:'gold'}
+      ].forEach(function(k){
+        html+='<div class="kpi"><div class="kl">'+k.l+'</div><div class="kv '+k.c+'">'+k.v+'</div><div class="ks">'+k.s+'</div></div>';
+      });
+      html+='</div>';
+      html+='<div style="background:var(--bg3);border-radius:10px;padding:.9rem;margin-bottom:.8rem">';
+      html+='<div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:.5rem">Struttura investimento</div>';
+      html+='<div style="display:flex;flex-direction:column;gap:.35rem">';
+      html+='<div style="display:flex;justify-content:space-between;font-size:13px"><span style="color:var(--muted)">Capitale per azione</span><span style="font-weight:700;color:var(--gold)">€ 1.000</span></div>';
+      html+='<div style="display:flex;justify-content:space-between;font-size:13px"><span style="color:var(--muted)">Azioni monitorate</span><span style="font-weight:700">'+N_AZIONI_USA+'</span></div>';
+      html+='<div style="display:flex;justify-content:space-between;font-size:13px"><span style="color:var(--muted)">Tipo gestione</span><span style="color:var(--green);font-weight:600;font-size:12px">Capitale fisso</span></div>';
+      html+='<div style="display:flex;justify-content:space-between;font-size:13px"><span style="color:var(--muted)">Gain distribuito</span><span style="font-weight:700;color:'+(totPnl>=0?'var(--green)':'var(--red)')+'">'+(totPnl>=0?'+':'')+totPnl.toFixed(2)+' €</span></div>';
+      html+='</div></div>';
+      html+='<div style="background:var(--bg3);border-radius:10px;padding:.9rem">';
+      html+='<div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:.5rem">Capital gain per azione</div>';
+      AZIONI_USA_DEF.forEach(function(az){
+        var pnl=bySym[az.code].closed.reduce(function(s,t){return s+(parseFloat(t.pnl)||0);},0);
+        var pct=maxPnlU>0?(Math.abs(pnl)/maxPnlU*100):0;
+        var rgb=hexToRgb(az.color);
+        html+='<div style="display:flex;align-items:center;gap:.4rem;margin-bottom:.25rem">';
+        html+='<span style="font-size:10px;font-weight:700;color:'+az.color+';min-width:40px">'+az.code+'</span>';
+        html+='<div style="flex:1;background:rgba(255,255,255,0.05);border-radius:4px;height:12px;overflow:hidden"><div style="width:'+pct+'%;height:100%;background:rgba('+rgb+',.5);border-radius:4px"></div></div>';
+        html+='<span style="font-size:10px;font-weight:600;min-width:62px;text-align:right;color:'+(pnl>=0?'var(--green)':'var(--red)')+'">'+(pnl>=0?'+':'')+pnl.toFixed(0)+' €</span>';
+        html+='</div>';
+      });
+      html+='</div>';
+    } else {
+      // ── DESKTOP: layout originale 2 colonne ──────────────────────────────
+      html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem">';
+      html+='<div style="background:var(--bg3);border-radius:10px;padding:1rem">';
+      html+='<div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:.6rem">Struttura investimento</div>';
+      html+='<div style="display:flex;flex-direction:column;gap:.4rem">';
+      html+='<div style="display:flex;justify-content:space-between;font-size:13px"><span style="color:var(--muted)">Capitale per azione</span><span style="font-weight:700;color:var(--gold)">€ 1.000</span></div>';
+      html+='<div style="display:flex;justify-content:space-between;font-size:13px"><span style="color:var(--muted)">Azioni monitorate</span><span style="font-weight:700">'+N_AZIONI_USA+'</span></div>';
+      html+='<div style="display:flex;justify-content:space-between;font-size:13px;border-top:1px solid var(--border);padding-top:.4rem;margin-top:.2rem"><span style="color:var(--muted)">Capitale totale investito</span><span style="font-weight:800;color:var(--gold);font-size:15px">€ '+CAPITALE_TOTALE_USA.toLocaleString('it-IT')+'</span></div>';
+      html+='<div style="display:flex;justify-content:space-between;font-size:13px"><span style="color:var(--muted)">Tipo gestione</span><span style="color:var(--green);font-weight:600">Capitale fisso — no reinvestimento</span></div>';
+      html+='<div style="display:flex;justify-content:space-between;font-size:13px"><span style="color:var(--muted)">Gain distribuito (€)</span><span style="font-weight:700;color:'+(totPnl>=0?'var(--green)':'var(--red)')+'">'+(totPnl>=0?'+':'')+totPnl.toFixed(2)+'</span></div>';
+      html+='<div style="display:flex;justify-content:space-between;font-size:13px"><span style="color:var(--muted)">Rendimento totale %</span><span style="font-weight:700;color:'+(totPnl>=0?'var(--green)':'var(--red)')+'">'+((totPnl/CAPITALE_TOTALE_USA)*100).toFixed(1)+'%</span></div>';
+      html+='</div></div>';
+      html+='<div style="background:var(--bg3);border-radius:10px;padding:1rem">';
+      html+='<div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:.6rem">Capital gain distribuito per azione</div>';
+      AZIONI_USA_DEF.forEach(function(az){
+        var pnl=bySym[az.code].closed.reduce(function(s,t){return s+(parseFloat(t.pnl)||0);},0);
+        var pct=maxPnlU>0?(Math.abs(pnl)/maxPnlU*100):0;
+        var rgb=hexToRgb(az.color);
+        html+='<div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.28rem">';
+        html+='<span style="font-size:10px;font-weight:700;color:'+az.color+';min-width:40px">'+az.code+'</span>';
+        html+='<div style="flex:1;background:rgba(255,255,255,0.05);border-radius:4px;height:12px;overflow:hidden"><div style="width:'+pct+'%;height:100%;background:rgba('+rgb+',.5);border-radius:4px;transition:width .6s"></div></div>';
+        html+='<span style="font-size:10px;font-weight:600;min-width:64px;text-align:right;color:'+(pnl>=0?'var(--green)':'var(--red)')+'">'+(pnl>=0?'+':'')+pnl.toFixed(0)+' €</span>';
+        html+='</div>';
+      });
+      html+='</div></div>';
+      html+='<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:.6rem">';
+      [{l:'Capitale fisso',v:'€ '+CAPITALE_TOTALE_USA.toLocaleString('it-IT'),s:N_AZIONI_USA+' azioni × €1.000',c:'gold'},
+       {l:'Gain distribuito',v:(totPnl>=0?'+':'')+totPnl.toFixed(2)+' €',s:'Senza reinvestimento',c:totPnl>=0?'g':'r'},
+       {l:'Rendimento netto',v:((totPnl/CAPITALE_TOTALE_USA)*100).toFixed(1)+'%',s:'Su capitale iniziale',c:totPnl>=0?'g':'r'},
+       {l:'Win rate globale',v:globalWR+'%',s:totWin+'W / '+(totTrades-totWin)+'L su '+totTrades+' op.',c:'gold'}
+      ].forEach(function(k){
+        html+='<div class="kpi"><div class="kl">'+k.l+'</div><div class="kv '+k.c+'">'+k.v+'</div><div class="ks">'+k.s+'</div></div>';
+      });
+      html+='</div>';
+    }
+    html+='</div>';
 
     // Equity globale
     html+='<div class="card gold-border" style="margin-bottom:1.2rem">';
