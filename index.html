@@ -2232,12 +2232,13 @@ function loadFondoRotativo(){
     {code:'forex',           name:'Sala Forex',       short:'Forex',    color:'#1db97a', cap:3000 },
     {code:'gold',            name:'Sala Gold',        short:'Gold',     color:'#e8c96a', cap:1000 },
     {code:'fund_pamm',       name:'Fondo PAMM',       short:'PAMM',     color:'#b06ef3', cap:14000},
-    {code:'azioni_italia',   name:'Azioni Italia',    short:'Azioni IT',color:'#c9a84c', cap:10000},
+    {code:'azioni_italia',   name:'Azioni Italia',    short:'Azioni IT',color:'#c9a84c', cap:11000},
+    {code:'azioni_usa',      name:'Azioni USA',        short:'Azioni US',color:'#1877f2', cap:39000},
   ];
   var SVCS_COMING=[
     {code:'vanilla_weekly',name:'Vanilla Weekly', short:'Vanilla W',color:'#8b90a0', note:'Storico in caricamento'},
   ];
-  var TOTAL_CAP=58000;
+  var TOTAL_CAP=98000;
 
   document.getElementById('svc-pg-content').innerHTML='<div class="spinner">Caricamento benchmark...</div>';
 
@@ -2738,39 +2739,50 @@ function renderAzioniCharts(closed,bySym,AZIONI_DEF,CAPITALE_TOTALE){
 
 // ── AZIONI USA ─────────────────────────────────────────────────────────────
 var AZIONI_USA_DEF = [
-  {code:'VSAT', name:'ViaSat',  color:'#c9a84c'},
-  {code:'NTAP', name:'NetApp',  color:'#1db97a'},
-  {code:'SNOW', name:'Snowflake',  color:'#e84b4a'},
-  {code:'BILL', name:'Bill.com',  color:'#f0a030'},
-  {code:'DNA',  name:'Ginkgo Bio', color:'#b06ef3'},
-  {code:'ABCL', name:'AbCellera',  color:'#e8c96a'},
-  {code:'OKLO', name:'Oklo',       color:'#1db97a'},
-  {code:'BWXT', name:'BWX Tech',   color:'#c9a84c'},
-  {code:'FLR',  name:'Fluor',       color:'#e84b4a'},
-  {code:'USAR', name:'US Armed Forces', color:'#f0a030'},
-  {code:'QBTS', name:'D-Wave Quantum',  color:'#b06ef3'},
-  {code:'IONQ', name:'IonQ',             color:'#1db97a'},
-  {code:'BTDR', name:'Bitdeer',      color:'#c9a84c'},
+  /* USA01-USA19 — Slot storici */
+  {code:'VSAT', name:'ViaSat',            color:'#c9a84c'},
+  {code:'NTAP', name:'NetApp',            color:'#1db97a'},
+  {code:'SNOW', name:'Snowflake',         color:'#e84b4a'},
+  {code:'BILL', name:'Bill.com',          color:'#f0a030'},
+  {code:'DNA',  name:'Ginkgo Bio',        color:'#b06ef3'},
+  {code:'ABCL', name:'AbCellera',         color:'#e8c96a'},
+  {code:'OKLO', name:'Oklo',              color:'#1db97a'},
+  {code:'BWXT', name:'BWX Tech',          color:'#c9a84c'},
+  {code:'FLR',  name:'Fluor',             color:'#e84b4a'},
+  {code:'USAR', name:'US Armed Forces',   color:'#f0a030'},
+  {code:'QBTS', name:'D-Wave Quantum',    color:'#b06ef3'},
+  {code:'IONQ', name:'IonQ',              color:'#1db97a'},
+  {code:'BTDR', name:'Bitdeer',           color:'#c9a84c'},
   {code:'QUBT', name:'Quantum Computing', color:'#e84b4a'},
-  {code:'RDW',  name:'Redwire',          color:'#f0a030'},
+  {code:'RDW',  name:'Redwire',           color:'#f0a030'},
   {code:'ASTS', name:'AST SpaceMobile',   color:'#b06ef3'},
   {code:'CRCL', name:'Circle',            color:'#e8c96a'},
-  {code:'RGTI', name:'Rigetti',     color:'#1db97a'},
-  {code:'COIN', name:'Coinbase',     color:'#c9a84c'},
-  {code:'USA20', name:'Titolo 20', color:'#e84b4a'},
-  {code:'USA21', name:'Titolo 21', color:'#f0a030'},
-  {code:'USA22', name:'Titolo 22', color:'#b06ef3'},
-  {code:'USA23', name:'Titolo 23', color:'#e8c96a'},
-  {code:'USA24', name:'Titolo 24', color:'#1db97a'},
-  {code:'USA25', name:'Titolo 25', color:'#c9a84c'},
-  {code:'USA26', name:'Titolo 26', color:'#e84b4a'},
-  {code:'USA27', name:'Titolo 27', color:'#f0a030'},
-  {code:'USA28', name:'Titolo 28', color:'#b06ef3'},
-  {code:'USA29', name:'Titolo 29', color:'#e8c96a'},
-  {code:'USA30', name:'Titolo 30', color:'#1db97a'}
+  {code:'RGTI', name:'Rigetti',           color:'#1db97a'},
+  {code:'COIN', name:'Coinbase',          color:'#c9a84c'},
+  /* USA20-USA39 — Slot ampliati */
+  {code:'SMCI', name:'SuperMicro',        color:'#e84b4a'},
+  {code:'QCOM', name:'Qualcomm',          color:'#f0a030'},
+  {code:'PLTR', name:'Palantir',          color:'#b06ef3'},
+  {code:'NVDA', name:'Nvidia',            color:'#76b900'},
+  {code:'MU',   name:'Micron',            color:'#c9a84c'},
+  {code:'MSFT', name:'Microsoft',         color:'#00a4ef'},
+  {code:'MRVL', name:'Marvell',           color:'#e84b4a'},
+  {code:'META', name:'Meta',              color:'#1877f2'},
+  {code:'MCHP', name:'Microchip',         color:'#f0a030'},
+  {code:'GOOGL',name:'Google',            color:'#4285f4'},
+  {code:'CRUS', name:'Cirrus Logic',      color:'#b06ef3'},
+  {code:'AVGO', name:'Broadcom',          color:'#e8c96a'},
+  {code:'AMZN', name:'Amazon',            color:'#ff9900'},
+  {code:'ADBE', name:'Adobe',             color:'#ff0000'},
+  {code:'AAPL', name:'Apple',             color:'#555555'},
+  {code:'UBER', name:'Uber',              color:'#000000'},
+  {code:'TSLA', name:'Tesla',             color:'#cc0000'},
+  {code:'TEM',  name:'Tempus AI',         color:'#e8c96a'},
+  {code:'SYM',  name:'Symbotic',          color:'#1db97a'},
+  {code:'SOUN', name:'SoundHound',        color:'#c9a84c'}
 ];
 var CAPITAL_PER_AZIONE_USA = 1000;
-var N_AZIONI_USA = 30;
+var N_AZIONI_USA = 39;
 var CAPITALE_TOTALE_USA = CAPITAL_PER_AZIONE_USA * N_AZIONI_USA;
 
 function loadAzioniUsa(){
