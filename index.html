@@ -386,11 +386,15 @@ tr:hover td{background:rgba(255,255,255,0.02);}
         <div class="pg-sub" id="dash-sub"></div>
         <div class="card"><div class="card-title">I tuoi servizi</div><div class="svc-grid" id="dash-svcs"><div class="spinner">Caricamento...</div></div></div>
         <div class="card">
-          <div class="card-title">&#x1F4CA; Performance oggi</div>
-          <div class="kpi-row" id="dash-daily-pnl">
-            <div class="kpi"><div class="kl">&#x1F310; Indici oggi</div><div class="kv">\u2014</div><div class="ks">Caricamento...</div></div>
-            <div class="kpi"><div class="kl">&#x1F4B1; Forex oggi</div><div class="kv">\u2014</div><div class="ks">Caricamento...</div></div>
-            <div class="kpi gold"><div class="kl">&#x1F4C5; Vanilla mese</div><div class="kv gold">\u2014</div><div class="ks">Caricamento...</div></div>
+          <div class="card-title">📊 Performance servizi</div>
+          <div class="kpi-row" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr))" id="dash-daily-pnl">
+            <div class="kpi"><div class="kl">🌐 Indici oggi</div><div class="kv">—</div><div class="ks">Caricamento...</div></div>
+            <div class="kpi"><div class="kl">💱 Forex oggi</div><div class="kv">—</div><div class="ks">Caricamento...</div></div>
+            <div class="kpi gold"><div class="kl">📅 Vanilla Mensile</div><div class="kv gold">—</div><div class="ks">Caricamento...</div></div>
+            <div class="kpi gold"><div class="kl">📅 Vanilla Weekly</div><div class="kv gold">—</div><div class="ks">Caricamento...</div></div>
+            <div class="kpi"><div class="kl">🥇 Gold</div><div class="kv">—</div><div class="ks">Caricamento...</div></div>
+            <div class="kpi"><div class="kl">🇮🇹 Azioni Italia</div><div class="kv">—</div><div class="ks">Caricamento...</div></div>
+            <div class="kpi"><div class="kl">🇺🇸 Azioni USA</div><div class="kv">—</div><div class="ks">Caricamento...</div></div>
           </div>
         </div>
 
@@ -895,27 +899,42 @@ function loadNews(){
 }
 
 function loadDailyPnl(){
-  var today=new Date().toLocaleDateString('it-IT');
   var todayISO=new Date().toISOString().split('T')[0];
+  var now=new Date();
+
   Promise.all([
     api('/api/trades?service_code=indices'),
     api('/api/trades?service_code=forex'),
-    api('/api/trades?service_code=vanilla_monthly')
+    api('/api/trades?service_code=vanilla_monthly'),
+    api('/api/trades?service_code=vanilla_weekly'),
+    api('/api/trades?service_code=gold'),
+    api('/api/trades?service_code=azioni_italia'),
+    api('/api/trades?service_code=azioni_usa')
   ]).then(function(res){
-    var indices=res[0]||[];
-    var forex=res[1]||[];
-    var vanilla=res[2]||[];
+    var indices        = res[0]||[];
+    var forex          = res[1]||[];
+    var vanMonthly     = res[2]||[];
+    var vanWeekly      = res[3]||[];
+    var gold           = res[4]||[];
+    var azioniItalia   = res[5]||[];
+    var azioniUsa      = res[6]||[];
 
+    // PnL trades chiusi OGGI (opened_at o closed_at = oggi)
     function todayPnl(trades){
       return trades.filter(function(t){
-        if(t.status!=='CLOSED'||!t.opened_at)return false;
-        // Usa opened_at per il filtro giornaliero (più affidabile)
-        return t.opened_at.startsWith(todayISO) || (t.closed_at&&t.closed_at.startsWith(todayISO));
+        if(t.status!=='CLOSED')return false;
+        return (t.opened_at&&t.opened_at.startsWith(todayISO))||(t.closed_at&&t.closed_at.startsWith(todayISO));
       }).reduce(function(s,t){return s+(parseFloat(t.pnl)||0);},0);
     }
 
+    // Totale PnL storico di tutti i CLOSED
+    function totalPnl(trades){
+      return trades.filter(function(t){return t.status==='CLOSED';})
+        .reduce(function(s,t){return s+(parseFloat(t.pnl)||0);},0);
+    }
+
+    // Premio mensile vanilla (premium_collected)
     function monthPremium(trades){
-      var now=new Date();
       return trades.filter(function(t){
         if(t.status!=='CLOSED'||!t.closed_at)return false;
         var d=new Date(t.closed_at);
@@ -923,16 +942,41 @@ function loadDailyPnl(){
       }).reduce(function(s,t){return s+(parseFloat(t.premium_collected)||0);},0);
     }
 
-    var idxPnl=todayPnl(indices);
-    var fxPnl=todayPnl(forex);
-    var vanPrem=monthPremium(vanilla);
+    // Winrate %
+    function winRate(trades){
+      var closed=trades.filter(function(t){return t.status==='CLOSED';});
+      if(!closed.length)return null;
+      var wins=closed.filter(function(t){return (parseFloat(t.pnl)||0)>0;}).length;
+      return Math.round(wins/closed.length*100);
+    }
+
+    function pnlClass(v){return v>0?'g':v<0?'r':'';}
+    function fmtPnl(v){return v===0?'—':(v>0?'+':'')+v.toFixed(2)+' €';}
+    function fmtEur(v){return v===0?'—':'€ '+v.toLocaleString('it-IT',{minimumFractionDigits:2,maximumFractionDigits:2});}
+    function fmtWr(wr){return wr===null?'—':wr+'%';}
+
+    var idxPnl   = todayPnl(indices);
+    var fxPnl    = todayPnl(forex);
+    var vanMPrem = monthPremium(vanMonthly);
+    var vanWPrem = monthPremium(vanWeekly);
+    var goldPnl  = totalPnl(gold);
+    var itaPnl   = totalPnl(azioniItalia);
+    var usaPnl   = totalPnl(azioniUsa);
+    var itaWr    = winRate(azioniItalia);
+    var usaWr    = winRate(azioniUsa);
 
     var el=document.getElementById('dash-daily-pnl');
     if(!el)return;
     el.innerHTML=
-      '<div class="kpi"><div class="kl">&#x1F310; Indici oggi</div><div class="kv '+(idxPnl>0?'g':idxPnl<0?'r':'')+'">'+(idxPnl===0?'\u2014':(idxPnl>0?'+':'')+idxPnl.toFixed(2)+' €')+'</div><div class="ks">PnL giornaliero</div></div>'+
-      '<div class="kpi"><div class="kl">&#x1F4B1; Forex oggi</div><div class="kv '+(fxPnl>0?'g':fxPnl<0?'r':'')+'">'+(fxPnl===0?'\u2014':(fxPnl>0?'+':'')+fxPnl.toFixed(2)+' €')+'</div><div class="ks">PnL giornaliero</div></div>'+
-      '<div class="kpi gold"><div class="kl">&#x1F4C5; Vanilla mese</div><div class="kv gold">'+(vanPrem>0?'\u20ac '+vanPrem.toLocaleString('it-IT'):'\u2014')+'</div><div class="ks">Premio incassato</div></div>';
+      // riga 1 — live giornaliero
+      '<div class="kpi"><div class="kl">🌐 Indici oggi</div><div class="kv '+pnlClass(idxPnl)+'">'+fmtPnl(idxPnl)+'</div><div class="ks">PnL giornaliero</div></div>'+
+      '<div class="kpi"><div class="kl">💱 Forex oggi</div><div class="kv '+pnlClass(fxPnl)+'">'+fmtPnl(fxPnl)+'</div><div class="ks">PnL giornaliero</div></div>'+
+      '<div class="kpi gold"><div class="kl">📅 Vanilla Mensile</div><div class="kv gold">'+(vanMPrem>0?fmtEur(vanMPrem):'—')+'</div><div class="ks">Premio mese corrente</div></div>'+
+      '<div class="kpi gold"><div class="kl">📅 Vanilla Weekly</div><div class="kv gold">'+(vanWPrem>0?fmtEur(vanWPrem):'—')+'</div><div class="ks">Premio mese corrente</div></div>'+
+      // riga 2 — storico azioni e gold
+      '<div class="kpi"><div class="kl">🥇 Gold — Storico</div><div class="kv '+pnlClass(goldPnl)+'">'+fmtPnl(goldPnl)+'</div><div class="ks">Totale trade chiusi</div></div>'+
+      '<div class="kpi"><div class="kl">🇮🇹 Azioni Italia</div><div class="kv '+pnlClass(itaPnl)+'">'+fmtPnl(itaPnl)+'</div><div class="ks">WR '+fmtWr(itaWr)+'&nbsp;·&nbsp;'+azioniItalia.filter(function(t){return t.status==='CLOSED';}).length+' trade</div></div>'+
+      '<div class="kpi"><div class="kl">🇺🇸 Azioni USA</div><div class="kv '+pnlClass(usaPnl)+'">'+fmtPnl(usaPnl)+'</div><div class="ks">WR '+fmtWr(usaWr)+'&nbsp;·&nbsp;'+azioniUsa.filter(function(t){return t.status==='CLOSED';}).length+' trade</div></div>';
   });
 }
 
