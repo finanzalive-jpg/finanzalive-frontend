@@ -1128,13 +1128,138 @@ function showService(code){
   if(code==='indices'){loadIndicesWorld();}
   else if(code==='forex'){loadForexWorld();}
   else if(code==='vanilla_monthly'){loadVanillaMonthly();}
+  else if(code==='vanilla_weekly'){loadVanillaWeekly();}
   else if(code==='gold'){loadGoldService();}
   else if(code==='azioni_italia'){loadAzioniItalia();}
   else if(code==='azioni_usa'){loadAzioniUsa();}
   else{loadGenericService(code);}
 }
 
-// ── VANILLA MENSILE ──
+// ── VANILLA WEEKLY ──────────────────────────────────────────────────────────
+function loadVanillaWeekly(){
+  Promise.all([api('/api/trades?service_code=vanilla_weekly'),api('/api/signals?service_code=vanilla_weekly&limit=20')]).then(function(res){
+    var trades=res[0]||[];
+    var sigs=res[1]||[];
+    trades=trades.slice().sort(function(a,b){return new Date(a.opened_at)-new Date(b.opened_at);});
+    var closed=trades.filter(function(t){return t.status==='CLOSED';});
+    var openT=trades.filter(function(t){return t.status==='OPEN';});
+    var totP=closed.reduce(function(s,t){return s+(parseFloat(t.premium_collected)||0);},0);
+    var avgDD=closed.length?(closed.reduce(function(s,t){return s+(parseFloat(t.drawdown_max)||0);},0)/closed.length):0;
+    var maxDD=closed.length?Math.max.apply(null,closed.map(function(t){return parseFloat(t.drawdown_max)||0;})):0;
+    var avgOTM=closed.length?(closed.reduce(function(s,t){return s+(parseFloat(t.strike_pct)||0);},0)/closed.length):0;
+    var byYear={};
+    closed.forEach(function(t){var y=new Date(t.opened_at).getFullYear();if(!byYear[y])byYear[y]={count:0,premium:0};byYear[y].count++;byYear[y].premium+=parseFloat(t.premium_collected)||0;});
+
+    var CAPITALE_W=10000;
+
+    var html='<div class="kpi-row">'+
+      '<div class="kpi gold"><div class="kl">Capitale iniziale</div><div class="kv gold">€ '+CAPITALE_W.toLocaleString('it-IT')+'</div><div class="ks">Base di riferimento</div></div>'+
+      '<div class="kpi gold"><div class="kl">Win rate</div><div class="kv gold">100%</div><div class="ks">'+closed.length+' gain / 0 loss</div></div>'+
+      '<div class="kpi"><div class="kl">Premi totali lordi</div><div class="kv g">€ '+totP.toLocaleString('it-IT')+'</div><div class="ks">Ott 2025 - oggi</div></div>'+
+      '<div class="kpi"><div class="kl">Premio medio</div><div class="kv g">€ '+(closed.length?Math.round(totP/closed.length).toLocaleString('it-IT'):'—')+'</div><div class="ks">Per operazione</div></div>'+
+      '<div class="kpi"><div class="kl">OTM medio</div><div class="kv">'+avgOTM.toFixed(2)+'%</div><div class="ks">Strike medio</div></div>'+
+      '<div class="kpi"><div class="kl">DD medio</div><div class="kv a">'+avgDD.toFixed(2)+'%</div><div class="ks">Per operazione</div></div>'+
+      '<div class="kpi"><div class="kl">Max DD storico</div><div class="kv a">'+maxDD.toFixed(2)+'%</div><div class="ks">Storico</div></div>'+
+      '<div class="kpi"><div class="kl">Op. aperte</div><div class="kv '+(openT.length?'a':'')+'">'+openT.length+'</div><div class="ks">In corso</div></div>'+
+    '</div>';
+
+    html+='<div class="card gold-border"><div class="card-title">Analisi rendimenti</div>'+
+      '<div class="tabs">'+
+        '<div class="tab active" data-tab="tab-w-equity">Equity Curve</div>'+
+        '<div class="tab" data-tab="tab-w-weekly">Premio settimanale</div>'+
+        '<div class="tab" data-tab="tab-w-dd">Drawdown</div>'+
+        '<div class="tab" data-tab="tab-w-annual">Per anno</div>'+
+      '</div>'+
+      '<div class="tab-content active" id="tab-w-equity"><div class="chart-wrap" style="height:260px"><canvas id="chart-w-equity"></canvas></div></div>'+
+      '<div class="tab-content" id="tab-w-weekly"><div class="chart-wrap" style="height:260px"><canvas id="chart-w-weekly"></canvas></div></div>'+
+      '<div class="tab-content" id="tab-w-dd"><div class="chart-wrap" style="height:260px"><canvas id="chart-w-dd"></canvas></div></div>'+
+      '<div class="tab-content" id="tab-w-annual"><div class="chart-wrap" style="height:260px"><canvas id="chart-w-annual"></canvas></div></div>'+
+    '</div>';
+
+    // Storico operazioni
+    html+='<div class="card"><div class="card-title">Storico completo operazioni</div>'+
+      '<div class="tbl-wrap"><table><thead><tr><th>Settimana</th><th>Strike</th><th>OTM%</th><th>Premio €</th><th>DD max%</th><th>Chiusura</th><th>Stato</th></tr></thead><tbody>'+
+      trades.slice().reverse().map(function(t){
+        var dIn=t.opened_at?new Date(t.opened_at).toLocaleDateString('it-IT',{day:'2-digit',month:'short',year:'2-digit'}):'—';
+        var dOut=t.closed_at?new Date(t.closed_at).toLocaleDateString('it-IT',{day:'2-digit',month:'short'}):'—';
+        var prem=parseFloat(t.premium_collected)||0;
+        var ddV=parseFloat(t.drawdown_max)||0;
+        var ddC=ddV>=5?'var(--red)':ddV>=3?'var(--amber)':'var(--green)';
+        var otm=parseFloat(t.strike_pct)||0;
+        var isOpen=t.status==='OPEN';
+        return '<tr>'+
+          '<td style="font-weight:500">'+dIn+'</td>'+
+          '<td>'+(t.entry_price?parseFloat(t.entry_price).toLocaleString('it-IT'):'—')+'</td>'+
+          '<td>'+(otm?otm.toFixed(2)+'%':'—')+'</td>'+
+          '<td style="color:var(--green);font-weight:600">'+(prem?'€ '+prem.toLocaleString('it-IT'):'—')+'</td>'+
+          '<td style="color:'+ddC+'">'+(ddV?ddV.toFixed(2)+'%':'0.00%')+'</td>'+
+          '<td style="color:var(--muted)">'+dOut+'</td>'+
+          '<td><span class="tag '+(isOpen?'ta':'tg')+'">'+(isOpen?'OPEN':'GAIN')+'</span></td>'+
+        '</tr>';
+      }).join('')+'</tbody></table></div></div>';
+
+    html+='<div class="card"><div class="card-title">Segnali recenti <span class="card-title-live">&#x25CF; live</span></div>'+
+      (sigs.length?sigs.map(renderSig).join(''):'<p style="color:var(--muted);font-size:13px">Nessun segnale ricevuto</p>')+
+    '</div>';
+
+    document.getElementById('svc-pg-content').innerHTML=html;
+
+    // Event delegation tabs
+    document.getElementById('svc-pg-content').addEventListener('click',function(e){
+      var tab=e.target.closest('.tab');
+      if(!tab)return;
+      var tabId=tab.getAttribute('data-tab');
+      if(!tabId)return;
+      tab.parentElement.querySelectorAll('.tab').forEach(function(t){t.classList.remove('active');});
+      tab.classList.add('active');
+      tab.parentElement.parentElement.querySelectorAll('.tab-content').forEach(function(t){t.classList.remove('active');});
+      document.getElementById(tabId).classList.add('active');
+      setTimeout(function(){Object.keys(chartInstances).forEach(function(k){try{chartInstances[k].resize();}catch(e){}});},50);
+    });
+
+    Object.keys(chartInstances).forEach(function(k){try{chartInstances[k].destroy();}catch(e){}});
+    chartInstances={};
+
+    var labels=closed.map(function(t){return t.opened_at?new Date(t.opened_at).toLocaleDateString('it-IT',{day:'2-digit',month:'short'}):'-';});
+    var cum=CAPITALE_W;
+    var equityData=closed.map(function(t){cum+=(parseFloat(t.premium_collected)||0);return cum;});
+    var weeklyData=closed.map(function(t){return parseFloat(t.premium_collected)||0;});
+    var ddData=closed.map(function(t){return parseFloat(t.drawdown_max)||0;});
+    var weeklyColors=closed.map(function(){return 'rgba(29,185,122,0.7)';});
+    var ddColors=closed.map(function(t){var d=parseFloat(t.drawdown_max)||0;return d>=5?'rgba(232,75,74,0.7)':d>=3?'rgba(240,160,48,0.7)':'rgba(29,185,122,0.7)';});
+
+    chartInstances['w-equity']=new Chart(document.getElementById('chart-w-equity'),{
+      type:'line',
+      data:{labels:labels,datasets:[{data:equityData,borderColor:'#1db97a',backgroundColor:'rgba(29,185,122,0.08)',fill:true,tension:0.3,pointRadius:3,pointBackgroundColor:'#1db97a',pointHoverRadius:5}]},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:function(c){return '€ '+c.raw.toLocaleString('it-IT');}}}},scales:{x:{ticks:{color:'#7a7870',font:{size:9},maxRotation:45},grid:{color:'rgba(255,255,255,0.03)'}},y:{ticks:{color:'#7a7870',font:{size:10},callback:function(v){return '€'+v.toLocaleString('it-IT');}},grid:{color:'rgba(255,255,255,0.04)'}}}}
+    });
+    chartInstances['w-weekly']=new Chart(document.getElementById('chart-w-weekly'),{
+      type:'bar',
+      data:{labels:labels,datasets:[{data:weeklyData,backgroundColor:weeklyColors,borderRadius:4}]},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#7a7870',font:{size:9},maxRotation:45},grid:{color:'rgba(255,255,255,0.03)'}},y:{ticks:{color:'#7a7870',font:{size:10},callback:function(v){return '€'+v;}},grid:{color:'rgba(255,255,255,0.04)'}}}}
+    });
+    chartInstances['w-dd']=new Chart(document.getElementById('chart-w-dd'),{
+      type:'bar',
+      data:{labels:labels,datasets:[{data:ddData,backgroundColor:ddColors,borderRadius:4}]},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#7a7870',font:{size:9},maxRotation:45},grid:{color:'rgba(255,255,255,0.03)'}},y:{ticks:{color:'#7a7870',font:{size:10},callback:function(v){return v+'%';}},grid:{color:'rgba(255,255,255,0.04)'}}}}
+    });
+    var years=Object.keys(byYear).sort();
+    chartInstances['w-annual']=new Chart(document.getElementById('chart-w-annual'),{
+      type:'bar',
+      data:{labels:years,datasets:[
+        {label:'Premi €',data:years.map(function(y){return byYear[y].premium;}),backgroundColor:'rgba(29,185,122,0.7)',borderRadius:6,yAxisID:'y'},
+        {label:'N° op.',data:years.map(function(y){return byYear[y].count;}),backgroundColor:'rgba(201,168,76,0.5)',borderRadius:6,yAxisID:'y2'}
+      ]},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,labels:{color:'#9a9890',font:{size:10}}}},
+        scales:{
+          x:{ticks:{color:'#7a7870'},grid:{color:'rgba(255,255,255,0.03)'}},
+          y:{position:'left',ticks:{color:'#7a7870',callback:function(v){return '€'+v;}},grid:{color:'rgba(255,255,255,0.04)'}},
+          y2:{position:'right',ticks:{color:'#7a7870'},grid:{display:false}}
+        }
+      }
+    });
+  });
+}
 function loadVanillaMonthly(){
   Promise.all([api('/api/trades?service_code=vanilla_monthly'),api('/api/signals?service_code=vanilla_monthly&limit=20')]).then(function(res){
     var trades=res[0]||[];
@@ -2262,16 +2387,14 @@ function loadFondoRotativo(){
   var SVCS_CFG=[
     {code:'indices',         name:'Indici World',    short:'Indici',   color:'#f0a030', cap:10000},
     {code:'vanilla_monthly', name:'Vanilla Mensile', short:'Vanilla M',color:'#c9a84c', cap:20000},
-    {code:'forex',           name:'Sala Forex',       short:'Forex',    color:'#1db97a', cap:3000 },
+    {code:'vanilla_weekly',  name:'Vanilla Weekly',  short:'Vanilla W',color:'#1db97a', cap:10000},
+    {code:'forex',           name:'Sala Forex',       short:'Forex',    color:'#8b5cf6', cap:3000 },
     {code:'gold',            name:'Sala Gold',        short:'Gold',     color:'#e8c96a', cap:1000 },
     {code:'fund_pamm',       name:'Fondo PAMM',       short:'PAMM',     color:'#b06ef3', cap:14000},
     {code:'azioni_italia',   name:'Azioni Italia',    short:'Azioni IT',color:'#c9a84c', cap:11000},
     {code:'azioni_usa',      name:'Azioni USA',        short:'Azioni US',color:'#1877f2', cap:39000},
   ];
-  var SVCS_COMING=[
-    {code:'vanilla_weekly',name:'Vanilla Weekly', short:'Vanilla W',color:'#8b90a0', note:'Storico in caricamento'},
-  ];
-  var TOTAL_CAP=98000;
+  var TOTAL_CAP=108000;
 
   document.getElementById('svc-pg-content').innerHTML='<div class="spinner">Caricamento benchmark...</div>';
 
@@ -2418,24 +2541,6 @@ function loadFondoRotativo(){
           '<div><div style="font-size:9px;color:var(--muted)">Peso</div><div style="font-size:11px;font-weight:600">'+(svc.cap/TOTAL_CAP*100).toFixed(1)+'%</div></div>'+
         '</div>'+
         '<div style="height:34px;margin-top:8px"><canvas id="fr-mini-'+svc.code+'"></canvas></div>'+
-      '</div>';
-    });
-    html+='</div>';
-
-    // ── COMING SOON ──
-    html+='<div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px">In Arrivo</div>';
-    html+='<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:1.2rem">';
-    SVCS_COMING.forEach(function(svc){
-      html+='<div class="card" style="margin:0;border-left:3px solid '+svc.color+';opacity:.5;border-style:dashed">'+
-        '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">'+
-          '<div style="font-size:13px;font-weight:700">'+svc.name+'</div>'+
-          '<span class="tag tb" style="font-size:9px">PRESTO</span>'+
-        '</div>'+
-        '<div style="font-size:12px;color:var(--muted)">🔒 '+svc.note+'</div>'+
-        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px;opacity:.5">'+
-          '<div><div class="kl">Equity</div><div style="font-size:14px;font-weight:700;color:var(--muted)">—</div></div>'+
-          '<div><div class="kl">P&L %</div><div style="font-size:14px;font-weight:700;color:var(--muted)">—</div></div>'+
-        '</div>'+
       '</div>';
     });
     html+='</div>';
