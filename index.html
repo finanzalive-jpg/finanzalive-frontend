@@ -1176,25 +1176,22 @@ function loadVanillaWeekly(){
       '<div class="tab-content" id="tab-w-annual"><div class="chart-wrap" style="height:260px"><canvas id="chart-w-annual"></canvas></div></div>'+
     '</div>';
 
-    // Storico operazioni
+    // Storico operazioni — identico a vanilla mensile
     html+='<div class="card"><div class="card-title">Storico completo operazioni</div>'+
-      '<div class="tbl-wrap"><table><thead><tr><th>Settimana</th><th>Strike</th><th>OTM%</th><th>Premio €</th><th>DD max%</th><th>Chiusura</th><th>Stato</th></tr></thead><tbody>'+
+      '<div class="tbl-wrap"><table><thead><tr><th>Settimana</th><th>Strike</th><th>OTM%</th><th>Premio €</th><th>DD max%</th><th>Stato</th></tr></thead><tbody>'+
       trades.slice().reverse().map(function(t){
-        var dIn=t.opened_at?new Date(t.opened_at).toLocaleDateString('it-IT',{day:'2-digit',month:'short',year:'2-digit'}):'—';
-        var dOut=t.closed_at?new Date(t.closed_at).toLocaleDateString('it-IT',{day:'2-digit',month:'short'}):'—';
-        var prem=parseFloat(t.premium_collected)||0;
+        var dIn=t.opened_at?new Date(t.opened_at).toLocaleDateString('it-IT',{month:'short',year:'numeric'}):'—';
+        var isOpen=t.status==='OPEN';
+        var isFlat=t.status==='FLAT';
         var ddV=parseFloat(t.drawdown_max)||0;
         var ddC=ddV>=5?'var(--red)':ddV>=3?'var(--amber)':'var(--green)';
-        var otm=parseFloat(t.strike_pct)||0;
-        var isOpen=t.status==='OPEN';
-        return '<tr>'+
+        return '<tr style="'+(isFlat?'opacity:.5':isOpen?'opacity:.7':'')+'">'+
           '<td style="font-weight:500">'+dIn+'</td>'+
-          '<td>'+(t.entry_price?parseFloat(t.entry_price).toLocaleString('it-IT'):'—')+'</td>'+
-          '<td>'+(otm?otm.toFixed(2)+'%':'—')+'</td>'+
-          '<td style="color:var(--green);font-weight:600">'+(prem?'€ '+prem.toLocaleString('it-IT'):'—')+'</td>'+
-          '<td style="color:'+ddC+'">'+(ddV?ddV.toFixed(2)+'%':'0.00%')+'</td>'+
-          '<td style="color:var(--muted)">'+dOut+'</td>'+
-          '<td><span class="tag '+(isOpen?'ta':'tg')+'">'+(isOpen?'OPEN':'GAIN')+'</span></td>'+
+          '<td>'+(isFlat?'—':t.strike?parseFloat(t.strike).toLocaleString('it-IT'):'—')+'</td>'+
+          '<td>'+(isFlat?'—':t.strike_pct?parseFloat(t.strike_pct).toFixed(2)+'%':'—')+'</td>'+
+          '<td style="color:var(--green);font-weight:600">'+(isFlat?'—':t.premium_collected?'€ '+parseFloat(t.premium_collected).toLocaleString('it-IT'):'—')+'</td>'+
+          '<td style="color:'+ddC+'">'+(isFlat||isOpen?'—':ddV.toFixed(2)+'%')+'</td>'+
+          '<td><span class="tag '+(isFlat?'tm':isOpen?'ta':'tg')+'">'+(isFlat?'FLAT':isOpen?'IN CORSO':'GAIN')+'</span></td>'+
         '</tr>';
       }).join('')+'</tbody></table></div></div>';
 
